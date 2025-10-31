@@ -75,8 +75,12 @@ WSGI_APPLICATION = 'practicaej2.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'practicaej2',  # IMPORTANTE: Cambia esto por el nombre exacto de tu base de datos en MySQL.
+        'USER': 'root',      # Usuario de tu base de datos (normalmente 'root' en XAMPP).
+        'PASSWORD': '',      # Contraseña de tu base de datos (normalmente vacía en XAMPP).
+        'HOST': '127.0.0.1', # O 'localhost'.
+        'PORT': '3306',      # Puerto por defecto de MySQL.
     }
 }
 

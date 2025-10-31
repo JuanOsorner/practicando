@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password
 # El modelo define la estructura de la tabla y el comportamiento de los datos.
 
 # Creamos el modelo de usuario
@@ -22,11 +23,10 @@ class Usuario(models.Model):
 
     #Creamos un metodo propio en nuestro modelo para desactivar un usuario activo
     def activar_usuario(self):
-    """Activa al usuario si está inactivo."""
-    if self.estado == self.Estado.INACTIVO:
-        self.estado = self.Estado.ACTIVO
-        self.save()
-        # 🚨IMPORTANTE Django ya pasa el valor al self por uno mismo
+        """Activa al usuario si está inactivo."""
+        if self.estado == self.Estado.INACTIVO:
+            self.estado = self.Estado.ACTIVO
+            self.save()
 
     def desactivar_usuario(self):
         """Desactiva al usuario si está activo."""
@@ -46,6 +46,13 @@ class Usuario(models.Model):
             'rol': self.rol,
             'estado': self.estado,
         }
+    def save(self, *args, **kwargs):
+        # Hashear la contraseña antes de guardar si no está ya hasheada.
+        # Esto es crucial para la seguridad.
+        if not self.contraseña.startswith(('pbkdf2_sha256$', 'bcrypt$', 'argon2')):
+            self.contraseña = make_password(self.contraseña)
+        super().save(*args, **kwargs)
+
     #EL usuari lo convertimos a texto esto es para hacer pruebas
     def __str__(self):
         return f"{self.nombre} {self.apellido}"
