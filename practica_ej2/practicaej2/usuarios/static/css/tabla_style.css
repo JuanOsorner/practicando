@@ -1,0 +1,56 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    width: 80%;
+    max-width: 1200px;
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+h2 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 2em;
+}
+
+/* Estilos para la tabla de Syncfusion (ej2-grid) */
+#grid {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Estilo para la cabecera de la tabla */
+.e-grid .e-headercell {
+    background-color: #3498db !important;
+    color: white !important;
+    font-weight: 600;
+    font-size: 1.1em;
+}
+
+/* Estilo para el paginador */
+.e-grid .e-pager {
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Estilo para los iconos del paginador */
+.e-grid .e-pager .e-icon-first::before,
+.e-grid .e-pager .e-icon-prev::before,
+.e-grid .e-pager .e-icon-next::before,
+.e-grid .e-pager .e-icon-last::before {
+    color: #3498db;
+}

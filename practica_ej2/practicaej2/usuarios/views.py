@@ -1,21 +1,21 @@
-from django.shortcuts import render
-#Importamos como vamos a responder 
-import json
 from django.http import JsonResponse
-# Importamos a nuestro mesero
+from django.shortcuts import render
 from .models import Usuario
 
-# Create your views here.
+def tabla_usuarios(request):
+    """Esta vista se encarga de renderizar la tabla de usuarios"""
+    return render(request, 'tabla_usuarios.html')
+
 def enviar_usuarios(request):
     """Validamos la respuesta que nos envian desde el front"""
     if request.method == 'GET':
         try:
             # Los usuarios que se traen del query
             usuarios = Usuario.objects.all()
-            # Creamos un nuevo diccionario con los que traemos del query
+            # Usamos nuestra función pasando los usaurios al self
             datos = [usuario.diccionario_datos() for usuario in usuarios]
             respuesta = {
-                'status': 'succces',
+                'status': 'success',
                 'datos': datos,
                 'mensaje': 'Usuarios cargados correctamente',
             }

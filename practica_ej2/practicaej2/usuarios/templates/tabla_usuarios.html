@@ -1,12 +1,20 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tabla de usuarios</title>
-    
+    <title>Tabla de Usuarios</title>
+    <link href="https://cdn.syncfusion.com/ej2/25.2.3/material.css" rel="stylesheet">
+    <!--Lo coloco aqui por el momento para poder que se cargue primero con la pagina-->
+    <script src="https://cdn.syncfusion.com/ej2/25.2.3/dist/ej2.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/tabla_style.css' %}">
 </head>
 <body>
-    
+    <div class="container">
+        <h2>Usuarios</h2>
+        <div id="grid"><!--AQUI VA A IR NUESTRA TABLA--></div>
+    </div>
+    <script src="{% static 'js/cargar_tabla.js'%}"></script>
 </body>
 </html>
