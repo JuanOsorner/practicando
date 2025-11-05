@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+<body>
+    <div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>    
+    </div>
+
+    <div class="container" id="container">
+        <div class="header-container">
+            <img src="{% static 'img/logoJoli.png' %}" alt="Jolifoods Logo">
+            <h1>Jolifoods</h1>
+        </div>
+        <form class="forregistro" method="POST" action="">
+            <br>
+            
+            <div class="inputGroup">
+                <input type="text" id="documento" name="documento" 
+                       maxlength="10"
+                       style="text-align: left;"
+                       autofocus
+                       required> <label for="documento">Número de documento:</label>
+            </div>
+
+            <button type="submit" class="ingresar">Ingresar</button>
+
+            <button type="button" id="microsoftLoginButton" class="Microsoft">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" 
+                     alt="Microsoft" style="height: 18px; margin-right: 10px;">
+                Ingresar Microsoft
+            </button>
+        </form>
+    </div>
+</body>
+</html>
