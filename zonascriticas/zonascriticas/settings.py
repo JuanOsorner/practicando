@@ -75,6 +75,8 @@ TEMPLATES = [
 WSGI_APPLICATION = 'zonascriticas.wsgi.application'
 
 
+AUTH_USER_MODEL = 'login.Usuario'
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
