@@ -1,0 +1,12 @@
+{% extends 'home/home.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div style="padding: 20px;">
+    <h2>Bienvenido a tu Perfil, {{ user.first_name|default:user.username }}</h2>
+    <p>Tu rol es: {{ user.tipo }}</p>
+    <p>Aquí puedes editar tu información.</p>
+</div>
+{% endblock %}

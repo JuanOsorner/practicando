@@ -1,0 +1,332 @@
+/* Google Fonts Import Link */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* span global (aunque es mejor definirlo en global.css) */
+span {
+  color: var(--color-superficie);
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 280px;
+  /* Usando variable global */
+  background: linear-gradient(var(--color-primario), #352460b4);
+  z-index: 100;
+  transition: all 0.5s ease;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar.close {
+  width: 58px;
+}
+.sidebar .logo-details {
+  height: 45px;
+  width: 50%;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar .logo-details .img-logo {
+  font-size: 10px;
+  color: var(--color-superficie);
+  height: 30px;
+  min-width: 38px;
+  text-align: center;
+  line-height: 50px;
+  padding-left: 10px;
+}
+
+.sidebar .logo-details .logo_name {
+  font-size: 22px;
+  color: var(--color-superficie);
+  font-weight: 600;
+  transition: 0.3s ease;
+  transition-delay: 0.1s;
+  padding-left: 10px;
+}
+.sidebar.close .logo-details .logo_name {
+  transition-delay: 0s;
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar .nav-links {
+  height: calc(100% - 60px); /* Restar la altura del perfil */
+  padding: 5px 0 0 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.8) transparent;
+  margin-bottom: 60px; /* Espacio para el perfil */
+  flex: 1;
+}
+.sidebar.close .nav-links {
+  overflow: visible;
+}
+.sidebar .nav-links::-webkit-scrollbar {
+  width: 8px;
+  display: block;
+}
+.sidebar .nav-links::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+.sidebar .nav-links::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  /* Usando variable global */
+  border: 2px solid var(--color-primario);
+}
+.sidebar .nav-links::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-superficie);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+}
+.sidebar .nav-links li {
+  position: relative;
+  list-style: none;
+  transition: all 0.4s ease;
+  margin: 1px 0;
+}
+
+.sidebar .nav-links li:hover {
+  /* Este color no estaba en tu :root, se puede quedar así
+     o lo puedes añadir como --color-primario-oscuro */
+  background: #1d1b31;
+  border-radius: 4px;
+}
+
+.sidebar .nav-links li .iocn-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0;
+}
+
+.sidebar.close .nav-links li .iocn-link {
+  display: block
+}
+.sidebar .nav-links li i {
+  height: 35px;
+  min-width: 40px;
+  text-align: center;
+  margin-top: 3px;
+  line-height: 40px;
+  color: var(--color-superficie);
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding-left: 5px;
+}
+
+.sidebar.close .nav-links li i {
+  padding-left: 10px;
+}
+
+.sidebar .nav-links li.showMenu i.arrow {
+  transform: rotate(-180deg);
+  transition: all 0.3s ease;
+}
+
+.sidebar.close .nav-links i.arrow {
+  display: none;
+}
+.sidebar .nav-links li a {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  padding: 2px 0;
+  margin: 1px 0;
+}
+.sidebar .nav-links li a .link_name {
+  font-size: 10px;
+  font-weight: 400;
+  color: var(--color-superficie);
+  transition: all 0.4s ease;
+  opacity: 1;
+  display: block;
+  position: relative;
+}
+.sidebar.close .nav-links li a .link_name {
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar .nav-links li a .link_name::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: var(--color-superficie);
+  transition: width 0.3s ease;
+}
+.sidebar .nav-links li a:hover .link_name::after {
+  width: 100%;
+}
+.sidebar .nav-links li a:hover .link_name {
+  color: #ffbf00; /* Color de acento, puedes añadirlo a :root */
+}
+.sidebar .nav-links li .sub-menu {
+  padding: 0 10px 0 50px;
+  margin-top: -2px;
+  background: #1d1b31;
+  display: none;
+}
+.sidebar .nav-links li.showMenu > .sub-menu {
+  display: block;
+  background: #3a2d5c !important;
+  border-left: 2px solid var(--color-superficie);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+}
+.sidebar .nav-links li .sub-menu a {
+  color: var(--color-superficie);
+  font-size: 10px;
+  padding: 4px 0;
+  margin: 2px 0;
+  white-space: nowrap;
+  opacity: 1;
+  transition: all 0.3s ease;
+  display: block;
+  position: relative;
+}
+.sidebar .nav-links li .sub-menu a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 0;
+  background-color: rgba(255, 255, 255, 0.748);
+  transition: width 0.3s ease;
+}
+.sidebar .nav-links li .sub-menu a:hover::after {
+  width: 100%;
+}
+.sidebar.close .nav-links li > .sub-menu {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-top: 0;
+  padding: 4px 12px;
+  border-radius: 0 6px 6px 0;
+  min-width: 220px;
+  opacity: 0;
+  display: none;
+  pointer-events: none;
+  transition: all 0.3s ease;
+  background: var(--color-primario) !important;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1002;
+}
+
+.sidebar.close .nav-links li:hover > .sub-menu {
+  top: 0;
+  opacity: 1;
+  pointer-events: auto;
+  display: block;
+  transition: all 0.3s ease;
+  background: var(--color-primario) !important;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ... (resto de sub-menu) ... */
+
+.sidebar .profile-details {
+  position: fixed;
+  bottom: 0;
+  width: 280px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #6a5e8a; /* Color no definido en :root */
+  padding: 12px 0;
+  transition: all 0.5s ease;
+  z-index: 1001;
+}
+.sidebar.close .profile-details {
+  width: 58px;
+  background: #6a5e8a; /* Color no definido en :root */
+  justify-content: center;
+}
+.sidebar .profile-details .profile-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar .profile-details img {
+  height: 48px;
+  width: 48px;
+  object-fit: cover;
+  border-radius: 16px;
+  margin: 0 15px 0 7px;
+  background: transparent;
+  transition: all 0.5s ease;
+}
+.sidebar.close .profile-details img {
+  padding: 1px;
+  height: 48px;
+  width: 48px;
+  margin: 0;
+}
+.sidebar .profile-details .profile_name,
+.sidebar .profile-details .job {
+  color: var(--color-superficie);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+}
+.sidebar.close .profile-details i,
+.sidebar.close .profile-details .profile_name,
+.sidebar.close .profile-details .job {
+  display: none;
+}
+.sidebar .profile-details .job {
+  font-size: 10px;
+}
+
+.home-section {
+  position: relative;
+  background: var(--color-superficie);
+  left: 280px;
+  width: calc(100% - 280px);
+  transition: all 0.5s ease;
+}
+.sidebar.close ~ .home-section {
+  left: 58px;
+  width: calc(100% - 58px);
+}
+
+.home-section .home-content {
+    position: sticky;
+    top: 0;
+    height: 45px;
+    background: var(--color-superficie);
+    display: flex;
+    align-items: center;
+    padding-left: 1px;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.home-section .home-content .bx-menu,
+.home-section .home-content .text {
+  color: var(--color-texto-principal);
+  font-size: 30px;
+}
+.home-section .home-content .bx-menu {
+  margin: 0 15px;
+  cursor: pointer;
+}
+.home-section .home-content .text {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Oculta la vista de usuario en dispositivos de escritorio */
+.user-view {
+    display: none;
+}

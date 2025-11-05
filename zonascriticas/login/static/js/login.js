@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = datos.redirectTo;
+                        window.location.href = '/perfil/';
                     });
                 }
 
