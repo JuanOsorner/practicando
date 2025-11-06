@@ -5,11 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}JoliFoods{% endblock %}</title>
+
+    <link rel="icon" href="{% static 'img\logo\logoJoli.png' %}" type="image/png">
     
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     
-    <link rel="stylesheet" href="{% static 'home/css/web.css' %}">
-    <link rel="stylesheet" href="{% static 'home/css/movile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/web.css' %}">
+    <link rel="stylesheet" href="{% static 'css/movile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -25,17 +28,17 @@
         <div class="admin-desktop-view">
             <div class="sidebar">
                 <div class="logo-details">
-                    <img src="{% static 'img/logoJoli.png' %}" class="img-logo" alt="Logo JoliFoods">
+                    <img src="{% static 'img/logo/logoJoli.png' %}" class="img-logo" alt="Logo JoliFoods">
                     <span class="logo_name">JoliFoods</span>
                 </div>
                 <ul class="nav-links no-scrollbar">
                     <li><a href="{% url 'perfil' %}"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="link_name">Perfil</span></a></li>
-                    <li><a href="{% url 'empresas' %}"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
-                    <li><a href="{% url 'jornadas' %}"><span class="icon"><i class='bx bx-history'></i></span><span class="link_name">Registro Jornadas</span></a></li>
+                    <li><a href="#"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
+                    <li><a href="#"><span class="icon"><i class='bx bx-history'></i></span><span class="link_name">Registro Jornadas</span></a></li>
                 </ul>
                 <div class="profile-details">
                     <div class="profile-content">
-                        <img src="{{ imagen_src }}" alt="Foto de Perfil" id="sidebar-profile-img">
+                        <img src="{% static '{ imagen_url }' %}" alt="Foto de Perfil" id="sidebar-profile-img">
                     </div>
                     <div class="name-job">
                         <div class="profile_name" id="admin-nombre">{{ user.first_name|default:user.username }}</div>
@@ -66,14 +69,13 @@
             </header>
             <div class="iframe-wrapper no-scrollbar">
                 {% block content_mobile %}
-                    {% block content %}{% endblock %}
                 {% endblock %}
             </div>
             <footer class="mobile-footer-admin">
-                <ul>
-                    <li><a href="{% url 'empresas' %}"><span class="icon"><i class="fa-solid fa-building"></i></span><span class="text">Empresas</span></a></li>
-                    <li><a href="{% url 'perfil' %}"><span class="icon"><i class="fa-solid fa-user"></i></span><span class="text">Perfil</span></a></li>
-                    <li><a href="{% url 'jornadas' %}"><span class="icon"><i class="fa-solid fa-list-check"></i></span><span class="text">Registros</span></a></li>
+                <ul class="nav-links no-scrollbar">
+                    <li><a href="{% url 'perfil' %}"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="link_name">Perfil</span></a></li>
+                    <li><a href="#"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
+                    <li><a href="#"><span class="icon"><i class='bx bx-history'></i></span><span class="link_name">Registro Jornadas</span></a></li>
                 </ul>
             </footer>
         </div>
@@ -87,7 +89,7 @@
             <button class="logout-btn js-logout-button"><i class="fas fa-sign-out-alt"></i></button>
         </header>
         <div class="iframe-container-user no-scrollbar"> 
-            {% block content %}{% endblock %}
+            {% block content_user %}{% endblock %}
         </div>
         <div class="navigation-container">
             <div class="navigation-bar"><ul id="user-nav-list"></ul></div>
@@ -95,9 +97,8 @@
     </div>
 
     {% endif %}
-
-    <script src="{% static 'js/global.js' %}"></script>
-    <script src="{% static 'home/js/home.js' %}"></script>
+    
+    <script src="{% static 'js/home.js' %}"></script>
     
     {% block scripts %}
     {% endblock %}

@@ -39,7 +39,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        window.location.href = '/perfil/';
+                        // NO HAGAS ESTO: window.location.href = '/perfil/';
+                        // HAZ ESTO:
+                        window.location.href = '/dashboard/'; // <-- Redirige al "aiguilleur"
                     });
                 }
 

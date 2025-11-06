@@ -1,0 +1,250 @@
+/* ============================================= */
+/* === ESTILOS BASE (Móvil < 600px) === */
+/* ============================================= */
+.profile-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 1rem;
+    /* Centra la tarjeta en el espacio disponible */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Se alinea arriba en móvil */
+    background-color: var(--color-fondo);
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px; /* Un ancho máximo más elegante */
+    margin: 0 auto;
+    background-color: var(--color-superficie);
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-suave);
+    padding: 1.5rem;
+    border-top: 4px solid var(--color-primario);
+}
+
+/* El .row en móvil es un bloque normal */
+.container > .row {
+    margin: 0;
+}
+
+.form-section {
+    padding: 0;
+}
+
+.form-section h4 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    text-align: left; /* Título a la izquierda en móvil */
+    color: var(--color-primario);
+    border-bottom: 1px solid var(--color-borde);
+}
+
+/* En móvil, la línea de borde va abajo */
+.borderliner {
+    border-right: none;
+    border-bottom: 1px solid var(--color-borde);
+    padding-bottom: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Sección de la imagen de perfil */
+#uploadForm, #uploadFormMobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.profile-pic-container {
+    position: relative;
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-borde);
+    border: 3px solid var(--color-superficie);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+}
+.profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+.btn-change-photo {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--color-primario);
+    color: white;
+    border: 2px solid var(--color-superficie);
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+.user-info .name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-texto-principal);
+}
+.user-info .email {
+    color: var(--color-texto-secundario);
+    font-size: 0.9rem;
+}
+
+/* Estilos de Formularios */
+.labels {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+    display: block;
+    color: var(--color-texto-secundario);
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-control {
+    height: 48px;
+    font-size: 1rem;
+    color: var(--color-texto-principal);
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    transition: all 0.2s ease;
+    background-color: #fff; /* Asegurar fondo blanco */
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+.form-control:focus {
+    border-color: var(--color-primario);
+    box-shadow: 0 0 0 3px rgba(99, 39, 120, 0.15);
+    background-color: #fff;
+}
+.form-control[readonly] {
+    background-color: var(--color-fondo);
+    cursor: not-allowed;
+}
+
+.profile-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--color-primario);
+    color: white;
+    border: none;
+    font-weight: 600;
+    padding: 14px 25px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    width: 100%;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+}
+.profile-button:hover {
+    background: #4a1d5c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+select.form-control {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+    padding-right: 2.5rem;
+}
+
+/* Fila interna del formulario (Documento) */
+/* (Tus clases .row y .col-md-6) */
+#profileForm .row, #profileFormMobile .row {
+    display: flex;
+    flex-wrap: wrap; /* Permite que se apilen si no caben */
+    margin: 0 -0.5rem;
+}
+#profileForm .col-md-6, #profileFormMobile .col-md-6 {
+    width: 100%; /* Por defecto son 100% en móvil */
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+}
+
+
+/* ============================================= */
+/* === TABLET PEQUEÑA (>= 600px) === */
+/* ============================================= */
+@media (min-width: 600px) {
+    /* Pone los campos de documento uno al lado del otro */
+    #profileForm .col-md-6, #profileFormMobile .col-md-6 {
+        width: 50%;
+    }
+
+    .profile-wrapper {
+        padding: 2rem;
+        min-height: calc(100vh - 45px); /* Altura de header (de web.css) */
+        align-items: center; /* Centrado vertical */
+    }
+
+    .container {
+        padding: 2rem;
+    }
+
+    .form-section h4 {
+        text-align: center; /* Centra el título en pantallas más grandes */
+    }
+}
+
+/* ============================================= */
+/* === TABLET Y ESCRITORIO (>= 900px) === */
+/* ============================================= */
+@media (min-width: 900px) {
+    .container {
+        padding: 2.5rem;
+    }
+    
+    /* Activa el layout de 2 columnas (foto | formulario) */
+    .container > .row {
+        display: flex;
+        flex-wrap: nowrap;
+    }
+
+    /* Tus clases .col-lg-4 y .col-lg-8 ahora funcionarán */
+    .col-lg-4 {
+        width: 33.33%;
+        padding-right: 2rem;
+        box-sizing: border-box;
+    }
+    .col-lg-8 {
+        width: 66.67%;
+        padding-left: 2rem;
+        box-sizing: border-box;
+    }
+
+    /* Vuelve a poner el borde lateral y quita el inferior */
+    .borderliner {
+        border-right: 1px solid var(--color-borde);
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    .profile-button {
+        width: auto; /* El botón ya no ocupa el 100% */
+        padding: 14px 35px;
+    }
+}

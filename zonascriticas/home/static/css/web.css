@@ -1,9 +1,8 @@
 /* Google Fonts Import Link */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* span global (aunque es mejor definirlo en global.css) */
 span {
-  color: var(--color-superficie);
+  color: white;
 }
 
 .sidebar {
@@ -12,8 +11,7 @@ span {
   left: 0;
   height: 100%;
   width: 280px;
-  /* Usando variable global */
-  background: linear-gradient(var(--color-primario), #352460b4);
+  background: linear-gradient(#352460, #352460b4);
   z-index: 100;
   transition: all 0.5s ease;
   display: flex;
@@ -31,7 +29,7 @@ span {
 
 .sidebar .logo-details .img-logo {
   font-size: 10px;
-  color: var(--color-superficie);
+  color: #fff;
   height: 30px;
   min-width: 38px;
   text-align: center;
@@ -41,7 +39,7 @@ span {
 
 .sidebar .logo-details .logo_name {
   font-size: 22px;
-  color: var(--color-superficie);
+  color: #fff;
   font-weight: 600;
   transition: 0.3s ease;
   transition-delay: 0.1s;
@@ -76,11 +74,10 @@ span {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 10px;
   transition: all 0.3s ease;
-  /* Usando variable global */
-  border: 2px solid var(--color-primario);
+  border: 2px solid #352460;
 }
 .sidebar .nav-links::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-superficie);
+  background-color: #ffffff;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 .sidebar .nav-links li {
@@ -91,8 +88,6 @@ span {
 }
 
 .sidebar .nav-links li:hover {
-  /* Este color no estaba en tu :root, se puede quedar así
-     o lo puedes añadir como --color-primario-oscuro */
   background: #1d1b31;
   border-radius: 4px;
 }
@@ -113,7 +108,7 @@ span {
   text-align: center;
   margin-top: 3px;
   line-height: 40px;
-  color: var(--color-superficie);
+  color: #fff;
   font-size: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -142,7 +137,7 @@ span {
 .sidebar .nav-links li a .link_name {
   font-size: 10px;
   font-weight: 400;
-  color: var(--color-superficie);
+  color: #fff;
   transition: all 0.4s ease;
   opacity: 1;
   display: block;
@@ -159,14 +154,14 @@ span {
   height: 2px;
   bottom: -2px;
   left: 0;
-  background-color: var(--color-superficie);
+  background-color: rgb(255, 255, 255);
   transition: width 0.3s ease;
 }
 .sidebar .nav-links li a:hover .link_name::after {
   width: 100%;
 }
 .sidebar .nav-links li a:hover .link_name {
-  color: #ffbf00; /* Color de acento, puedes añadirlo a :root */
+  color: #ffbf00;
 }
 .sidebar .nav-links li .sub-menu {
   padding: 0 10px 0 50px;
@@ -177,11 +172,11 @@ span {
 .sidebar .nav-links li.showMenu > .sub-menu {
   display: block;
   background: #3a2d5c !important;
-  border-left: 2px solid var(--color-superficie);
+  border-left: 2px solid #ffffff;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
 }
 .sidebar .nav-links li .sub-menu a {
-  color: var(--color-superficie);
+  color: #fff;
   font-size: 10px;
   padding: 4px 0;
   margin: 2px 0;
@@ -216,7 +211,7 @@ span {
   display: none;
   pointer-events: none;
   transition: all 0.3s ease;
-  background: var(--color-primario) !important;
+  background: #352460 !important;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
   z-index: 1002;
 }
@@ -227,11 +222,90 @@ span {
   pointer-events: auto;
   display: block;
   transition: all 0.3s ease;
-  background: var(--color-primario) !important;
+  background: #352460 !important;
   box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* ... (resto de sub-menu) ... */
+.sidebar.close .nav-links li .sub-menu li {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.sidebar.close .nav-links li .sub-menu li a {
+  padding: 5px 10px;
+  margin: 2px 0;
+  display: block;
+  color: #fff;
+  font-size: 10px;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  background: transparent;
+}
+
+.sidebar.close .nav-links li .sub-menu li a:hover {
+  color: #ffbf00;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.close .nav-links li .sub-menu .link_name {
+  padding: 2px 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: block;
+  opacity: 1;
+}
+
+.sidebar.close .nav-links li .sub-menu li .iocn-link {
+  padding: 2px 0;
+}
+
+.sidebar.close .nav-links li .sub-menu li .iocn-link .arrow {
+  margin-top: 0;
+  transition: transform 0.3s ease;
+  font-size: 10px;
+}
+
+.sidebar.close .nav-links li .sub-menu li.showMenu .iocn-link .arrow {
+  transform: rotate(-180deg);
+}
+
+.sidebar .nav-links li .sub-menu .link_name {
+  display: none;
+}
+
+.sidebar .nav-links li .sub-menu li .iocn-link .link_name {
+  font-size: 10px;
+  font-weight: 500;
+  display: block;
+  opacity: 1;
+}
+
+.sidebar.close .nav-links li .sub-menu .link_name {
+  font-size: 14px;
+  opacity: 1;
+  display: block;
+}
+
+.sidebar .nav-links li .sub-menu.blank {
+  opacity: 1;
+  pointer-events: auto;
+  padding: 3px 20px 6px 16px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar .nav-links li:hover .sub-menu.blank {
+  top: 0;
+  transform: none;
+  left: 100%;
+  position: absolute;
+  background: #352460 !important;
+  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0 6px 6px 0;
+  min-width: 220px;
+  z-index: 1002;
+}
 
 .sidebar .profile-details {
   position: fixed;
@@ -241,14 +315,14 @@ span {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #6a5e8a; /* Color no definido en :root */
+  background: #6a5e8a;
   padding: 12px 0;
   transition: all 0.5s ease;
   z-index: 1001;
 }
 .sidebar.close .profile-details {
   width: 58px;
-  background: #6a5e8a; /* Color no definido en :root */
+  background: #6a5e8a;
   justify-content: center;
 }
 .sidebar .profile-details .profile-content {
@@ -273,7 +347,7 @@ span {
 }
 .sidebar .profile-details .profile_name,
 .sidebar .profile-details .job {
-  color: var(--color-superficie);
+  color: #fff;
   font-size: 10px;
   font-weight: 500;
   white-space: nowrap;
@@ -290,7 +364,7 @@ span {
 
 .home-section {
   position: relative;
-  background: var(--color-superficie);
+  background: #ffffff;
   left: 280px;
   width: calc(100% - 280px);
   transition: all 0.5s ease;
@@ -304,7 +378,7 @@ span {
     position: sticky;
     top: 0;
     height: 45px;
-    background: var(--color-superficie);
+    background: white;
     display: flex;
     align-items: center;
     padding-left: 1px;
@@ -314,7 +388,7 @@ span {
 
 .home-section .home-content .bx-menu,
 .home-section .home-content .text {
-  color: var(--color-texto-principal);
+  color: #11101d;
   font-size: 30px;
 }
 .home-section .home-content .bx-menu {
@@ -326,7 +400,14 @@ span {
   font-weight: 600;
 }
 
-/* Oculta la vista de usuario en dispositivos de escritorio */
+/* --- Reglas de Visibilidad para Escritorio --- */
+/* (Tus reglas están en home.html, pero esto es un seguro) */
+
+/* Oculta AMBAS vistas móviles en escritorio */
+.admin-mobile-view {
+  display: none;
+}
+
 .user-view {
-    display: none;
+  display: none;
 }

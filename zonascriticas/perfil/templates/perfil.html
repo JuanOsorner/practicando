@@ -1,12 +1,178 @@
-{% extends 'home/home.html' %}
+{% extends 'home.html' %}
 {% load static %}
 
-{% block title %}Mi Perfil{% endblock %}
+{% block title %}Mi Perfil - JoliFoods{% endblock %}
 
 {% block content %}
-<div style="padding: 20px;">
-    <h2>Bienvenido a tu Perfil, {{ user.first_name|default:user.username }}</h2>
-    <p>Tu rol es: {{ user.tipo }}</p>
-    <p>Aquí puedes editar tu información.</p>
+<div class="profile-wrapper">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-4 borderliner">
+                <div class="form-section">
+                    
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="profile-pic-container">
+                            <img id="profileImage" class="profile-pic" src="{{ imagen_src }}" alt="Imagen de perfil">
+                            <input type="file" name="profileImage" id="profileImageInput" style="display: none;" accept="image/*">
+                            <button class="btn btn-change-photo" type="button" onclick="document.getElementById('profileImageInput').click();">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="user-info text-center">
+                        <div class="name font-weight-bold">{{ user.first_name|default:user.username }}</div>
+                        <div class="email text-muted">{{ user.email }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="form-section">
+                    <h4>Ajustes de perfil</h4>
+                    
+                    <form id="profileForm">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="labels" for="nombre">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="labels" for="apellido">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" value="{{ user.last_name }}">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="labels" for="tipo_documento">Tipo de documento</label>
+                                    <select class="form-control" id="tipo_documento" name="tipo_documento">
+                                        <option value="CC" {% if user.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+                                        <option value="CE" {% if user.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería (CE)</option>
+                                        <option value="PA" {% if user.tipo_documento == 'PA' %}selected{% endif %}>Pasaporte (PA)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="labels" for="documento">Número de documento</label>
+                                    <input type="text" class="form-control" id="documento" name="documento" value="{{ user.numero_documento }}" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="labels" for="correo">Correo</label>
+                            <input type="email" class="form-control" id="correo" name="correo" value="{{ user.email }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="labels" for="area">Cargo</label>
+                            <input type="text" class="form-control" id="area" name="area" value="{{ user.tipo }}" readonly>
+                        </div>
+                        
+                        <button class="btn profile-button" type="submit">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+
+{% block content_mobile %}
+<link rel="stylesheet" href="{% static 'perfil/css/profile.css' %}">
+
+<div class="profile-wrapper">
+    <div class="container">
+        <div class="row">
+
+            <div class="col-lg-4 borderliner">
+                <div class="form-section">
+                    
+                    <form id="uploadFormMobile" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="profile-pic-container">
+                            <img id="profileImageMobile" class="profile-pic" src="{{ imagen_src }}" alt="Imagen de perfil">
+                            <input type="file" name="profileImage" id="profileImageInputMobile" style="display: none;" accept="image/*">
+                            <button class="btn btn-change-photo" type="button" onclick="document.getElementById('profileImageInputMobile').click();">
+                                <i class="fa-solid fa-camera"></i>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="user-info text-center">
+                        <div class="name font-weight-bold">{{ user.first_name|default:user.username }}</div>
+                        <div class="email text-muted">{{ user.email }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="form-section">
+                    <h4>Ajustes de perfil</h4>
+                    
+                    <form id="profileFormMobile">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label class="labels" for="nombreMobile">Nombre</label>
+                            <input type="text" class="form-control" id="nombreMobile" name="nombre" value="{{ user.first_name }}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="labels" for="apellidoMobile">Apellido</label>
+                            <input type="text" class="form-control" id="apellidoMobile" name="apellido" value="{{ user.last_name }}">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="labels" for="tipo_documentoMobile">Tipo de documento</label>
+                                    <select class="form-control" id="tipo_documentoMobile" name="tipo_documento">
+                                        <option value="CC" {% if user.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+                                        <option value="CE" {% if user.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería (CE)</option>
+                                        <option value="PA" {% if user.tipo_documento == 'PA' %}selected{% endif %}>Pasaporte (PA)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="labels" for="documentoMobile">Número de documento</label>
+                                    <input type="text" class="form-control" id="documentoMobile" name="documento" value="{{ user.numero_documento }}" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="labels" for="correoMobile">Correo</label>
+                            <input type="email" class="form-control" id="correoMobile" name="correo" value="{{ user.email }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="labels" for="areaMobile">Cargo</label>
+                            <input type="text" class="form-control" id="areaMobile" name="area" value="{{ user.tipo }}" readonly>
+                        </div>
+                        
+                        <button class="btn profile-button" type="submit">
+                            <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+    <script src="{% static 'perfil/js/profile.js' %}"></script>
 {% endblock %}

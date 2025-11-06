@@ -62,10 +62,6 @@ def login_api(request: HttpRequest) -> JsonResponse:
     """
 
     # --- Lógica de Éxito ---
-    
-    # 1. ¡CAMBIO CRÍTICO!
-    #    Inicia la sesión de Django para el usuario.
-    #    Esto crea la cookie de sesión segura (HttpOnly).
     login(request, user)
 
     # 2. (Lógica de token manual eliminada, ya no es necesaria)

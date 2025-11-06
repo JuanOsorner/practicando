@@ -5,9 +5,15 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # Incluye todas las URLs de tu app 'login' (/, /api/login/, /logout/)
+    # Cuando se visita la raíz '/', se incluye login/urls.py
     path('', include('login.urls')), 
     
-    # Incluye todas las URLs de tu app 'home' (/dashboard/, /perfil/, etc.)
-    path('', include('home.urls')),
+    # Cuando se visita '/dashboard/', se incluye home/urls.py
+    path('', include('home.urls')), # Gestiona 'dashboard/'
+
+    # Cuando se visita '/perfil/', se incluye perfil/urls.py
+    path('perfil/', include('perfil.urls')),
+    
+    # path('empresas/', include('empresas.urls')),
+    # path('jornadas/', include('jornadas.urls')),
 ]
