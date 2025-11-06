@@ -49,4 +49,4 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
         'user': request.user,
         'imagen_src': imagen_url 
     }
-    return render(request, 'home/perfil.html', context)
+    return render(request, 'perfil/perfil.html', context)

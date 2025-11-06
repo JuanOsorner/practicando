@@ -28,7 +28,9 @@ def login_api(request: HttpRequest) -> JsonResponse:
     documento = request.POST.get('documento', '').strip()
     
     if not documento:
-        return JsonResponse({'status': False, 'mensaje': 'Documento no proporcionado.'}, status=400)
+        return JsonResponse({
+            'status': False, 
+            'mensaje': 'Documento no proporcionado.'}, status=400)
 
     try:
         # Busca al usuario por su número de documento

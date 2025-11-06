@@ -8,9 +8,9 @@ urlpatterns = [
     
     # --- Rutas de Admin (para el sidebar) ---
     path('perfil/', views.perfil_view, name='perfil'),
-    path('empresas/', views.empresas_view, name='empresas'),
-    path('jornadas/', views.jornadas_view, name='jornadas'),
+    #path('empresas/', views.empresas_view, name='empresas'),
+    #path('jornadas/', views.jornadas_view, name='jornadas'),
     
     # --- Rutas de Usuario ---
-    path('responsabilidad/', views.responsabilidad_view, name='responsabilidad'),
+    #path('responsabilidad/', views.responsabilidad_view, name='responsabilidad'),
 ]
