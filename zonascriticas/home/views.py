@@ -19,7 +19,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
     if user.tipo == 'Usuario':
         # Redirige a la URL nombrada 'responsabilidad'
-        return redirect('perfil') 
+        return redirect('responsabilidad') 
     else:
         # Redirige a la URL nombrada 'perfil'
         return redirect('perfil')

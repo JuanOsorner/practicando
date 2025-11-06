@@ -8,6 +8,23 @@
     /* 1. OCULTAR LA VISTA DE ESCRITORIO */
     /* ---------------------------------- */
     /* Usa la clase correcta de tu HTML */
+
+    /* 1. Forzamos al body a ocupar toda la pantalla */
+    body.role-admin, body.role-user {
+        display: block; /* Sobrescribe cualquier 'display: flex' global */
+        height: 100dvh;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        overflow: hidden; /* Evita el scroll del body */
+    }
+
+    /* 2. Forzamos al contenedor principal a ocupar el 100% */
+    .admin-view, .user-view {
+        height: 100%;
+        width: 100%;
+    }
+
     .admin-desktop-view {
         display: none !important;
     }

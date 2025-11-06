@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}JoliFoods{% endblock %}</title>
 
-    <link rel="icon" href="{% static 'img\logo\logoJoli.png' %}" type="image/png">
+    <link rel="icon" href="{% static 'img\logoJoli.png' %}" type="image/png">
     
     <link rel="stylesheet" href="{% static 'css/global.css' %}">
     
@@ -28,7 +28,7 @@
         <div class="admin-desktop-view">
             <div class="sidebar">
                 <div class="logo-details">
-                    <img src="{% static 'img/logo/logoJoli.png' %}" class="img-logo" alt="Logo JoliFoods">
+                    <img src="{% static 'img/logoJoli.png' %}" class="img-logo" alt="Logo JoliFoods">
                     <span class="logo_name">JoliFoods</span>
                 </div>
                 <ul class="nav-links no-scrollbar">
@@ -38,7 +38,7 @@
                 </ul>
                 <div class="profile-details">
                     <div class="profile-content">
-                        <img src="{% static '{ imagen_url }' %}" alt="Foto de Perfil" id="sidebar-profile-img">
+                        <img src="{{ imagen_src }}" alt="Foto de Perfil" id="sidebar-profile-img">
                     </div>
                     <div class="name-job">
                         <div class="profile_name" id="admin-nombre">{{ user.first_name|default:user.username }}</div>

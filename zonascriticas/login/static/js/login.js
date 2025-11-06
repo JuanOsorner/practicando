@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             return data;
         } catch (error) {
-            console.log("Error en el servidor", error);
+            //console.log("Error en el servidor", error);
             throw error;
         }
     }

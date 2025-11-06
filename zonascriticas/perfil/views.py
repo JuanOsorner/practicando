@@ -1,10 +1,10 @@
-# zonascriticas\perfil\views.py
+# zonascriticas/perfil/views.py
 
 from django.shortcuts import render
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+# ¡No necesitas importar 'Usuario' porque usas request.user!
 
 @login_required(login_url='/')
 def perfil_view(request: HttpRequest) -> HttpResponse:
@@ -12,23 +12,37 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
     Muestra la página de perfil del usuario.
     """
     
-    imagen_url = 'img/imagenes_admin/default.png'
+    # --- LÓGICA DE IMAGEN POR DEFECTO ---
+    # (Como pediste, esto se maneja aquí por ahora)
     
+    # 1. Define la ruta estática de tu imagen por defecto
+    imagen_url_por_defecto = '/static/img/default.png'
+
+    # 2. Comprueba si el usuario tiene una imagen en la BD
     if request.user.img:
-        imagen_url = request.user.img.url
+        # Si la tiene, usa la URL de medios (ej. /media/usuarios/foto.jpg)
+        imagen_a_mostrar = request.user.img.url
+    else:
+        # Si no la tiene (es NULL), usa la imagen por defecto
+        imagen_a_mostrar = imagen_url_por_defecto
         
     context = {
         'user': request.user,
-        'imagen_src': imagen_url 
+        'imagen_src': imagen_a_mostrar 
     }
     
     return render(request, 'perfil.html', context)
+
+# ---
+# --- ¡LAS FUNCIONES QUE TE FALTAN PARA GUARDAR! ---
+# ---
 
 @require_POST  # Solo permite peticiones POST
 @login_required
 def update_profile_api(request: HttpRequest) -> JsonResponse:
     """
     API para actualizar los datos del formulario de perfil.
+    Recibe el fetch desde profile.js
     """
     user = request.user
     try:
@@ -38,7 +52,7 @@ def update_profile_api(request: HttpRequest) -> JsonResponse:
         user.tipo_documento = request.POST.get('tipo_documento')
         user.numero_documento = request.POST.get('documento', '').strip()
         
-        # 2. Guarda el usuario
+        # 2. Guarda el usuario EN LA BASE DE DATOS
         user.save(update_fields=['first_name', 'last_name', 'tipo_documento', 'numero_documento'])
         
         # 3. Responde con éxito
@@ -56,6 +70,7 @@ def update_profile_api(request: HttpRequest) -> JsonResponse:
 def update_image_api(request: HttpRequest) -> JsonResponse:
     """
     API para actualizar la imagen de perfil.
+    Recibe el fetch desde profile.js
     """
     user = request.user
     try:
