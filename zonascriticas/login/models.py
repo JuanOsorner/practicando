@@ -1,6 +1,8 @@
 from django.db import models
 # Manejamos la logica del login
 from django.contrib.auth.models import AbstractUser
+# Importamos de empresas la empresa y el cargo
+from empresas.models import Empresa, Cargo
 
 # Abstract user sirve ya contiene los datos basicos cargados
 """
@@ -34,6 +36,24 @@ class Usuario(AbstractUser):
 
     #Campo de expiración del token
     otp_expiracion = models.DateTimeField(blank=True, null=True)
+
+    # Añadimos las llaves foraneas que necesita
+
+    empresa = models.ForeignKey(
+        'empresas.Empresa', 
+        on_delete=models.SET_NULL, 
+        null=True, # Permite que un usuario (ej. Admin) no pertenezca a ninguna empresa
+        blank=True,
+        related_name='empleados' # Nos permite hacer Empresa.empleados.all()
+    )
+
+    cargo = models.ForeignKey(
+        'empresas.Cargo', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name='usuarios'
+    )
 
     # El str es una forma de ver un dato cuando hacemos una isntancia
     def __str__(self):

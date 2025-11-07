@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-# ¡No necesitas importar 'Usuario' porque usas request.user!
+from django.templatetags.static import static
 
 @login_required(login_url='/')
 def perfil_view(request: HttpRequest) -> HttpResponse:
@@ -12,11 +12,8 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
     Muestra la página de perfil del usuario.
     """
     
-    # --- LÓGICA DE IMAGEN POR DEFECTO ---
-    # (Como pediste, esto se maneja aquí por ahora)
-    
     # 1. Define la ruta estática de tu imagen por defecto
-    imagen_url_por_defecto = '/static/img/default.png'
+    imagen_url_por_defecto = static('zonascriticas/img/default.png')
 
     # 2. Comprueba si el usuario tiene una imagen en la BD
     if request.user.img:

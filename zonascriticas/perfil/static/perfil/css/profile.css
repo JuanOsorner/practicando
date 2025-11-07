@@ -10,21 +10,22 @@
     display: flex;
     justify-content: center;
     align-items: flex-start; /* Se alinea arriba en móvil */
-    background-color: var(--color-fondo);
+    background-color: var(--color-fondo-app); /* <-- VARIABLE GLOBAL */
 }
 
-.container {
+/* Renombrado para evitar colisión con login.css */
+.container-profile { 
     width: 100%;
     max-width: 1000px; /* Ancho máximo elegante */
     margin: 0 auto;
-    background-color: var(--color-superficie);
-    border-radius: var(--radio-borde);
-    box-shadow: var(--sombra-suave);
+    background-color: var(--color-superficie); /* <-- VARIABLE GLOBAL */
+    border-radius: var(--radio-borde); /* <-- VARIABLE GLOBAL */
+    box-shadow: var(--sombra-suave); /* <-- VARIABLE GLOBAL */
     padding: 1.5rem;
-    border-top: 4px solid var(--color-primario);
+    border-top: 4px solid var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
 }
 
-.container > .row {
+.container-profile > .row {
     /* En móvil, el layout es vertical por defecto */
     margin: 0;
 }
@@ -39,14 +40,14 @@
     margin-bottom: 2.5rem;
     padding-bottom: 1rem;
     text-align: center; /* SOLUCIÓN: Título centrado */
-    color: var(--color-primario);
-    border-bottom: 1px solid var(--color-borde);
+    color: var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
+    border-bottom: 1px solid var(--color-borde); /* <-- VARIABLE GLOBAL */
 }
 
 /* SOLUCIÓN: Borde inferior en móvil */
 .borderliner {
     border-right: none;
-    border-bottom: 1px solid var(--color-borde);
+    border-bottom: 1px solid var(--color-borde); /* <-- VARIABLE GLOBAL */
     padding-bottom: 1.5rem;
     margin-bottom: 1.5rem;
 }
@@ -67,8 +68,8 @@
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    background-color: var(--color-borde); 
-    border: 3px solid var(--color-superficie); 
+    background-color: var(--color-borde); /* <-- VARIABLE GLOBAL */
+    border: 3px solid var(--color-superficie); /* <-- VARIABLE GLOBAL */
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
     margin-bottom: 1rem; 
 }
@@ -77,9 +78,9 @@
     position: absolute;
     bottom: 5px;
     right: 5px;
-    background: var(--color-primario);
-    color: white;
-    border: 2px solid var(--color-superficie);
+    background: var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
+    color: var(--color-texto-sobre-primario); /* <-- VARIABLE GLOBAL */
+    border: 2px solid var(--color-superficie); /* <-- VARIABLE GLOBAL */
     border-radius: 50%;
     width: 38px;
     height: 38px;
@@ -98,12 +99,12 @@
 .user-info .name { 
     font-size: 1.35rem; /* Tamaño aumentado */
     font-weight: 600; 
-    color: var(--color-texto-principal);
+    color: var(--color-texto-principal); /* <-- VARIABLE GLOBAL */
     margin-bottom: 0.25rem;
 }
 .user-info .email {
     font-size: 0.95rem; /* Tamaño aumentado */
-    color: var(--color-texto-secundario);
+    color: var(--color-texto-secundario); /* <-- VARIABLE GLOBAL */
 }
 
 /* --- Estilos de Formularios --- */
@@ -122,20 +123,20 @@
 .form-control { 
     height: 48px; 
     font-size: 1rem; 
-    border-radius: 8px; 
-    border: 1px solid #ccc; 
+    border-radius: var(--radio-borde); /* <-- VARIABLE GLOBAL */
+    border: 1px solid #ccc; /* Podría ser var(--color-borde) */
     transition: all 0.2s ease;
     width: 100%; /* <-- Esto los hace uniformes */
     box-sizing: border-box; /* <-- Evita que se desborden */
     padding: 0 1rem; /* <-- Añade padding interno */
-    color: var(--color-texto-principal);
+    color: var(--color-texto-principal); /* <-- VARIABLE GLOBAL */
 }
 .form-control:focus { 
-    border-color: var(--color-primario); 
+    border-color: var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
     box-shadow: 0 0 0 3px rgba(99, 39, 120, 0.15); 
 }
 .form-control[readonly] { 
-    background-color: var(--color-fondo); 
+    background-color: var(--color-fondo-app); /* <-- VARIABLE GLOBAL */
     cursor: not-allowed; 
 }
 
@@ -144,11 +145,12 @@
     align-items:center; 
     justify-content:center; 
     gap: 8px; 
-    background: var(--color-primario); 
-    color: white; border: none; 
+    background: var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
+    color: var(--color-texto-sobre-primario); /* <-- VARIABLE GLOBAL */
+    border: none; 
     font-weight: 600; 
     padding: 14px 25px; 
-    border-radius: 8px; 
+    border-radius: var(--radio-borde); /* <-- VARIABLE GLOBAL */
     transition: all 0.3s ease; 
     width: 100%; /* Botón completo en móvil */
     text-transform: uppercase; 
@@ -157,7 +159,7 @@
     margin-top: 1.5rem;
 }
 .profile-button:hover { 
-    background: #4a1d5c; 
+    background: var(--color-primario-medio-hover); /* <-- VARIABLE GLOBAL */
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
@@ -205,11 +207,11 @@ select.form-control option {
     .profile-wrapper {
         padding: 2rem;
         /* Centra la tarjeta verticalmente en el espacio restante */
-        min-height: calc(100vh - 45px); /* 45px es el header del admin */
+        min-height: calc(100vh - var(--altura-header-admin)); /* <-- VARIABLE */
         align-items: center; 
     }
 
-    .container {
+    .container-profile {
         padding: 2rem;
     }
 }
@@ -218,12 +220,12 @@ select.form-control option {
 /* === ESCRITORIO (>= 900px) === */
 /* ============================================= */
 @media (min-width: 900px) {
-    .container {
+    .container-profile {
         padding: 2.5rem 3rem; /* Más padding en escritorio */
     }
     
     /* SOLUCIÓN: Activa el layout de 2 columnas (foto | formulario) */
-    .container > .row {
+    .container-profile > .row {
         display: flex;
         flex-wrap: nowrap;
     }
@@ -242,7 +244,7 @@ select.form-control option {
 
     /* SOLUCIÓN: Borde lateral en escritorio */
     .borderliner {
-        border-right: 1px solid var(--color-borde);
+        border-right: 1px solid var(--color-borde); /* <-- VARIABLE GLOBAL */
         border-bottom: none;
         padding-bottom: 0;
         margin-bottom: 0;

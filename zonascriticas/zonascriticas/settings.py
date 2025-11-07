@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'login',
     'home',
     'perfil',
+    'empresas',
 ]
 
 MIDDLEWARE = [
@@ -130,12 +131,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# static global para manejar los css y js
-STATICFILES_DIRS = [
-    BASE_DIR / "static",  # carpeta global
-]
-
-# --------
+# -------- si le cambias el bombre a media aqui solo cambiar ''
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 

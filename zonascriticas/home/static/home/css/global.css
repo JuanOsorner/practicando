@@ -1,0 +1,72 @@
+/* ============================================= */
+/* === 1. IMPORTS GLOBALES === */
+/* ============================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ============================================= */
+/* === 2. DESIGN TOKENS (VARIABLES) === */
+/* ============================================= */
+:root {
+    /* --- Paleta de Colores --- */
+    
+    /* Púrpuras/Azules (Primarios) */
+    --color-primario-oscuro: #352460;
+    --color-primario-medio: #632778; /* Tono de perfil */
+    --color-primario-medio-hover: #4a1d5c; /* Hover de perfil */
+    --color-primario-claro: #6a5e8a; /* Fondo perfil sidebar */
+    --color-primario-hover-fondo: #1d1b31; /* Hover links sidebar */
+    
+    /* Acento */
+    --color-acento: #ffbf00;
+    
+    /* Neutrales (Fondo y Superficies) */
+    --color-fondo-app: #f0f2f5;
+    --color-superficie: #ffffff;
+    --color-borde: #e0e0e0;
+
+    /* Texto */
+    --color-texto-sobre-primario: #ffffff;
+    --color-texto-principal: #333333;
+    --color-texto-secundario: #6c757d;
+    --color-texto-inverso: #ffffff;
+    --color-texto-inverso-secundario: rgba(255, 255, 255, 0.7);
+
+    /* --- Tipografía --- */
+    --fuente-principal: 'Inter', sans-serif;
+
+    /* --- Tamaños y Espacios --- */
+    --altura-header-admin: 45px;
+    --altura-header-mobile: 60px;
+    --altura-footer-mobile: 70px;
+    --ancho-sidebar: 280px;
+    --ancho-sidebar-cerrado: 58px;
+
+    /* --- Efectos --- */
+    --radio-borde: 8px;
+    --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================= */
+/* === 3. RESET GLOBALES === */
+/* ============================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--fuente-principal);
+    background-color: var(--color-fondo-app);
+    color: var(--color-texto-principal);
+    overflow-x: hidden; /* Evitar scroll horizontal */
+}
+
+/* Clases de utilidad */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none; /* IE y Edge */
+    scrollbar-width: none; /* Firefox */
+}

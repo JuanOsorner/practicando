@@ -1,5 +1,5 @@
 /* ======================================================= */
-/* ===         CSS PARA VISTAS MÓVILES (movile.css)      === */
+/* ===       CSS PARA VISTAS MÓVILES (movile.css)      === */
 /* ======================================================= */
 
 /* Punto de corte para tablets y móviles */
@@ -7,8 +7,10 @@
 
     /* 1. OCULTAR LA VISTA DE ESCRITORIO */
     /* ---------------------------------- */
-    /* Usa la clase correcta de tu HTML */
-
+    .admin-desktop-view {
+        display: none !important;
+    }
+    
     /* 1. Forzamos al body a ocupar toda la pantalla */
     body.role-admin, body.role-user {
         display: block; /* Sobrescribe cualquier 'display: flex' global */
@@ -25,11 +27,6 @@
         width: 100%;
     }
 
-    .admin-desktop-view {
-        display: none !important;
-    }
-
-
     /* 2. MOSTRAR Y ESTILIZAR LAS VISTAS MÓVILES */
     /* --------------------------------------- */
     
@@ -42,7 +39,7 @@
         height: 100dvh; 
         width: 100%;
         overflow: hidden;
-        background-color: #f0f2f5; /* Color de fondo base */
+        background-color: var(--color-fondo-app); /* <-- VARIABLE */
     }
 
     /* Contenedor de contenido (el que tiene scroll) */
@@ -55,11 +52,10 @@
 
 
     /* 3. ESTILOS PARA LA VISTA MÓVIL DE USUARIO (user-view) */
-    /* ---------------------------------------------------- */
     .user-view .mobile-header {
-        height: 60px;
-        background-color: #352460;
-        color: white;
+        height: var(--altura-header-mobile); /* <-- VARIABLE */
+        background-color: var(--color-primario-oscuro); /* <-- VARIABLE */
+        color: var(--color-texto-sobre-primario); /* <-- VARIABLE */
         flex-shrink: 0; /* No se encoge */
         z-index: 100;
         
@@ -82,7 +78,7 @@
         border-radius: 50%; 
         border: none; 
         background-color: transparent; 
-        color: #fff; 
+        color: var(--color-texto-sobre-primario); /* <-- VARIABLE */
         display: flex; 
         justify-content: center; 
         align-items: center; 
@@ -91,8 +87,8 @@
     }
 
     .user-view .navigation-container {
-        height: 70px;
-        background-color: #352460;
+        height: var(--altura-footer-mobile); /* <-- VARIABLE */
+        background-color: var(--color-primario-oscuro); /* <-- VARIABLE */
         flex-shrink: 0; /* No se encoge */
         z-index: 100;
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
@@ -118,7 +114,7 @@
         flex-direction: column; 
         align-items: center; 
         text-decoration: none; 
-        color: rgba(255, 255, 255, 0.7); 
+        color: var(--color-texto-inverso-secundario); /* <-- VARIABLE */
         padding: 5px; 
     }
     
@@ -134,13 +130,10 @@
 
 
     /* 4. ESTILOS PARA LA VISTA MÓVIL DE ADMIN (admin-mobile-view) */
-    /* --------------------------------------------------------- */
-    /* (Estos estilos faltaban y son adaptados de tu user-view) */
-
     .admin-mobile-view .mobile-header-admin {
-        height: 60px;
-        background-color: #352460;
-        color: white;
+        height: var(--altura-header-mobile); /* <-- VARIABLE */
+        background-color: var(--color-primario-oscuro); /* <-- VARIABLE */
+        color: var(--color-texto-sobre-primario); /* <-- VARIABLE */
         flex-shrink: 0;
         z-index: 100;
         
@@ -172,13 +165,13 @@
 
     .admin-mobile-view .profile-container .bx-log-out {
         font-size: 1.5em;
-        color: white;
+        color: var(--color-texto-sobre-primario); /* <-- VARIABLE */
         cursor: pointer;
     }
 
     .admin-mobile-view .mobile-footer-admin {
-        height: 70px;
-        background-color: #352460;
+        height: var(--altura-footer-mobile); /* <-- VARIABLE */
+        background-color: var(--color-primario-oscuro); /* <-- VARIABLE */
         flex-shrink: 0;
         z-index: 100;
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
@@ -200,7 +193,7 @@
         flex-direction: column;
         align-items: center;
         text-decoration: none;
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--color-texto-inverso-secundario); /* <-- VARIABLE */
         padding: 5px;
         font-size: 0.7rem;
     }
@@ -212,7 +205,6 @@
     
     .admin-mobile-view .mobile-footer-admin ul li a:hover,
     .admin-mobile-view .mobile-footer-admin ul li a:focus {
-        color: white;
+        color: var(--color-texto-sobre-primario); /* <-- VARIABLE */
     }
-
 }
