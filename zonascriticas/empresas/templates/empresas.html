@@ -6,7 +6,6 @@
 {# Carga el CSS refactorizado solo para esta página #}
 {% block styles %}
 <link rel="stylesheet" href="{% static 'empresas/css/empresas.css' %}">
-{# Aquí irían las librerías CSS como Syncfusion si las necesitas #}
 <link href="https://cdn.syncfusion.com/ej2/17.4.55/bootstrap.css" rel="stylesheet" />
 {% endblock %}
 
@@ -51,16 +50,38 @@
     </div>
 </div>
 {% endblock %}
+{% block content_mobile %}
+<div class="main-card">
+    <div id="vista-lista">
+        <div class="detalle-empresa-header">
+            <h2>Empresas Registradas</h2>
+        </div>
 
-{# Carga el JS modularizado solo para esta página #}
+        <div class="header">
+            <div class="search-container">
+                <i class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></i>
+                <input type="search" id="buscador-empresas" placeholder="Buscar por Nombre o NIT...">
+            </div>
+            <div class="filter-group">
+                <button class="btn-filter active" data-filter="todos">Todos</button>
+                <button class="btn-filter" data-filter="activos">Activos</button>
+                <button class="btn-filter" data-filter="inactivos">Inactivos</button>
+            </div>
+            <button class="btn-primary" id="btn-registrar-empresa">
+                <i><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg></i>
+                <span>Registrar Empresa</span>
+            </button>
+        </div>
+
+        <div class="grid" id="empresas-container">
+            </div>
+    </div>
+</div>
+{% endblock %}
+
 {% block scripts %}
-{# Aquí irían las librerías JS como JQuery, SweetAlert, etc. #}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.syncfusion.com/ej2/17.4.55/dist/ej2.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
-{# 
-  Cargamos nuestros scripts como "module" para poder usar import/export.
-  main.js es el punto de entrada que importa los otros dos.
-#}
 <script src="{% static 'empresas/js/main.js' %}" type="module"></script>
 {% endblock %}

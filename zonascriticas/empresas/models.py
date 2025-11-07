@@ -19,7 +19,7 @@ class Servicio(models.Model):
         return self.nombre_servicio
 
     class Meta:
-        db_table = 'empresa_servicios_lista' # Nombramos la tabla
+        db_table = 'empresa_servicios' # Nombramos la tabla
 
 # Modelo para Empresas (Basado en tu tabla 'empresas')
 class Empresa(models.Model):
@@ -43,4 +43,4 @@ class Empresa(models.Model):
         return self.nombre_empresa
 
     class Meta:
-        db_table = 'empresa_empresas' # Nombramos la tabla
+        db_table = 'empresas' # Nombramos la tabla

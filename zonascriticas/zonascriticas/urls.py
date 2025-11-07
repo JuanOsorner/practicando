@@ -17,7 +17,7 @@ urlpatterns = [
     # Cuando se visita '/perfil/', se incluye perfil/urls.py
     path('perfil/', include('perfil.urls')),
     
-    # path('empresas/', include('empresas.urls')),
+    path('empresas/', include('empresas.urls')),
     # path('jornadas/', include('jornadas.urls')),
 ]
 

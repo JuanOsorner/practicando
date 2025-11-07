@@ -12,7 +12,9 @@
     
     <link rel="stylesheet" href="{% static 'home/css/web.css' %}">
     <link rel="stylesheet" href="{% static 'home/css/movile.css' %}">
-    <link rel="stylesheet" href="{% static 'perfil/css/profile.css' %}">
+
+    {% block styles %}
+    {% endblock %}
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
@@ -20,7 +22,9 @@
 </head>
 
 <body class="{% if user.tipo == 'Administrador' or user.is_superuser %}role-admin{% else %}role-user{% endif %}"
-      data-logout-url="{% url 'logout' %}">
+      data-logout-url="{% url 'logout' %}"
+      data-csrf-token="{{ csrf_token }}">
+      
     
     {% if user.tipo == 'Administrador' %}
     
@@ -33,7 +37,7 @@
                 </div>
                 <ul class="nav-links no-scrollbar">
                     <li><a href="{% url 'perfil' %}"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="link_name">Perfil</span></a></li>
-                    <li><a href="#"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
+                    <li><a href="{% url 'empresas-list' %}"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
                     <li><a href="#"><span class="icon"><i class='bx bx-history'></i></span><span class="link_name">Registro Jornadas</span></a></li>
                 </ul>
                 <div class="profile-details">
@@ -74,7 +78,7 @@
             <footer class="mobile-footer-admin">
                 <ul class="nav-links no-scrollbar">
                     <li><a href="{% url 'perfil' %}"><span class="icon"><i class='bx bxs-user-detail'></i></span><span class="link_name">Perfil</span></a></li>
-                    <li><a href="#"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
+                    <li><a href="{% url 'empresas-list' %}"><span class="icon"><i class='bx bxs-business'></i></span><span class="link_name">Empresas</span></a></li>
                     <li><a href="#"><span class="icon"><i class='bx bx-history'></i></span><span class="link_name">Registro Jornadas</span></a></li>
                 </ul>
             </footer>
