@@ -1,50 +1,47 @@
+# zonascriticas/login/models.py
 from django.db import models
-# Manejamos la logica del login
-from django.contrib.auth.models import AbstractUser
-# Importamos de empresas la empresa y el cargo
-from empresas.models import Empresa, Cargo
+from empresas.models import Empresa, Cargo 
 
-# Abstract user sirve ya contiene los datos basicos cargados
-"""
-- username
-- email
-- password (¡HASHEADO)!
-- is_activae (ESTADO)
-- is_staff (TIPO)
-- first_name, last_name
-"""
-class Usuario(AbstractUser):
-    email = models.EmailField(unique=True) 
+class Usuario(models.Model):
+    
+    # Django pondrá 'id' por defecto, pero lo mapeamos a 'int(11)'
+    id = models.AutoField(primary_key=True)
+    
+    email = models.EmailField(unique=True, db_column='correo', max_length=255) 
+
+    TIPO = (
+        ('Administrador', 'Administrador'),
+        ('Usuario', 'Usuario'),
+    )
+    tipo = models.CharField(max_length=250, choices=TIPO, default='Usuario', db_column='tipo')
+
+    # Mapeamos 'estado' (tinyint(1)) a 'is_active' (BooleanField)
+    is_active = models.BooleanField(default=True, db_column='estado')
+
+    # Mapeamos 'nombre' a 'first_name'
+    first_name = models.CharField(max_length=250, db_column='nombre')
 
     TIPO_DOCUMENTO = (
         ('CC', 'Cédula de Ciudadanía'),
         ('CE', 'Cédula de Extranjería'),
         ('PA', 'Pasaporte'),
     )
-    tipo_documento = models.CharField(max_length=2, choices=TIPO_DOCUMENTO, blank=True)
-    numero_documento = models.CharField(max_length=20, unique=True, blank=False, null=False)
+    tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO, db_column='tipo_documento', blank=True)
+    numero_documento = models.CharField(max_length=50, unique=True, db_column='numero_documento')
     
-    TIPO = (
-        ('Administrador', 'Administrador'),
-        ('Usuario', 'Usuario'),
-    )
-    tipo = models.CharField(max_length=13, choices=TIPO, default='Usuario')
-
-    token = models.CharField(max_length=100, blank=True, null=True)
-    img = models.ImageField(upload_to='usuarios/', blank=True, null=True)
-    tiempo_limite_jornada = models.DateTimeField(blank=True, null=True)
-
-    #Campo de expiración del token
-    otp_expiracion = models.DateTimeField(blank=True, null=True)
-
-    # Añadimos las llaves foraneas que necesita
+    token = models.CharField(max_length=255, blank=True, null=True, db_column='token')
+    
+    img = models.ImageField(upload_to='usuarios/', max_length=250, blank=True, null=True, db_column='img')
+    
+    tiempo_limite_jornada = models.TimeField(blank=True, null=True, db_column='tiempo_limite_jornada')
 
     empresa = models.ForeignKey(
         'empresas.Empresa', 
         on_delete=models.SET_NULL, 
-        null=True, # Permite que un usuario (ej. Admin) no pertenezca a ninguna empresa
+        null=True,
         blank=True,
-        related_name='empleados' # Nos permite hacer Empresa.empleados.all()
+        related_name='empleados',
+        db_column='id_empresa'
     )
 
     cargo = models.ForeignKey(
@@ -52,13 +49,38 @@ class Usuario(AbstractUser):
         on_delete=models.SET_NULL, 
         null=True, 
         blank=True,
-        related_name='usuarios'
+        related_name='usuarios',
+        db_column='id_cargo'
     )
 
-    # El str es una forma de ver un dato cuando hacemos una isntancia
+    # --- Propiedades de Compatibilidad (Arregla C009/C010) ---
+    
+    @property
+    def is_staff(self):
+        # Propiedad virtual para que 'home_view' funcione
+        return self.tipo == 'Administrador'
+    
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_authenticated(self):
+        return True
+    
+    # Campo fantasma para que las plantillas no fallen
+    @property
+    def username(self):
+        return self.email
+
+    def get_full_name(self):
+        return self.first_name
+
     def __str__(self):
-        return self.username
+        return self.email or f"Usuario {self.id}"
 
     class Meta:
-        db_table = 'Usuarios'
-
+        # ¡CAMBIO! Le decimos a Django que cree esta tabla
+        # localmente para nosotros.
+        managed = True 
+        db_table = 'usuarios' # El nombre de la BD real

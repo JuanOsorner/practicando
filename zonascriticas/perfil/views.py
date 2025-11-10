@@ -45,12 +45,11 @@ def update_profile_api(request: HttpRequest) -> JsonResponse:
     try:
         # 1. Recoge los datos del POST
         user.first_name = request.POST.get('nombre', '').strip()
-        user.last_name = request.POST.get('apellido', '').strip()
         user.tipo_documento = request.POST.get('tipo_documento')
         user.numero_documento = request.POST.get('documento', '').strip()
         
         # 2. Guarda el usuario EN LA BASE DE DATOS
-        user.save(update_fields=['first_name', 'last_name', 'tipo_documento', 'numero_documento'])
+        user.save(update_fields=['first_name', 'tipo_documento', 'numero_documento'])
         
         # 3. Responde con éxito
         return JsonResponse({

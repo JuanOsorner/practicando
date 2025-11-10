@@ -1,12 +1,12 @@
 # zonascriticas/urls.py
-from django.contrib import admin
+# from django.contrib import admin
 from django.urls import path, include
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # path('admin/', admin.site.urls),
     
     # Cuando se visita la raíz '/', se incluye login/urls.py
     path('', include('login.urls')), 
@@ -18,7 +18,7 @@ urlpatterns = [
     path('perfil/', include('perfil.urls')),
     
     path('empresas/', include('empresas.urls')),
-    # path('jornadas/', include('jornadas.urls')),
+    # path('jornadas/', include('jornadas.urls')), <---- No las manejamos por el momento
 ]
 
 # Esto le dice a Django que sirva los archivos de MEDIA_ROOT en la URL MEDIA_URL

@@ -32,12 +32,13 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
-# Application definition
+# Application definition: Eliminamos las tres lineas porque no las vamos a usar para nuestra base de datos
+# Vamos a personalizar nuestro propio sistema de login
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
+    #'django.contrib.admin',
+    #'django.contrib.auth',
+    #'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -52,9 +53,11 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Creamos nuestro sistema de autenticacion personalizado para nuestra bd
+    'login.middleware.CustomAuthMiddleware',
 ]
 
 ROOT_URLCONF = 'zonascriticas.urls'
@@ -78,7 +81,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'zonascriticas.wsgi.application'
 
 
-AUTH_USER_MODEL = 'login.Usuario'
+#AUTH_USER_MODEL = 'login.Usuario'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

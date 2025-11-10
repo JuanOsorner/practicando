@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
+from login.decorators import login_custom_required
 from django.templatetags.static import static
 
 from django.http import JsonResponse
@@ -10,7 +11,7 @@ import json
 from .models import Empresa, Cargo, Servicio
 from login.models import Usuario
 
-@login_required(login_url='/')
+@login_custom_required
 def empresas_view(request):
     """
     Renderiza la plantilla principal de la app 'empresas'.
@@ -281,10 +282,17 @@ def empleado_create(request):
 
         # 3. Crear el nuevo Usuario
         # Usamos el email como username y el documento como contraseña inicial
-        nuevo_empleado = Usuario.objects.create_user(
-            username=email,
+        nuevo_empleado = Usuario.objects.create(
             email=email,
-            password=numero_documento 
+            numero_documento=numero_documento,
+            # 'first_name' (modelo) = 'nombre' (columna BD)
+            first_name=data.get('first_name'), 
+            tipo_documento=data.get('tipo_documento'),
+            tiempo_limite_jornada=data.get('tiempo_limite_jornada') or None,
+            empresa=empresa,
+            cargo=cargo,
+            tipo='Usuario', # 'tipo' es el campo de la BD
+            is_active=True  # 'is_active' (modelo) = 'estado' (columna BD)
         )
 
         # 4. Asignar el resto de los campos

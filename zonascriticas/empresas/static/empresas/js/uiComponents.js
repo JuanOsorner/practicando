@@ -225,11 +225,6 @@ export function getEmployeeFormHTML(data, cargosDisponibles) {
         <input type="text" name="first_name" placeholder=" " value="${isNew ? '' : (data.first_name || '')}" required>
         <label>Nombre</label>
     </div>
-    
-    <div class="input-group">
-        <input type="text" name="last_name" placeholder=" " value="${isNew ? '' : (data.last_name || '')}" required>
-        <label>Apellido</label>
-    </div>
 
     <div class="input-group">
         <input type="email" name="email" placeholder=" " value="${isNew ? '' : (data.email || '')}" required>
