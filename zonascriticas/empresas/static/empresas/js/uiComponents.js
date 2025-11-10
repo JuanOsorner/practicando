@@ -56,7 +56,7 @@ export function createEmpresaCard(empresa) {
  * @param {object} empleado - El objeto de datos del empleado.
  * @returns {string} - El string HTML de la tarjeta.
  */
-export function createEmpleadoCard(empleado) {
+export function createEmpleadoCard(empleado, isCompanyActive = true) {
     const cardClasses = `employee-card-compact ${!empleado.estado ? 'inactivo' : ''}`;
     
     // Django envía 'HH:MM:SS', cortamos a 'HH:MM'
@@ -93,7 +93,9 @@ export function createEmpleadoCard(empleado) {
         <div class="empleado-footer">
             <span class="status-label">Estado</span>
             <label class="status-switch">
-                <input type="checkbox" class="toggle-estado-empleado" ${empleado.estado ? 'checked' : ''}>
+                <input type="checkbox" class="toggle-estado-empleado" 
+                ${empleado.estado ? 'checked' : ''} 
+                ${!isCompanyActive ? 'disabled' : ''}>
                 <span class="slider"></span>
             </label>
         </div>

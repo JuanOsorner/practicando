@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ESTADO LOCAL ---
     let todasLasEmpresas = [];
-    let empleadosDeEmpresaActual = [];
+    let empleadosDeEmpresaActual = []; // Lista "master" de empleados
     let serviciosDisponibles = [];
     let cargosDisponibles = [];
     let currentCompanyData = null; // Empresa seleccionada
@@ -44,17 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    function renderizarEmpleadosEnPanel(empleados) {
+    // Módulo 7: Acepta el estado de la empresa para deshabilitar interruptores
+    function renderizarEmpleadosEnPanel(lista, isCompanyActive) {
         const container = document.getElementById('panel-empleados-container');
         if (!container) return;
         
         container.innerHTML = '';
-        if (empleados.length === 0) {
-            container.innerHTML = "<p>No hay empleados registrados.</p>";
+        if (lista.length === 0) {
+            container.innerHTML = "<p>No hay empleados para el filtro actual.</p>";
             return;
         }
-        empleados.forEach(emp => {
-            const cardHTML = ui.createEmpleadoCard(emp);
+        lista.forEach(emp => {
+            // Pasa el estado de la empresa al componente UI
+            const cardHTML = ui.createEmpleadoCard(emp, isCompanyActive);
             container.insertAdjacentHTML('beforeend', cardHTML);
         });
     }
@@ -82,18 +84,36 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             serviciosMultiSelectInstance.appendTo(multiselectElement);
             
-            // Si estamos en modo 'solo vista' (no editando), deshabilitamos el control
             if (!startInEditMode && data) {
                 serviciosMultiSelectInstance.enabled = false;
             }
         }
+
+        // --- INICIO MÓDULO 7 (Filtros y Buscador del Panel) ---
+        const panelSearch = panelForm.querySelector('#buscador-panel-empleados');
+        const panelFilters = panelForm.querySelectorAll('#panel-empleados-section .filter-group .btn-filter');
+
+        if (panelSearch) {
+            panelSearch.addEventListener('input', () => {
+                filtrarEmpleadosEnPanel();
+            });
+        }
+        if (panelFilters.length > 0) {
+            panelFilters.forEach(button => {
+                button.addEventListener('click', () => {
+                    panelFilters.forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    filtrarEmpleadosEnPanel();
+                });
+            });
+        }
+        // --- FIN MÓDULO 7 ---
 
         // Si la empresa existe y no estamos en 'startInEditMode', cargamos empleados
         if (data && !startInEditMode) {
             fetchAndRenderEmployeesInPanel(data.id);
         }
         
-        // Si se fuerza el modo edición (ej. al crear)
         if (startInEditMode) {
              panelForm.querySelector('.info-card').classList.add('is-editing');
              if(serviciosMultiSelectInstance) serviciosMultiSelectInstance.enabled = true;
@@ -108,7 +128,6 @@ document.addEventListener('DOMContentLoaded', () => {
         currentCompanyData = null;
         isEditingEmployee = false;
         
-        // Destruye instancias de widgets para liberar memoria
         if (serviciosMultiSelectInstance) {
             serviciosMultiSelectInstance.destroy();
             serviciosMultiSelectInstance = null;
@@ -120,19 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openPanelForEmployee(data) {
-        isEditingEmployee = true; // Estamos en el panel de Empleado
+        isEditingEmployee = true; 
         
-        // --- INICIO MÓDULO 6 (Poblar 'data' para Edición) ---
-        // Buscamos los datos completos en el estado local
+        // Módulo 6: Poblar 'data' para Edición
         const employeeData = data ? empleadosDeEmpresaActual.find(emp => emp.id == data.id) : null;
 
         panelTitle.textContent = employeeData ? `Editar ${employeeData.first_name || 'Empleado'}` : 'Registrar Nuevo Empleado';
 
-        // 1. Inyectar el HTML del formulario de empleado
         panelForm.innerHTML = ui.getEmployeeFormHTML(employeeData, cargosDisponibles);
-        // --- FIN MÓDULO 6 ---
 
-        // 2. Inicializar el MultiSelect de Cargos
         const cargoMultiselectElem = panelForm.querySelector('#cargo-empleado-multiselect');
         const cargoHiddenInput = panelForm.querySelector('#cargo-empleado-hidden');
         
@@ -141,12 +156,9 @@ document.addEventListener('DOMContentLoaded', () => {
             fields: { value: 'id', text: 'text' },
             placeholder: 'Selecciona un cargo',
             mode: 'Box',
-            maximumSelectionLength: 1, // Solo permitimos un cargo
-            // --- INICIO MÓDULO 6 (Poblar 'cargo') ---
-            value: employeeData ? [employeeData.cargo] : [], // Usamos el ID del cargo
-            // --- FIN MÓDULO 6 ---
+            maximumSelectionLength: 1, 
+            value: employeeData ? [employeeData.cargo] : [], // Módulo 6
             change: (args) => {
-                // Actualizamos el input hidden que sí se envía con el form
                 if(args.value && args.value.length > 0) {
                     cargoHiddenInput.value = args.value[0];
                 } else {
@@ -156,7 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         cargoEmpleadoMultiSelectInstance.appendTo(cargoMultiselectElem);
 
-        // 3. Conectar listeners para la vista previa de imagen
         panelForm.querySelector('#trigger-image-upload').addEventListener('click', () => {
             panelForm.querySelector('#imagen_empleado').click();
         });
@@ -169,11 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const imagePreview = panelForm.querySelector('#image-preview');
         const placeholderText = panelForm.querySelector('#placeholder-text');
-
-        // (Aquí puedes añadir la lógica de compresión de imagen si lo deseas)
-        // ... (código de imageCompression) ...
         
-        // Lógica simple de vista previa:
         const reader = new FileReader();
         reader.onload = (e) => {
             imagePreview.src = e.target.result;
@@ -216,18 +223,64 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = "<p>Cargando empleados...</p>";
         
         try {
-            // --- INICIO MÓDULO 5 (API Empleados Actualizada) ---
-            // La API ahora devuelve 'first_name', 'cargo' (ID) y 'tipo'
             const data = await api.fetchEmpleados(empresaId);
-            empleadosDeEmpresaActual = data.empleados;
-            // --- FIN MÓDULO 5 ---
-            
+            empleadosDeEmpresaActual = data.empleados; // Guardamos en la lista master
             empleadosDeEmpresaActual.sort((a, b) => b.estado - a.estado);
-            renderizarEmpleadosEnPanel(empleadosDeEmpresaActual);
+            
+            // Módulo 7: Renderiza la lista completa (los filtros se aplicarán después)
+            // Pasamos el estado de la empresa para deshabilitar toggles
+            renderizarEmpleadosEnPanel(empleadosDeEmpresaActual, currentCompanyData.estado);
+
         } catch (error) {
             container.innerHTML = `<p style="color: red;">${error.message}</p>`;
         }
     }
+
+    // --- INICIO MÓDULO 7 (Nueva Función de Filtrado) ---
+    function filtrarEmpleadosEnPanel() {
+        if (!panelForm || !currentCompanyData) return; 
+
+        // 1. Obtener valores de los filtros
+        const panelSearch = panelForm.querySelector('#buscador-panel-empleados');
+        const botonActivo = panelForm.querySelector('#panel-empleados-section .filter-group .btn-filter.active');
+        
+        const terminoBusqueda = panelSearch ? panelSearch.value.toLowerCase() : '';
+        const filtroActivo = botonActivo ? botonActivo.dataset.filter : 'todos';
+
+        // 2. Aplicar filtros a la lista 'master'
+        const empleadosFiltrados = empleadosDeEmpresaActual.filter(emp => {
+            
+            // Filtro de Estado
+            let pasaEstado = false;
+            if (filtroActivo === 'todos') {
+                pasaEstado = true;
+            } else if (filtroActivo === 'activos') {
+                pasaEstado = emp.estado === true;
+            } else if (filtroActivo === 'inactivos') {
+                pasaEstado = emp.estado === false;
+            }
+
+            // Filtro de Búsqueda
+            let pasaBusqueda = false;
+            if (terminoBusqueda === '') {
+                pasaBusqueda = true;
+            } else {
+                const nombre = (emp.first_name || '').toLowerCase();
+                const email = (emp.email || '').toLowerCase();
+                const documento = (emp.numero_documento || '').toLowerCase();
+                pasaBusqueda = nombre.includes(terminoBusqueda) ||
+                               email.includes(terminoBusqueda) ||
+                               documento.includes(terminoBusqueda);
+            }
+
+            return pasaEstado && pasaBusqueda;
+        });
+
+        // 3. Re-renderizar la lista con los empleados filtrados
+        renderizarEmpleadosEnPanel(empleadosFiltrados, currentCompanyData.estado);
+    }
+    // --- FIN MÓDULO 7 ---
+
 
     // --- MANEJADORES de EVENTOS ---
     
@@ -301,12 +354,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Botones del Panel (Cerrar / Overlay)
         panelBackBtn.addEventListener('click', () => {
-            // Navegación inteligente
             if (isEditingEmployee) {
-                // Si estábamos editando un empleado, volvemos al panel de la empresa
                 openPanelForCompany(currentCompanyData);
             } else {
-                // Si estábamos en el panel de empresa, cerramos
                 closePanel();
             }
         });
@@ -316,6 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
         panelForm.addEventListener('click', e => {
 
             // --- INICIO MÓDULO 4 (Interruptor Empleado) ---
+            // Nota: El Módulo 7 deshabilita este clic si la empresa está inactiva.
             if (e.target.classList.contains('toggle-estado-empleado')) {
                 const toggle = e.target;
                 const nuevoEstado = toggle.checked;
@@ -335,9 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
             switch (action) {
                 case 'cancel-edit-company':
                     if (currentCompanyData) {
-                        openPanelForCompany(currentCompanyData); // Vuelve a modo vista
+                        openPanelForCompany(currentCompanyData);
                     } else {
-                        closePanel(); // Cierra si era 'nueva'
+                        closePanel();
                     }
                     break;
                 case 'edit-company':
@@ -347,24 +398,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     break;
                 case 'register-employee':
-                    openPanelForEmployee(null); // Abre el formulario de nuevo empleado
+                    openPanelForEmployee(null); 
                     break;
                 case 'cancel-edit-employee':
-                    // Volvemos al panel de la empresa
                     openPanelForCompany(currentCompanyData);
                     break;
                 
                 // --- INICIO MÓDULO 6 (Botón Editar Empleado) ---
                 case 'edit-employee':
-                    // 1. Encontrar el ID de la tarjeta de empleado
                     const card = e.target.closest('.employee-card-compact');
                     const empleadoId = card.dataset.employeeId;
-                    
-                    // 2. Buscar los datos completos en nuestro estado local
                     const employeeData = empleadosDeEmpresaActual.find(emp => emp.id == empleadoId);
                     
                     if (employeeData) {
-                        // 3. Abrir el panel con los datos
                         openPanelForEmployee(employeeData);
                     } else {
                         mostrarNotificacion('No se pudieron cargar los datos del empleado.');
@@ -378,11 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
         panelForm.addEventListener('submit', e => {
             e.preventDefault(); 
             
-            // Determinamos qué formulario estamos enviando
             if (isEditingEmployee) {
                 handleSaveEmployee();
             } else {
-                // Chequeamos el 'submitter' por si acaso, pero 'isEditingEmployee' es la clave
                 const action = e.submitter ? e.submitter.dataset.action : 'save-company';
                 if (action === 'save-company') {
                     handleSaveCompany();
@@ -395,25 +439,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleUpdateEstadoEmpresa(empresaId, nuevoEstado) {
         try {
-            // --- INICIO MÓDULO 3 (Receptor de Mensaje) ---
             const response = await api.updateEmpresaEstado(empresaId, nuevoEstado);
             mostrarNotificacion(response.message, 'success'); 
             
-            await cargarEmpresas(); // Recarga y reordena
+            await cargarEmpresas(); 
             
             if (currentCompanyData && currentCompanyData.id == empresaId) {
                 // Actualizamos los datos locales antes de reabrir
                 const empresaData = todasLasEmpresas.find(emp => emp.id == empresaId);
+                // Volvemos a cargar la empresa (para refrescar los empleados si se desactivaron)
                 openPanelForCompany(empresaData, false);
             }
-            // --- FIN MÓDULO 3 ---
         } catch (error) {
             mostrarNotificacion(error.message);
-            cargarEmpresas(); // Revertir visualmente
+            cargarEmpresas(); 
         }
     }
 
-    // --- INICIO MÓDULO 4 (Nueva Función) ---
     async function handleUpdateEstadoEmpleado(empleadoId, nuevoEstado, cardElement) {
         const toggle = cardElement.querySelector('.toggle-estado-empleado');
         
@@ -427,24 +469,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 cardElement.classList.add('inactivo');
             }
             
-            // --- INICIO MÓDULO 5 (Actualizar Estado Local) ---
-            // Actualizamos el estado local para que la edición no tome datos viejos
+            // Actualizamos el estado local
             const employeeData = empleadosDeEmpresaActual.find(emp => emp.id == empleadoId);
             if (employeeData) {
                 employeeData.estado = nuevoEstado;
             }
-            // --- FIN MÓDULO 5 ---
+            
+            // Módulo 7: Re-aplicamos los filtros después de cambiar el estado
+            filtrarEmpleadosEnPanel();
 
         } catch (error) {
             mostrarNotificacion(error.message);
-            toggle.checked = !nuevoEstado; // Revertir el interruptor
+            toggle.checked = !nuevoEstado; 
         }
     }
-    // --- FIN MÓDULO 4 ---
 
     async function handleSaveCompany() {
         const formData = new FormData(panelForm);
-        const isUpdating = !!formData.get('id'); // ¿Estamos actualizando?
+        const isUpdating = !!formData.get('id'); 
         
         if (serviciosMultiSelectInstance) {
             const servicioIDs = serviciosMultiSelectInstance.value || [];
@@ -459,14 +501,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarNotificacion(result.message, 'success');
             
             if (isUpdating) {
-                // Si actualizamos, volvemos al modo vista con los nuevos datos
                 openPanelForCompany(result.empresa); 
             } else {
-                // Si creamos, cerramos el panel
                 closePanel();
             }
             
-            // Refrescamos la cuadrícula principal en ambos casos
             await cargarEmpresas(); 
             
         } catch (error) {
@@ -477,18 +516,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleSaveEmployee() {
         const formData = new FormData(panelForm);
         
-        // Añadimos el ID de la empresa al FormData
         formData.append('id_empresa', currentCompanyData.id);
 
-        // (Validaciones de formulario irían aquí)
-        
         Swal.fire({ title: 'Guardando...', text: 'Por favor espera.', didOpen: () => Swal.showLoading() });
 
         try {
-            // --- INICIO MÓDULO 5 (apiService actualizado) ---
-            // api.saveEmployee ahora maneja tanto 'crear' como 'actualizar'
             const result = await api.saveEmployee(formData);
-            // --- FIN MÓDULO 5 ---
             
             Swal.close();
             mostrarNotificacion(result.message, 'success');
@@ -497,7 +530,6 @@ document.addEventListener('DOMContentLoaded', () => {
             openPanelForCompany(currentCompanyData);
             
         } catch (error) {
-            // Maneja errores de validación del backend (ej. email duplicado)
             Swal.fire('Error al guardar', error.message, 'error');
         }
     }
@@ -506,7 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function init() {
         setupEventListeners();
         cargarEmpresas();
-        cargarRecursos(); // Carga cargos y servicios en segundo plano
+        cargarRecursos(); 
     }
     
     init();
