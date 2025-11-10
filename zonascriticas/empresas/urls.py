@@ -17,4 +17,5 @@ urlpatterns = [
     path('api/recursos/', views.recursos_list, name='api-recursos-list'),
 
     path('api/empleados/crear/', views.empleado_create, name='api-empleado-create'),
+    path('api/empleados/<int:empleado_id>/actualizar/', views.empleado_update, name='api-empleado-update'),
 ]

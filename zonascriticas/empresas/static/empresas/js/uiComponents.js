@@ -203,14 +203,15 @@ export function getPanelContentHTML(data) {
  */
 export function getEmployeeFormHTML(data, cargosDisponibles) {
     const isNew = !data;
-    const horaLimite = (data && data.tiempo_limite_jornada) ? data.tiempo_limite_jornada.substring(0, 5) : '';
-    const imagenSrc = (data && data.img) ? normalizarRutaImagen(data.img) : '';
     
-    // Convertimos la lista de cargos al formato de Syncfusion
-    const cargosDataSource = JSON.stringify(cargosDisponibles);
+    // Normalizamos 'data' para el formulario
+    const empleado = data || {}; 
+    
+    const horaLimite = (empleado.tiempo_limite_jornada) ? empleado.tiempo_limite_jornada.substring(0, 5) : '';
+    const imagenSrc = (empleado.img) ? normalizarRutaImagen(empleado.img) : '';
 
     return `
-    <input type="hidden" name="id" value="${isNew ? '' : (data.id || '')}">
+    <input type="hidden" name="id" value="${isNew ? '' : (empleado.id || '')}">
     
     <div class="image-upload-container" id="trigger-image-upload">
         <input type="file" id="imagen_empleado" name="imagen_empleado" accept="image/jpeg, image/png" style="display:none;">
@@ -222,33 +223,40 @@ export function getEmployeeFormHTML(data, cargosDisponibles) {
     </div>
     
     <div class="input-group">
-        <input type="text" name="first_name" placeholder=" " value="${isNew ? '' : (data.first_name || '')}" required>
-        <label>Nombre</label>
+        <input type="text" name="first_name" placeholder=" " value="${isNew ? '' : (empleado.first_name || '')}" required>
+        <label>Nombre Completo</label>
     </div>
 
     <div class="input-group">
-        <input type="email" name="email" placeholder=" " value="${isNew ? '' : (data.email || '')}" required>
+        <input type="email" name="email" placeholder=" " value="${isNew ? '' : (empleado.email || '')}" required>
         <label>Correo Electrónico</label>
     </div>
     
     <div class="input-group">
         <select name="tipo_documento" required class="form-control-select">
             <option value="" disabled ${isNew ? 'selected' : ''}>Tipo de Documento</option>
-            <option value="CC" ${!isNew && data.tipo_documento == 'CC' ? 'selected' : ''}>Cédula de Ciudadanía</option>
-            <option value="CE" ${!isNew && data.tipo_documento == 'CE' ? 'selected' : ''}>Cédula de Extranjería</option>
-            <option value="PA" ${!isNew && data.tipo_documento == 'PA' ? 'selected' : ''}>Pasaporte</option>
+            <option value="CC" ${!isNew && empleado.tipo_documento == 'CC' ? 'selected' : ''}>Cédula de Ciudadanía</option>
+            <option value="CE" ${!isNew && empleado.tipo_documento == 'CE' ? 'selected' : ''}>Cédula de Extranjería</option>
+            <option value="PA" ${!isNew && empleado.tipo_documento == 'PA' ? 'selected' : ''}>Pasaporte</option>
         </select>
     </div>
 
     <div class="input-group">
-        <input type="text" name="numero_documento" placeholder=" " value="${isNew ? '' : (data.numero_documento || '')}" required>
+        <input type="text" name="numero_documento" placeholder=" " value="${isNew ? '' : (empleado.numero_documento || '')}" required>
         <label>Número de Documento</label>
+    </div>
+
+    <div class="input-group">
+        <select name="tipo" required class="form-control-select">
+            <option value="Usuario" ${!isNew && empleado.tipo == 'Usuario' ? 'selected' : ''}>Usuario</option>
+            <option value="Administrador" ${!isNew && empleado.tipo == 'Administrador' ? 'selected' : ''}>Administrador</option>
+        </select>
     </div>
 
     <div class="input-group-full">
         <label>Cargo</label>
         <input id="cargo-empleado-multiselect" name="cargo_input_temp" />
-        <input type="hidden" name="cargo" id="cargo-empleado-hidden" value="${isNew ? '' : (data.cargo || '')}">
+        <input type="hidden" name="cargo" id="cargo-empleado-hidden" value="${isNew ? '' : (empleado.cargo || '')}">
     </div>
 
     <div class="input-group">

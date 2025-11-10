@@ -84,13 +84,30 @@ def empresa_list(request):
 def update_empresa_estado(request, empresa_id):
     """
     API: Actualiza el estado (activo/inactivo) de una empresa.
+    ¡NUEVO! Implementa la desactivación en cascada.
     """
     try:
         data = json.loads(request.body)
+        nuevo_estado = bool(data.get('estado'))
+        
         empresa = Empresa.objects.get(pk=empresa_id)
-        empresa.estado = bool(data.get('estado'))
+        empresa.estado = nuevo_estado
         empresa.save()
-        return JsonResponse({'success': True, 'message': 'Estado actualizado'})
+
+        # --- INICIO DE LÓGICA DE CASCADA ---
+        if nuevo_estado is False:
+            # Regla de negocio 1: Desactivar la empresa desactiva a los empleados.
+            # Usamos related_name='empleados' del modelo Usuario.empresa
+            empleados_afectados = empresa.empleados.update(is_active=False)
+            
+            mensaje = f'Empresa desactivada. {empleados_afectados} empleado(s) han sido desactivados.'
+        else:
+            # Regla de negocio 2: Reactivar la empresa NO reactiva a los empleados.
+            mensaje = 'Empresa activada. Los empleados permanecen en su estado actual.'
+        # --- FIN DE LÓGICA DE CASCADA ---
+
+        return JsonResponse({'success': True, 'message': mensaje}) # Devolvemos el mensaje detallado
+
     except Empresa.DoesNotExist:
         return JsonResponse({'error': 'Empresa no encontrada'}, status=404)
     except Exception as e:
@@ -110,14 +127,22 @@ def empleado_list(request, empresa_id):
         for emp in empleados:
             data.append({
                 'id': emp.id,
-                'nombre_completo': emp.get_full_name(),
-                'username': emp.username,
+                'first_name': emp.first_name, 
                 'email': emp.email,
                 'numero_documento': emp.numero_documento,
+                'tipo_documento': emp.tipo_documento, # Necesario para el <select>
                 'img': emp.img.url if emp.img else None,
-                'estado': emp.is_active, # Usamos 'is_active' de Django
-                'cargo_nombre': emp.cargo.nombre if emp.cargo else None,
+                'estado': emp.is_active,
+                
+                'cargo': emp.cargo_id, 
+                'cargo_nombre': emp.cargo.nombre if emp.cargo else 'Sin cargo',
+                
+                'tipo': emp.tipo,
+                
                 'tiempo_limite_jornada': emp.tiempo_limite_jornada,
+                
+                'nombre_completo': emp.get_full_name(),
+                'username': emp.username,
             })
         
         return JsonResponse({'empleados': data})
@@ -326,4 +351,57 @@ def empleado_create(request):
         return JsonResponse({'error': 'El cargo especificado no existe.'}, status=404)
     except Exception as e:
         # Manejo de otros errores (ej. campos únicos, etc.)
+        return JsonResponse({'error': str(e)}, status=400)
+
+# ... (vistas existentes) ...
+
+@require_http_methods(["POST"]) # Usamos POST para manejar FormData (con imagen)
+def empleado_update(request, empleado_id):
+    """
+    API: Actualiza un empleado existente.
+    Recibe datos de un FormData.
+    """
+    try:
+        # 1. Buscar el empleado existente
+        empleado = Usuario.objects.get(pk=empleado_id)
+        
+        # 2. Obtener datos del FormData
+        data = request.POST
+        email = data.get('email')
+        numero_documento = data.get('numero_documento')
+
+        # 3. Validar unicidad (excluyendo al propio empleado)
+        if Usuario.objects.filter(email=email).exclude(pk=empleado_id).exists():
+            return JsonResponse({'error': 'Ya existe otro usuario con este correo.'}, status=400)
+        if Usuario.objects.filter(numero_documento=numero_documento).exclude(pk=empleado_id).exists():
+            return JsonResponse({'error': 'Ya existe otro usuario con este documento.'}, status=400)
+        
+        # 4. Obtener objetos relacionados
+        cargo_id = data.get('cargo')
+        cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
+
+        # 5. Actualizar los campos del modelo
+        empleado.first_name = data.get('first_name') # Mapea a 'nombre' en BD
+        empleado.email = email
+        empleado.numero_documento = numero_documento
+        empleado.tipo_documento = data.get('tipo_documento')
+        empleado.tipo = data.get('tipo') # ¡NUEVO! Actualiza el rol
+        empleado.tiempo_limite_jornada = data.get('tiempo_limite_jornada') or None
+        empleado.cargo = cargo
+        
+        if 'imagen_empleado' in request.FILES:
+            empleado.img = request.FILES['imagen_empleado']
+
+        empleado.save() # Guarda todos los cambios
+
+        return JsonResponse({
+            'success': True, 
+            'message': 'Empleado actualizado exitosamente'
+        })
+
+    except Usuario.DoesNotExist:
+        return JsonResponse({'error': 'Empleado no encontrado.'}, status=404)
+    except Cargo.DoesNotExist:
+        return JsonResponse({'error': 'El cargo especificado no existe.'}, status=404)
+    except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)

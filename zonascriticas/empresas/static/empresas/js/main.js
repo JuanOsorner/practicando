@@ -121,10 +121,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openPanelForEmployee(data) {
         isEditingEmployee = true; // Estamos en el panel de Empleado
-        panelTitle.textContent = data ? `Editar ${data.first_name || 'Empleado'}` : 'Registrar Nuevo Empleado';
+        
+        // --- INICIO MÓDULO 6 (Poblar 'data' para Edición) ---
+        // Buscamos los datos completos en el estado local
+        const employeeData = data ? empleadosDeEmpresaActual.find(emp => emp.id == data.id) : null;
+
+        panelTitle.textContent = employeeData ? `Editar ${employeeData.first_name || 'Empleado'}` : 'Registrar Nuevo Empleado';
 
         // 1. Inyectar el HTML del formulario de empleado
-        panelForm.innerHTML = ui.getEmployeeFormHTML(data, cargosDisponibles);
+        panelForm.innerHTML = ui.getEmployeeFormHTML(employeeData, cargosDisponibles);
+        // --- FIN MÓDULO 6 ---
 
         // 2. Inicializar el MultiSelect de Cargos
         const cargoMultiselectElem = panelForm.querySelector('#cargo-empleado-multiselect');
@@ -136,7 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
             placeholder: 'Selecciona un cargo',
             mode: 'Box',
             maximumSelectionLength: 1, // Solo permitimos un cargo
-            value: data ? [data.cargo] : [],
+            // --- INICIO MÓDULO 6 (Poblar 'cargo') ---
+            value: employeeData ? [employeeData.cargo] : [], // Usamos el ID del cargo
+            // --- FIN MÓDULO 6 ---
             change: (args) => {
                 // Actualizamos el input hidden que sí se envía con el form
                 if(args.value && args.value.length > 0) {
@@ -208,8 +216,12 @@ document.addEventListener('DOMContentLoaded', () => {
         container.innerHTML = "<p>Cargando empleados...</p>";
         
         try {
+            // --- INICIO MÓDULO 5 (API Empleados Actualizada) ---
+            // La API ahora devuelve 'first_name', 'cargo' (ID) y 'tipo'
             const data = await api.fetchEmpleados(empresaId);
             empleadosDeEmpresaActual = data.empleados;
+            // --- FIN MÓDULO 5 ---
+            
             empleadosDeEmpresaActual.sort((a, b) => b.estado - a.estado);
             renderizarEmpleadosEnPanel(empleadosDeEmpresaActual);
         } catch (error) {
@@ -217,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- MANEJADORES DE EVENTOS ---
+    // --- MANEJADORES de EVENTOS ---
     
     function setupEventListeners() {
         // Buscador principal
@@ -245,8 +257,33 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Clic en el toggle de estado
             if (e.target.classList.contains('toggle-estado')) {
-                const nuevoEstado = e.target.checked;
-                handleUpdateEstadoEmpresa(empresaId, nuevoEstado);
+                // --- INICIO MÓDULO 3 (Alerta Cascada) ---
+                const toggle = e.target;
+                const nuevoEstado = toggle.checked;
+
+                e.preventDefault(); 
+                
+                if (nuevoEstado === false) {
+                    Swal.fire({
+                        title: '¿Desactivar Empresa?',
+                        text: "Esta acción desactivará a TODOS los empleados de esta empresa. Deberá reactivarlos manualmente si vuelve a activar la empresa.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Sí, desactivar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            handleUpdateEstadoEmpresa(empresaId, false);
+                        } else {
+                            toggle.checked = true;
+                        }
+                    });
+                } else {
+                    handleUpdateEstadoEmpresa(empresaId, true);
+                }
+                // --- FIN MÓDULO 3 ---
                 return;
             }
             
@@ -277,6 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Manejador de clics DENTRO del panel
         panelForm.addEventListener('click', e => {
+
+            // --- INICIO MÓDULO 4 (Interruptor Empleado) ---
+            if (e.target.classList.contains('toggle-estado-empleado')) {
+                const toggle = e.target;
+                const nuevoEstado = toggle.checked;
+                const card = toggle.closest('.employee-card-compact');
+                const empleadoId = card.dataset.employeeId;
+                
+                handleUpdateEstadoEmpleado(empleadoId, nuevoEstado, card);
+                return; 
+            }
+            // --- FIN MÓDULO 4 ---
+
             const actionTarget = e.target.closest('[data-action]');
             if (!actionTarget) return;
 
@@ -304,7 +354,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     openPanelForCompany(currentCompanyData);
                     break;
                 
-                // (Aquí faltaría 'edit-employee' para la tarjeta de empleado)
+                // --- INICIO MÓDULO 6 (Botón Editar Empleado) ---
+                case 'edit-employee':
+                    // 1. Encontrar el ID de la tarjeta de empleado
+                    const card = e.target.closest('.employee-card-compact');
+                    const empleadoId = card.dataset.employeeId;
+                    
+                    // 2. Buscar los datos completos en nuestro estado local
+                    const employeeData = empleadosDeEmpresaActual.find(emp => emp.id == empleadoId);
+                    
+                    if (employeeData) {
+                        // 3. Abrir el panel con los datos
+                        openPanelForEmployee(employeeData);
+                    } else {
+                        mostrarNotificacion('No se pudieron cargar los datos del empleado.');
+                    }
+                    break;
+                // --- FIN MÓDULO 6 ---
             }
         });
         
@@ -329,14 +395,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function handleUpdateEstadoEmpresa(empresaId, nuevoEstado) {
         try {
-            await api.updateEmpresaEstado(empresaId, nuevoEstado);
-            mostrarNotificacion('Estado actualizado', 'success');
+            // --- INICIO MÓDULO 3 (Receptor de Mensaje) ---
+            const response = await api.updateEmpresaEstado(empresaId, nuevoEstado);
+            mostrarNotificacion(response.message, 'success'); 
+            
             await cargarEmpresas(); // Recarga y reordena
+            
+            if (currentCompanyData && currentCompanyData.id == empresaId) {
+                // Actualizamos los datos locales antes de reabrir
+                const empresaData = todasLasEmpresas.find(emp => emp.id == empresaId);
+                openPanelForCompany(empresaData, false);
+            }
+            // --- FIN MÓDULO 3 ---
         } catch (error) {
             mostrarNotificacion(error.message);
             cargarEmpresas(); // Revertir visualmente
         }
     }
+
+    // --- INICIO MÓDULO 4 (Nueva Función) ---
+    async function handleUpdateEstadoEmpleado(empleadoId, nuevoEstado, cardElement) {
+        const toggle = cardElement.querySelector('.toggle-estado-empleado');
+        
+        try {
+            const response = await api.updateEmpleadoEstado(empleadoId, nuevoEstado);
+            mostrarNotificacion(response.message, 'success');
+            
+            if (nuevoEstado) {
+                cardElement.classList.remove('inactivo');
+            } else {
+                cardElement.classList.add('inactivo');
+            }
+            
+            // --- INICIO MÓDULO 5 (Actualizar Estado Local) ---
+            // Actualizamos el estado local para que la edición no tome datos viejos
+            const employeeData = empleadosDeEmpresaActual.find(emp => emp.id == empleadoId);
+            if (employeeData) {
+                employeeData.estado = nuevoEstado;
+            }
+            // --- FIN MÓDULO 5 ---
+
+        } catch (error) {
+            mostrarNotificacion(error.message);
+            toggle.checked = !nuevoEstado; // Revertir el interruptor
+        }
+    }
+    // --- FIN MÓDULO 4 ---
 
     async function handleSaveCompany() {
         const formData = new FormData(panelForm);
@@ -381,7 +485,10 @@ document.addEventListener('DOMContentLoaded', () => {
         Swal.fire({ title: 'Guardando...', text: 'Por favor espera.', didOpen: () => Swal.showLoading() });
 
         try {
+            // --- INICIO MÓDULO 5 (apiService actualizado) ---
+            // api.saveEmployee ahora maneja tanto 'crear' como 'actualizar'
             const result = await api.saveEmployee(formData);
+            // --- FIN MÓDULO 5 ---
             
             Swal.close();
             mostrarNotificacion(result.message, 'success');
@@ -390,7 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
             openPanelForCompany(currentCompanyData);
             
         } catch (error) {
-            mostrarNotificacion(error.message);
+            // Maneja errores de validación del backend (ej. email duplicado)
+            Swal.fire('Error al guardar', error.message, 'error');
         }
     }
 

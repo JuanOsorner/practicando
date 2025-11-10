@@ -113,12 +113,11 @@ export function saveEmployee(formData) {
     const empleadoId = formData.get('id');
 
     if (empleadoId) {
-        // Lógica de Actualizar (la implementaremos después)
-        // return apiFetch(`/empresas/api/empleados/${empleadoId}/actualizar/`, {
-        //     method: 'POST',
-        //     body: formData,
-        // });
-        console.log("Lógica de actualizar empleado aún no implementada");
+        // Lógica de Actualizar
+        return apiFetch(`/empresas/api/empleados/${empleadoId}/actualizar/`, {
+            method: 'POST',
+            body: formData,
+        });
     } else {
         // Lógica de Crear
         return apiFetch('/empresas/api/empleados/crear/', {
