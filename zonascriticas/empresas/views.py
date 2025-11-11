@@ -1,26 +1,28 @@
+# zonascriticas/empresas/views.py
 from django.shortcuts import render
-# from django.contrib.auth.decorators import login_required
 from login.decorators import login_custom_required
 from django.templatetags.static import static
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.db.models import Q
+from django.core.exceptions import ValidationError # ¡Importante!
 import json
 
 from .models import Empresa, Cargo, Servicio
 from login.models import Usuario
 
+# --- ¡IMPORTAMOS NUESTRO SERVICIO! ---
+from . import services 
+
 @login_custom_required
 def empresas_view(request):
     """
     Renderiza la plantilla principal de la app 'empresas'.
-    El frontend (JS) se encargará de pedir los datos a la API.
+    (Esta era la función que faltaba y causaba el error)
     """
+    imagen_url_por_defecto = static('home/img/logoJoli.png') 
 
-    imagen_url_por_defecto = static('home/img/default.png') 
-
-    # Comprueba si el usuario tiene una imagen en la BD
     if request.user.img:
         imagen_a_mostrar = request.user.img.url
     else:
@@ -29,9 +31,6 @@ def empresas_view(request):
     context = {
         'imagen_src': imagen_a_mostrar 
     }
-
-    # Pasamos el token CSRF explícitamente por si el JS lo necesita
-    # aunque 'apiService.js' lo toma del DOM.
     return render(request, 'empresas.html', context)
 
 @require_http_methods(["GET"])
@@ -41,27 +40,22 @@ def empresa_list(request):
     Filtra por estado y búsqueda.
     """
     try:
-        # 1. Obtener parámetros
         filtro = request.GET.get('filtro', 'todos')
         busqueda = request.GET.get('busqueda', '')
 
-        # 2. Query inicial
         empresas = Empresa.objects.prefetch_related('servicios').all()
 
-        # 3. Aplicar filtro de estado
         if filtro == 'activos':
             empresas = empresas.filter(estado=True)
         elif filtro == 'inactivos':
             empresas = empresas.filter(estado=False)
 
-        # 4. Aplicar filtro de búsqueda
         if busqueda:
             empresas = empresas.filter(
                 Q(nombre_empresa__icontains=busqueda) | 
                 Q(nit__icontains=busqueda)
             )
 
-        # 5. Serializar datos (convertir Modelos a diccionarios)
         data = []
         for empresa in empresas:
             servicios = list(empresa.servicios.values_list('nombre_servicio', flat=True))
@@ -73,47 +67,14 @@ def empresa_list(request):
                 'contacto': empresa.contacto,
                 'estado': empresa.estado,
                 'servicios_nombres': ", ".join(servicios),
+                # Módulo 5 (Editar): Necesitamos los IDs de servicios
+                'servicios': list(empresa.servicios.values_list('id', flat=True)) 
             })
 
         return JsonResponse({'empresas': data})
 
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
-@require_http_methods(["POST"])
-def update_empresa_estado(request, empresa_id):
-    """
-    API: Actualiza el estado (activo/inactivo) de una empresa.
-    ¡NUEVO! Implementa la desactivación en cascada.
-    """
-    try:
-        data = json.loads(request.body)
-        nuevo_estado = bool(data.get('estado'))
-        
-        empresa = Empresa.objects.get(pk=empresa_id)
-        empresa.estado = nuevo_estado
-        empresa.save()
-
-        # --- INICIO DE LÓGICA DE CASCADA ---
-        if nuevo_estado is False:
-            # Regla de negocio 1: Desactivar la empresa desactiva a los empleados.
-            # Usamos related_name='empleados' del modelo Usuario.empresa
-            empleados_afectados = empresa.empleados.update(is_active=False)
-            
-            mensaje = f'Empresa desactivada. {empleados_afectados} empleado(s) han sido desactivados.'
-        else:
-            # Regla de negocio 2: Reactivar la empresa NO reactiva a los empleados.
-            mensaje = 'Empresa activada. Los empleados permanecen en su estado actual.'
-        # --- FIN DE LÓGICA DE CASCADA ---
-
-        return JsonResponse({'success': True, 'message': mensaje}) # Devolvemos el mensaje detallado
-
-    except Empresa.DoesNotExist:
-        return JsonResponse({'error': 'Empresa no encontrada'}, status=404)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-# --- API DE EMPLEADOS ---
 
 @require_http_methods(["GET"])
 def empleado_list(request, empresa_id):
@@ -130,17 +91,13 @@ def empleado_list(request, empresa_id):
                 'first_name': emp.first_name, 
                 'email': emp.email,
                 'numero_documento': emp.numero_documento,
-                'tipo_documento': emp.tipo_documento, # Necesario para el <select>
+                'tipo_documento': emp.tipo_documento,
                 'img': emp.img.url if emp.img else None,
                 'estado': emp.is_active,
-                
                 'cargo': emp.cargo_id, 
                 'cargo_nombre': emp.cargo.nombre if emp.cargo else 'Sin cargo',
-                
                 'tipo': emp.tipo,
-                
                 'tiempo_limite_jornada': emp.tiempo_limite_jornada,
-                
                 'nombre_completo': emp.get_full_name(),
                 'username': emp.username,
             })
@@ -149,10 +106,27 @@ def empleado_list(request, empresa_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+@require_http_methods(["GET"])
+def recursos_list(request):
+    """
+    API: Devuelve listas de Cargos y Servicios para los Selects.
+    """
+    try:
+        cargos = list(Cargo.objects.values('id', 'nombre'))
+        servicios = list(Servicio.objects.values('id', 'nombre_servicio'))
+        
+        cargos_fmt = [{'id': c['id'], 'text': c['nombre']} for c in cargos]
+        servicios_fmt = [{'id': s['id'], 'text': s['nombre_servicio']} for s in servicios]
+
+        return JsonResponse({'cargos': cargos_fmt, 'servicios': servicios_fmt})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 @require_http_methods(["POST"])
 def update_empleado_estado(request, empleado_id):
     """
     API: Actualiza el estado (activo/inactivo) de un empleado.
+    (Esta lógica es simple y no requiere un servicio)
     """
     try:
         data = json.loads(request.body)
@@ -164,50 +138,41 @@ def update_empleado_estado(request, empleado_id):
         return JsonResponse({'error': 'Empleado no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-        
-# --- API de Recursos ---
 
-@require_http_methods(["GET"])
-def recursos_list(request):
+@require_http_methods(["POST"])
+def update_empresa_estado(request, empresa_id):
     """
-    API: Devuelve listas de Cargos y Servicios para los Selects.
+    API: Actualiza el estado. La lógica está en 'services.py'.
     """
     try:
-        cargos = list(Cargo.objects.values('id', 'nombre'))
-        servicios = list(Servicio.objects.values('id', 'nombre_servicio'))
+        data = json.loads(request.body)
+        nuevo_estado = bool(data.get('estado'))
         
-        # Formateamos para el multiselect (id, text)
-        cargos_fmt = [{'id': c['id'], 'text': c['nombre']} for c in cargos]
-        servicios_fmt = [{'id': s['id'], 'text': s['nombre_servicio']} for s in servicios]
+        empresa = Empresa.objects.get(pk=empresa_id)
+        
+        # --- LLAMADA AL SERVICIO ---
+        mensaje = services.actualizar_estado_empresa(empresa, nuevo_estado) 
+        # ---------------------------
+        
+        return JsonResponse({'success': True, 'message': mensaje})
 
-        return JsonResponse({'cargos': cargos_fmt, 'servicios': servicios_fmt})
+    except Empresa.DoesNotExist:
+        return JsonResponse({'error': 'Empresa no encontrada'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
 @require_http_methods(["POST"])
 def empresa_create(request):
     """
-    API: Crea una nueva empresa.
-    Recibe datos de un FormData.
+    API: Crea una nueva empresa usando la capa de servicio.
     """
     try:
-        # 1. Crear la empresa con los datos principales
-        # Usamos request.POST porque estamos enviando un FormData
-        nueva_empresa = Empresa.objects.create(
-            nombre_empresa=request.POST.get('nombre_empresa'),
-            nit=request.POST.get('nit'),
-            direccion=request.POST.get('direccion'),
-            contacto=request.POST.get('contacto'),
-            estado=True  # Las nuevas empresas siempre se crean como activas
-        )
+        data = request.POST.copy()
+        data['servicios'] = request.POST.getlist('servicios')
 
-        # 2. Manejar los servicios (relación ManyToMany)
-        # El JS enviará los IDs como 'servicios'
-        servicio_ids = request.POST.getlist('servicios')
-        if servicio_ids:
-            nueva_empresa.servicios.set(servicio_ids)
+        nueva_empresa = services.crear_empresa(data)
 
-        # 3. Serializar y devolver la nueva empresa (similar a 'empresa_list')
+        # Serialización (aún manual, pero la lógica de creación está en el servicio)
         servicios = list(nueva_empresa.servicios.values_list('nombre_servicio', flat=True))
         empresa_data = {
             'id': nueva_empresa.id,
@@ -217,164 +182,97 @@ def empresa_create(request):
             'contacto': nueva_empresa.contacto,
             'estado': nueva_empresa.estado,
             'servicios_nombres': ", ".join(servicios),
+            'servicios': list(nueva_empresa.servicios.values_list('id', flat=True))
         }
 
         return JsonResponse({
             'success': True, 
             'message': 'Empresa registrada exitosamente',
-            'empresa': empresa_data # Devolvemos la nueva empresa
-        })
+            'empresa': empresa_data
+        }, status=201)
 
+    except ValidationError as e:
+        return JsonResponse({'error': e.message}, status=400) # Error de negocio
     except Exception as e:
-        # Manejo de errores (ej. NIT duplicado)
-        return JsonResponse({'error': str(e)}, status=400)
+        # Manejo de errores (ej. NIT duplicado de la BD)
+        if 'UNIQUE constraint failed' in str(e):
+            return JsonResponse({'error': 'Ya existe una empresa con ese NIT.'}, status=400)
+        return JsonResponse({'error': str(e)}, status=500) # Error del servidor
 
 @require_http_methods(["POST"])
 def empresa_update(request, empresa_id):
     """
-    API: Actualiza una empresa existente.
-    Recibe datos de un FormData.
+    API: Actualiza una empresa usando la capa de servicio.
     """
     try:
-        # 1. Buscar la empresa existente
         empresa = Empresa.objects.get(pk=empresa_id)
 
-        # 2. Actualizar los campos con los datos del FormData
-        empresa.nombre_empresa = request.POST.get('nombre_empresa')
-        empresa.nit = request.POST.get('nit')
-        empresa.direccion = request.POST.get('direccion')
-        empresa.contacto = request.POST.get('contacto')
+        data = request.POST.copy()
+        data['servicios'] = request.POST.getlist('servicios')
         
-        # 3. Manejar los servicios (relación ManyToMany)
-        servicio_ids = request.POST.getlist('servicios')
-        if servicio_ids:
-            empresa.servicios.set(servicio_ids)
-        else:
-            # Si no se envía ningún servicio, borramos las relaciones existentes
-            empresa.servicios.clear()
-            
-        empresa.save() # Guarda los cambios en la BD
+        empresa_actualizada = services.actualizar_empresa(empresa, data)
 
-        # 4. Serializar y devolver la empresa actualizada
-        servicios = list(empresa.servicios.values_list('nombre_servicio', flat=True))
+        servicios = list(empresa_actualizada.servicios.values_list('nombre_servicio', flat=True))
         empresa_data = {
-            'id': empresa.id,
-            'nombre_empresa': empresa.nombre_empresa,
-            'nit': empresa.nit,
-            'direccion': empresa.direccion,
-            'contacto': empresa.contacto,
-            'estado': empresa.estado,
+            'id': empresa_actualizada.id,
+            'nombre_empresa': empresa_actualizada.nombre_empresa,
+            'nit': empresa_actualizada.nit,
+            'direccion': empresa_actualizada.direccion,
+            'contacto': empresa_actualizada.contacto,
+            'estado': empresa_actualizada.estado,
             'servicios_nombres': ", ".join(servicios),
-            # Incluimos los IDs de servicios para actualizar el panel
-            'servicios': list(empresa.servicios.values_list('id', flat=True)) 
+            'servicios': list(empresa_actualizada.servicios.values_list('id', flat=True)) 
         }
-
+        
         return JsonResponse({
             'success': True, 
             'message': 'Empresa actualizada exitosamente',
-            'empresa': empresa_data # Devolvemos la empresa actualizada
+            'empresa': empresa_data
         })
-
+        
     except Empresa.DoesNotExist:
         return JsonResponse({'error': 'Empresa no encontrada'}, status=404)
+    except ValidationError as e:
+        return JsonResponse({'error': e.message}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        if 'UNIQUE constraint failed' in str(e):
+            return JsonResponse({'error': 'Ya existe una empresa con ese NIT.'}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
 
 @require_http_methods(["POST"])
 def empleado_create(request):
     """
-    API: Crea un nuevo Empleado (Usuario) y lo asocia a una empresa.
-    Recibe datos de un FormData.
+    API: Crea un nuevo Empleado usando la capa de servicio.
     """
     try:
-        data = request.POST
+        data = request.POST.copy()
+        imagen_file = request.FILES.get('imagen_empleado')
         
-        empresa_id = data.get('id_empresa')
-        cargo_id = data.get('cargo')
-        email = data.get('email')
-        numero_documento = data.get('numero_documento')
-
-        if Usuario.objects.filter(email=email).exists():
-            return JsonResponse({'error': 'Ya existe un usuario con este correo.'}, status=400)
-        if Usuario.objects.filter(numero_documento=numero_documento).exists():
-            return JsonResponse({'error': 'Ya existe un usuario con este documento.'}, status=400)
-
-        empresa = Empresa.objects.get(pk=empresa_id)
-        cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
-
-        # --- INICIO DE CORRECCIÓN ---
-        # 1. Eliminamos 'last_name' y las asignaciones duplicadas.
-        # 2. Asignamos 'tipo' desde el formulario (Módulo 6).
-        nuevo_empleado = Usuario.objects.create(
-            email=email,
-            numero_documento=numero_documento,
-            first_name=data.get('first_name'), # 'first_name' (modelo) = 'nombre' (columna BD)
-            tipo_documento=data.get('tipo_documento'),
-            tiempo_limite_jornada=data.get('tiempo_limite_jornada') or None,
-            empresa=empresa,
-            cargo=cargo,
-            tipo=data.get('tipo', 'Usuario'), # Asignamos el tipo desde el form
-            is_active=True  # 'is_active' (modelo) = 'estado' (columna BD)
-        )
-
-        # 3. Asignar la imagen (si se subió)
-        if 'imagen_empleado' in request.FILES:
-            nuevo_empleado.img = request.FILES['imagen_empleado']
-            nuevo_empleado.save() # Guardamos la imagen
-        # --- FIN DE CORRECCIÓN ---
+        services.crear_empleado(data, imagen_file)
 
         return JsonResponse({
             'success': True, 
             'message': 'Empleado registrado exitosamente'
-        })
-
-    except Empresa.DoesNotExist:
-        return JsonResponse({'error': 'La empresa especificada no existe.'}, status=404)
-    except Cargo.DoesNotExist:
-        return JsonResponse({'error': 'El cargo especificado no existe.'}, status=404)
+        }, status=201)
+        
+    except (Empresa.DoesNotExist, Cargo.DoesNotExist):
+        return JsonResponse({'error': 'La empresa o el cargo no existen.'}, status=404)
+    except ValidationError as e:
+        return JsonResponse({'error': e.message}, status=400) # Errores de duplicidad
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
 
-# ... (vistas existentes) ...
-
-@require_http_methods(["POST"]) # Usamos POST para manejar FormData (con imagen)
+@require_http_methods(["POST"])
 def empleado_update(request, empleado_id):
     """
-    API: Actualiza un empleado existente.
-    Recibe datos de un FormData.
+    API: Actualiza un empleado usando la capa de servicio.
     """
     try:
-        # 1. Buscar el empleado existente
         empleado = Usuario.objects.get(pk=empleado_id)
-        
-        # 2. Obtener datos del FormData
-        data = request.POST
-        email = data.get('email')
-        numero_documento = data.get('numero_documento')
+        data = request.POST.copy()
+        imagen_file = request.FILES.get('imagen_empleado')
 
-        # 3. Validar unicidad (excluyendo al propio empleado)
-        if Usuario.objects.filter(email=email).exclude(pk=empleado_id).exists():
-            return JsonResponse({'error': 'Ya existe otro usuario con este correo.'}, status=400)
-        if Usuario.objects.filter(numero_documento=numero_documento).exclude(pk=empleado_id).exists():
-            return JsonResponse({'error': 'Ya existe otro usuario con este documento.'}, status=400)
-        
-        # 4. Obtener objetos relacionados
-        cargo_id = data.get('cargo')
-        cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
-
-        # 5. Actualizar los campos del modelo
-        empleado.first_name = data.get('first_name') # Mapea a 'nombre' en BD
-        empleado.email = email
-        empleado.numero_documento = numero_documento
-        empleado.tipo_documento = data.get('tipo_documento')
-        empleado.tipo = data.get('tipo') # ¡NUEVO! Actualiza el rol
-        empleado.tiempo_limite_jornada = data.get('tiempo_limite_jornada') or None
-        empleado.cargo = cargo
-        
-        if 'imagen_empleado' in request.FILES:
-            empleado.img = request.FILES['imagen_empleado']
-
-        empleado.save() # Guarda todos los cambios
+        services.actualizar_empleado(empleado, data, imagen_file)
 
         return JsonResponse({
             'success': True, 
@@ -385,5 +283,7 @@ def empleado_update(request, empleado_id):
         return JsonResponse({'error': 'Empleado no encontrado.'}, status=404)
     except Cargo.DoesNotExist:
         return JsonResponse({'error': 'El cargo especificado no existe.'}, status=404)
+    except ValidationError as e:
+        return JsonResponse({'error': e.message}, status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
