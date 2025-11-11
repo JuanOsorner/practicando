@@ -5,7 +5,8 @@
  */
 import * as api from './apiService.js';
 import * as ui from './uiComponents.js';
-import { mostrarNotificacion } from './utils.js';
+// Importamos las utilidades de notificación refactorizadas
+import { mostrarNotificacion, mostrarCarga, ocultarCarga } from './utils.js';
 
 export class SidePanel {
     // Campos privados para el estado y elementos del DOM
@@ -383,45 +384,62 @@ export class SidePanel {
     async #handleSaveCompany() {
         const formData = new FormData(this.#formEl);
         
+        // Limpieza de FormData (Solución al error '...got []')
         if (this.#serviciosWidget) {
+            formData.delete('servicios_input_temp');
             const servicioIDs = this.#serviciosWidget.value || [];
             servicioIDs.forEach(id => formData.append('servicios', id));
         }
+        if (!formData.get('id')) {
+            formData.delete('id');
+        }
         
-        Swal.fire({ title: 'Guardando...', text: 'Por favor espera.', didOpen: () => Swal.showLoading() });
+        // ¡Llamada limpia a utils.js!
+        mostrarCarga('Guardando Empresa...'); 
         
         try {
             const result = await api.saveEmpresa(formData);
-            Swal.close();
+            
+            // ¡Llamada limpia a utils.js!
+            ocultarCarga();
             mostrarNotificacion(result.message, 'success');
             
-            // Refresca el panel con los datos guardados
             this.openForCompany(result.empresa); 
-            
-            // ¡Notifica al "director" que la cuadrícula debe recargarse!
             this.onCompanySaved();
             
         } catch (error) {
-            Swal.fire('Error al guardar', error.message, 'error');
+            // ¡Llamada limpia a utils.js!
+            ocultarCarga();
+            mostrarNotificacion(error.message, 'error', 'Error al guardar empresa');
         }
     }
 
     async #handleSaveEmployee() {
         const formData = new FormData(this.#formEl);
+        
+        // Limpieza de FormData (Solución al error '...got []')
+        formData.delete('cargo_input_temp');
+        if (!formData.get('id')) {
+            formData.delete('id');
+        }
         formData.append('id_empresa', this.#currentCompany.id);
 
-        Swal.fire({ title: 'Guardando...', text: 'Por favor espera.', didOpen: () => Swal.showLoading() });
+        // ¡Llamada limpia a utils.js!
+        mostrarCarga('Guardando Empleado...');
 
         try {
             const result = await api.saveEmployee(formData);
-            Swal.close();
+
+            // ¡Llamada limpia a utils.js!
+            ocultarCarga();
             mostrarNotificacion(result.message, 'success');
             
-            // Vuelve al panel de la empresa (que recargará la lista de empleados)
             this.openForCompany(this.#currentCompany);
 
         } catch (error) {
-            Swal.fire('Error al guardar', error.message, 'error');
+            // ¡Llamada limpia a utils.js!
+            ocultarCarga();
+            mostrarNotificacion(error.message, 'error', 'Error al guardar empleado');
         }
     }
 
@@ -430,18 +448,19 @@ export class SidePanel {
         
         try {
             const response = await api.updateEmpleadoEstado(empleadoId, nuevoEstado);
+            
+            // ¡Llamada limpia a utils.js!
             mostrarNotificacion(response.message, 'success');
             
-            // Actualiza el estado en la lista "master"
             const employeeData = this.#empleados.find(emp => emp.id == empleadoId);
             if (employeeData) employeeData.estado = nuevoEstado;
             
-            // Re-aplica los filtros
             this.#filterEmpleados();
 
         } catch (error) {
-            mostrarNotificacion(error.message);
-            toggle.checked = !nuevoEstado; // Revierte el toggle si falla
+            // ¡Llamada limpia a utils.js!
+            mostrarNotificacion(error.message, 'error');
+            toggle.checked = !nuevoEstado;
         }
     }
 }

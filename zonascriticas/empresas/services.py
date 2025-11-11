@@ -26,6 +26,7 @@ def crear_empresa(data: dict) -> Empresa:
         nit=data.get('nit'),
         direccion=data.get('direccion'),
         contacto=data.get('contacto'),
+        servicio=servicio
         estado=True  # Regla de negocio: siempre activa al crear
     )
 
