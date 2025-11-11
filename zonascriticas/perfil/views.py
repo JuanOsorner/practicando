@@ -2,11 +2,12 @@
 
 from django.shortcuts import render
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
+# from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.templatetags.static import static
+from login.decorators import login_custom_required
 
-@login_required(login_url='/')
+@login_custom_required
 def perfil_view(request: HttpRequest) -> HttpResponse:
     """
     Muestra la página de perfil del usuario.
@@ -35,7 +36,7 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
 # ---
 
 @require_POST  # Solo permite peticiones POST
-@login_required
+@login_custom_required
 def update_profile_api(request: HttpRequest) -> JsonResponse:
     """
     API para actualizar los datos del formulario de perfil.
@@ -62,7 +63,7 @@ def update_profile_api(request: HttpRequest) -> JsonResponse:
 
 
 @require_POST  # Solo permite peticiones POST
-@login_required
+@login_custom_required
 def update_image_api(request: HttpRequest) -> JsonResponse:
     """
     API para actualizar la imagen de perfil.

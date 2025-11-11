@@ -287,7 +287,6 @@ def empleado_create(request):
     Recibe datos de un FormData.
     """
     try:
-        # 1. Obtener datos del FormData
         data = request.POST
         
         empresa_id = data.get('id_empresa')
@@ -295,51 +294,35 @@ def empleado_create(request):
         email = data.get('email')
         numero_documento = data.get('numero_documento')
 
-        # Verificamos si ya existe un usuario con ese email o documento
         if Usuario.objects.filter(email=email).exists():
             return JsonResponse({'error': 'Ya existe un usuario con este correo.'}, status=400)
         if Usuario.objects.filter(numero_documento=numero_documento).exists():
             return JsonResponse({'error': 'Ya existe un usuario con este documento.'}, status=400)
 
-        # 2. Obtener objetos relacionados
         empresa = Empresa.objects.get(pk=empresa_id)
         cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
 
-        # 3. Crear el nuevo Usuario
-        # Usamos el email como username y el documento como contraseña inicial
+        # --- INICIO DE CORRECCIÓN ---
+        # 1. Eliminamos 'last_name' y las asignaciones duplicadas.
+        # 2. Asignamos 'tipo' desde el formulario (Módulo 6).
         nuevo_empleado = Usuario.objects.create(
             email=email,
             numero_documento=numero_documento,
-            # 'first_name' (modelo) = 'nombre' (columna BD)
-            first_name=data.get('first_name'), 
+            first_name=data.get('first_name'), # 'first_name' (modelo) = 'nombre' (columna BD)
             tipo_documento=data.get('tipo_documento'),
             tiempo_limite_jornada=data.get('tiempo_limite_jornada') or None,
             empresa=empresa,
             cargo=cargo,
-            tipo='Usuario', # 'tipo' es el campo de la BD
+            tipo=data.get('tipo', 'Usuario'), # Asignamos el tipo desde el form
             is_active=True  # 'is_active' (modelo) = 'estado' (columna BD)
         )
 
-        # 4. Asignar el resto de los campos
-        nuevo_empleado.first_name = data.get('first_name')
-        nuevo_empleado.last_name = data.get('last_name')
-        nuevo_empleado.numero_documento = numero_documento
-        nuevo_empleado.tipo_documento = data.get('tipo_documento')
-        nuevo_empleado.tiempo_limite_jornada = data.get('tiempo_limite_jornada') or None
-        
-        # Asignar la imagen (si se subió)
+        # 3. Asignar la imagen (si se subió)
         if 'imagen_empleado' in request.FILES:
             nuevo_empleado.img = request.FILES['imagen_empleado']
+            nuevo_empleado.save() # Guardamos la imagen
+        # --- FIN DE CORRECCIÓN ---
 
-        # Asignar relaciones
-        nuevo_empleado.empresa = empresa
-        nuevo_empleado.cargo = cargo
-        nuevo_empleado.tipo = 'Usuario' # Por defecto es 'Usuario'
-        nuevo_empleado.is_active = True # Lo creamos activo
-        
-        nuevo_empleado.save()
-
-        # 5. Devolver una respuesta de éxito
         return JsonResponse({
             'success': True, 
             'message': 'Empleado registrado exitosamente'
@@ -350,7 +333,6 @@ def empleado_create(request):
     except Cargo.DoesNotExist:
         return JsonResponse({'error': 'El cargo especificado no existe.'}, status=404)
     except Exception as e:
-        # Manejo de otros errores (ej. campos únicos, etc.)
         return JsonResponse({'error': str(e)}, status=400)
 
 # ... (vistas existentes) ...

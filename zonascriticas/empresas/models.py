@@ -1,5 +1,5 @@
 from django.db import models
-from django.conf import settings # Para importar tu AUTH_USER_MODEL
+#from django.conf import settings # Para importar tu AUTH_USER_MODEL
 
 # Modelo para Cargos (Basado en tu tabla 'cargos')
 class Cargo(models.Model):
