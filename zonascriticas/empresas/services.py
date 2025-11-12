@@ -1,5 +1,3 @@
-# Creamos esta capa de servicios para manejar la logica de negocio extensa de esta app
-
 # zonascriticas/empresas/services.py
 
 from django.db import transaction
@@ -7,9 +5,41 @@ from django.core.exceptions import ValidationError
 from .models import Empresa, Cargo, Servicio
 from login.models import Usuario
 
-# --- LÓGICA DE EMPRESAS ---
+# --- LÓGICA DE HELPER ---
 
-# El decorador @transaction.atomic crea un bloque atomico de operaciones CRUD
+def _get_or_create_from_list(model, data_list: list, field_name: str) -> list:
+    """
+    Toma una lista mixta de IDs (como strings) y nombres (strings),
+    y un Modelo (ej. Servicio).
+    Devuelve una lista de IDs de objetos, creando los que no existen.
+    
+    Args:
+        model: El modelo de Django (ej. Servicio)
+        data_list: La lista del frontend (ej. ['1', 'Plomería', '2'])
+        field_name: El campo donde buscar/crear (ej. 'nombre_servicio')
+    """
+    object_ids = []
+    for item in data_list:
+        if not item: continue # Ignorar strings vacíos
+
+        # Si es un número, asumimos que es un ID existente
+        if item.isdigit():
+            # Verificamos que el ID realmente exista en la BD
+            if model.objects.filter(pk=item).exists():
+                object_ids.append(item)
+        
+        # Si NO es un número, es un nuevo string para crear
+        else:
+            # Usamos get_or_create para crear el objeto si no existe
+            # y evitar duplicados.
+            obj, created = model.objects.get_or_create(
+                **{field_name: item.strip()} # ej: nombre_servicio="Plomería"
+            )
+            object_ids.append(obj.id)
+            
+    return object_ids
+
+# --- LÓGICA DE EMPRESAS ---
 
 @transaction.atomic
 def crear_empresa(data: dict) -> Empresa:
@@ -18,20 +48,26 @@ def crear_empresa(data: dict) -> Empresa:
     'data' es un diccionario que contiene los datos validados.
     """
     servicio_ids = data.pop('servicios', [])
+
+    # Usamos el helper para obtener una lista limpia de IDs
+    # CORRECCIÓN 1: Usamos 'servicio_ids' (no 'servicio_data')
+    servicio_ids_limpios = _get_or_create_from_list(
+        Servicio, 
+        servicio_ids, 
+        'nombre_servicio'
+    )
     
     # Creamos la empresa con los datos restantes
-    # Usamos **data para desempaquetar el diccionario
     nueva_empresa = Empresa.objects.create(
         nombre_empresa=data.get('nombre_empresa'),
         nit=data.get('nit'),
         direccion=data.get('direccion'),
         contacto=data.get('contacto'),
-        servicio=servicio
         estado=True  # Regla de negocio: siempre activa al crear
     )
 
-    if servicio_ids:
-        nueva_empresa.servicios.set(servicio_ids)
+    if servicio_ids_limpios:
+        nueva_empresa.servicios.set(servicio_ids_limpios)
 
     return nueva_empresa
 
@@ -49,7 +85,13 @@ def actualizar_empresa(empresa: Empresa, data: dict) -> Empresa:
     empresa.contacto = data.get('contacto', empresa.contacto)
     
     if servicio_ids is not None:
-        empresa.servicios.set(servicio_ids)
+        # CORRECCIÓN 1: Usamos 'servicio_ids' (no 'servicio_data')
+        servicio_ids_limpios = _get_or_create_from_list(
+            Servicio, 
+            servicio_ids, 
+            'nombre_servicio'
+        )
+        empresa.servicios.set(servicio_ids_limpios)
         
     empresa.save()
     return empresa
@@ -100,7 +142,7 @@ def crear_empleado(data: dict, imagen_file=None) -> Usuario:
     Crea un nuevo empleado (Usuario) y lo asocia a una empresa.
     """
     empresa_id = data.get('id_empresa')
-    cargo_id = data.get('cargo')
+    cargo_data = data.get('cargo')
     email = data.get('email')
     numero_documento = data.get('numero_documento')
 
@@ -109,14 +151,22 @@ def crear_empleado(data: dict, imagen_file=None) -> Usuario:
     
     # 2. Obtener instancias relacionadas (levantará DoesNotExist si falla)
     empresa = Empresa.objects.get(pk=empresa_id)
-    cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
-
+    
+    cargo = None
+    if cargo_data:
+        if cargo_data.isdigit():
+            # Es un ID, lo buscamos
+            cargo = Cargo.objects.get(pk=cargo_data)
+        else:
+            # Es un String, lo creamos (o buscamos si ya existe)
+            cargo, created = Cargo.objects.get_or_create(nombre=cargo_data.strip())
+            
     # 3. Crear el objeto
     nuevo_empleado = Usuario.objects.create(
         email=email,
         numero_documento=numero_documento,
         first_name=data.get('first_name'),
-        tipo_documento=data.get('tipo_documento'),
+        tipo_documento=data.get('tipo_documento') or '',
         tiempo_limite_jornada=data.get('tiempo_limite_jornada') or None,
         empresa=empresa,
         cargo=cargo,
@@ -138,22 +188,26 @@ def actualizar_empleado(empleado: Usuario, data: dict, imagen_file=None) -> Usua
     """
     email = data.get('email')
     numero_documento = data.get('numero_documento')
+    cargo_data = data.get('cargo')
+
+    cargo = None
+    if cargo_data:
+        if cargo_data.isdigit():
+            cargo = Cargo.objects.get(pk=cargo_data)
+        else:
+            cargo, created = Cargo.objects.get_or_create(nombre=cargo_data.strip())
 
     # 1. Validar unicidad (excluyendo al empleado actual)
     _validar_datos_unicos_empleado(email, numero_documento, empleado_id=empleado.id)
-    
-    # 2. Obtener instancias relacionadas
-    cargo_id = data.get('cargo')
-    cargo = Cargo.objects.get(pk=cargo_id) if cargo_id else None
 
     # 3. Actualizar campos
     empleado.first_name = data.get('first_name')
     empleado.email = email
     empleado.numero_documento = numero_documento
-    empleado.tipo_documento = data.get('tipo_documento')
+    empleado.tipo_documento = data.get('tipo_documento') or ''
     empleado.tipo = data.get('tipo')
     empleado.tiempo_limite_jornada = data.get('tiempo_limite_jornada') or None
-    empleado.cargo = cargo
+    empleado.cargo = cargo # Asigna el cargo calculado arriba
     
     if imagen_file:
         empleado.img = imagen_file

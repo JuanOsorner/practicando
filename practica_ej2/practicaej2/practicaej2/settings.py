@@ -11,16 +11,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+env_path = BASE_DIR.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=!)39^a9up=m!*b%$5s3^pvu%j790%na6l6hn7$lygb7*sw)mg'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -76,11 +81,11 @@ WSGI_APPLICATION = 'practicaej2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'practicaej2',  # IMPORTANTE: Cambia esto por el nombre exacto de tu base de datos en MySQL.
-        'USER': 'root',      # Usuario de tu base de datos (normalmente 'root' en XAMPP).
-        'PASSWORD': '',      # Contraseña de tu base de datos (normalmente vacía en XAMPP).
-        'HOST': '127.0.0.1', # O 'localhost'.
-        'PORT': '3306',      # Puerto por defecto de MySQL.
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 

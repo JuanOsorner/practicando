@@ -1,0 +1,23 @@
+# Archivos de entorno
+.env
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Bases de datos locales
+*.sqlite3
+db.sqlite3
+
+# Archivos de registro
+*.log
+
+# Archivos de medios subidos por el usuario
+media/

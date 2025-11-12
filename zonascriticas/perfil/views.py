@@ -31,10 +31,6 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
     
     return render(request, 'perfil.html', context)
 
-# ---
-# --- ¡LAS FUNCIONES QUE TE FALTAN PARA GUARDAR! ---
-# ---
-
 @require_POST  # Solo permite peticiones POST
 @login_custom_required
 def update_profile_api(request: HttpRequest) -> JsonResponse:

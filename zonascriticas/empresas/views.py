@@ -168,7 +168,6 @@ def empresa_create(request):
     """
     try:
         data = request.POST.copy()
-        data['servicios'] = request.POST.getlist('servicios')
 
         nueva_empresa = services.crear_empresa(data)
 
@@ -208,7 +207,6 @@ def empresa_update(request, empresa_id):
         empresa = Empresa.objects.get(pk=empresa_id)
 
         data = request.POST.copy()
-        data['servicios'] = request.POST.getlist('servicios')
         
         empresa_actualizada = services.actualizar_empresa(empresa, data)
 

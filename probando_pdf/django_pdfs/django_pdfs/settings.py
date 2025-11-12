@@ -19,14 +19,15 @@ from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-load_dotenv(BASE_DIR / '.env')
+env_path = BASE_DIR.parent / '.env'
+load_dotenv(dotenv_path=env_path)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # La subi a git porque no estoy manejando ningun dato sensible, este proyecto solo es para practicar
 # como funcionan los pdfs
-SECRET_KEY = 'django-insecure-!5y6)b4e!yuamzmue_^nl4-j@rimo3c()5va0lj+45+g48ier('
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

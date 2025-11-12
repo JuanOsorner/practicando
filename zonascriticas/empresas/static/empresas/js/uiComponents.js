@@ -215,7 +215,7 @@ export function getEmployeeFormHTML(data, cargosDisponibles) {
     return `
     <input type="hidden" name="id" value="${isNew ? '' : (empleado.id || '')}">
     
-    <div class="image-upload-container" id="trigger-image-upload">
+    <div class="image-upload-container" id="trigger-image-upload" data-action="trigger-image-upload">
         <input type="file" id="imagen_empleado" name="imagen_empleado" accept="image/jpeg, image/png" style="display:none;">
         <img src="${imagenSrc}" alt="Vista previa" id="image-preview" style="display: ${!imagenSrc ? 'none' : 'block'};">
         <div id="placeholder-text" style="display: ${!imagenSrc ? 'block' : 'none'};">

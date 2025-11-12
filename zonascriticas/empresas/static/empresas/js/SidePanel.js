@@ -249,13 +249,16 @@ export class SidePanel {
         const cargoMultiselectElem = this.#formEl.querySelector('#cargo-empleado-multiselect');
         const cargoHiddenInput = this.#formEl.querySelector('#cargo-empleado-hidden');
         
+        // abusamos de la biblioteca ej2
         this.#cargoWidget = new ej.dropdowns.MultiSelect({
-            dataSource: this.#recursos.cargos,
+            dataSource: this.#recursos.cargos, 
             fields: { value: 'id', text: 'text' },
             placeholder: 'Selecciona un cargo',
             mode: 'Box',
             maximumSelectionLength: 1,
             value: employeeData ? [employeeData.cargo] : [],
+            allowCustomValue: true,
+            // cuando se seleccione cargo el valor se guarda en el input oculto
             change: (args) => {
                 cargoHiddenInput.value = (args.value && args.value.length > 0) ? args.value[0] : '';
             }
@@ -274,13 +277,15 @@ export class SidePanel {
             this.#cargoWidget = null;
         }
 
+        // Multiselect es de la biblioteca de ej2 que estamos usando
         this.#serviciosWidget = new ej.dropdowns.MultiSelect({
-            dataSource: this.#recursos.servicios,
-            fields: { value: 'id', text: 'text' },
-            placeholder: 'Selecciona servicios',
-            mode: 'Box',
-            value: selectedServices,
-            enabled: isEditing // Habilitado solo si isEditing es true
+            dataSource: this.#recursos.servicios, // Cargamos nuestros servicios
+            fields: { value: 'id', text: 'text' }, // Como los vamos a organizar
+            placeholder: 'Selecciona servicios', // Si no se selecciona nada entonces dejamos este texto
+            mode: 'Box', // Muestra cada seleccion como una caja
+            value: selectedServices, // Los servicios seleccionados (VARIOS EN ESTE CASO)
+            enabled: isEditing, // Habilitado solo si isEditing es true
+            allowCustomValue: true // Nos permite añadir nuevos servicios
         });
         this.#serviciosWidget.appendTo(multiselectElement);
     }
@@ -383,8 +388,7 @@ export class SidePanel {
 
     async #handleSaveCompany() {
         const formData = new FormData(this.#formEl);
-        
-        // Limpieza de FormData (Solución al error '...got []')
+      
         if (this.#serviciosWidget) {
             formData.delete('servicios_input_temp');
             const servicioIDs = this.#serviciosWidget.value || [];
@@ -419,6 +423,19 @@ export class SidePanel {
         
         // Limpieza de FormData (Solución al error '...got []')
         formData.delete('cargo_input_temp');
+
+        if (this.#cargoWidget && this.#cargoWidget.value && this.#cargoWidget.value.length > 0) {
+            // Obtenemos el valor (ej: "1" o "Supervisor")
+            const cargoValue = this.#cargoWidget.value[0];
+            // Lo asignamos a la clave 'cargo' que el backend espera
+            formData.set('cargo', cargoValue);
+         } else {
+            // Asegurarse de que 'cargo' exista, aunque esté vacío
+            if (!formData.has('cargo')) {
+                formData.set('cargo', '');
+            }
+        }
+
         if (!formData.get('id')) {
             formData.delete('id');
         }
