@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte</title>
+    <style type="text/css">
+        @page {
+            size: letter; /* Define el tamaño de la página */
+            margin: 1cm;
+        }
+        body {
+            font-family: "Helvetica", sans-serif;
+            color: #333;
+        }
+        h1 {
+            color: #005a9c;
+            text-align: center;
+        }
+        .content {
+            margin-top: 20px;
+        }
+        .user-name {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reporte de Actividad</h1>
+    
+    <div class="content">
+        <p>Este es un reporte generado para el usuario: 
+           <span class="user-name">{{ user.username }}</span>.
+        </p>
+        <p>Email: {{ user.email }}</p>
+        
+        <h3>Datos del Reporte:</h3>
+        <ul>
+            {% for item in data_list %}
+                <li>{{ item.name }}: {{ item.value }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

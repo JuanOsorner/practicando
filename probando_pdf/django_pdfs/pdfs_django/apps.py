@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class DjangoPdfConfig(AppConfig):
+class PdfsDjangoConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'django_pdf'
+    name = 'pdfs_django'

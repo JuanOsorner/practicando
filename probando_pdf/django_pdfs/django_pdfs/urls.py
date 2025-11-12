@@ -16,7 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from pdfs_django import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path(
+        'reporte/<int:user_id>/', 
+        views.send_report_view, 
+        name='send_report'
+    ),
 ]
