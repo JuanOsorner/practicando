@@ -1,149 +1,162 @@
 /**
  * SidePanel.js
- * Componente de clase que encapsula toda la lógica del panel lateral.
- * Es responsable de su propio estado, renderizado y eventos.
+ * ---------------------------
+ * Componente Controlador del Panel Lateral (Slide-over).
+ * * * RESPONSABILIDADES:
+ * 1. Renderizar formularios (Crear/Editar) dentro del panel.
+ * 2. Gestionar widgets complejos (Syncfusion MultiSelect).
+ * 3. Manejar la sub-lista de empleados dentro de una empresa.
+ * 4. Enviar datos de formularios al API y manejar la respuesta visual.
+ * * * ARQUITECTURA:
+ * - Usa 'apiService.js' para comunicación con el backend.
+ * - Usa 'ui.js' (Core Global) para feedback visual estandarizado.
+ * - Usa 'uiComponents.js' (alias templateBuilder) para generar HTML puro.
  */
+
 import * as api from './apiService.js';
-import * as ui from './uiComponents.js';
-// Importamos las utilidades de notificación refactorizadas
-import { mostrarNotificacion, mostrarCarga, ocultarCarga } from './utils.js';
+import * as templateBuilder from './uiComponents.js'; // Renombrado para evitar conflicto con 'ui' global
+import { ui } from '/static/home/js/core/ui.js';
 
 export class SidePanel {
-    // Campos privados para el estado y elementos del DOM
+    // --- Elementos del DOM (Referencias cacheadas) ---
     #panelEl;
     #overlayEl;
     #titleEl;
     #formEl;
     #backBtnEl;
 
-    #recursos; // Almacén para { cargos, servicios }
-    #currentCompany = null;
-    #empleados = []; // La lista "master" de empleados para la empresa actual
-    #isEditingEmployee = false;
+    // --- Estado Interno ---
+    #recursos;          // Objeto con listas de { cargos, servicios } para los selects
+    #currentCompany = null; // Datos de la empresa actualmente abierta (o null si es nueva)
+    #empleados = [];    // Lista local de empleados de la empresa actual
+    #isEditingEmployee = false; // Bandera para saber si el formulario visible es de empleado o empresa
 
+    // --- Widgets de Terceros (Syncfusion) ---
     #serviciosWidget = null;
     #cargoWidget = null;
 
-    // Callbacks para comunicarse con el "director" (main.js)
-    onCompanySaved = () => {}; // Se llamará después de guardar una empresa/empleado
+    // --- Callbacks (Comunicación hacia afuera) ---
+    onCompanySaved = () => {}; // Se dispara cuando se crea/edita algo exitosamente
 
     /**
-     * @param {HTMLElement} panelEl - El elemento principal del panel (<div id="side-panel">)
-     * @param {HTMLElement} overlayEl - El elemento del overlay (<div id="panel-overlay">)
-     * @param {object} recursos - { cargos: [], servicios: [] }
+     * Constructor: Inicializa referencias y eventos base.
+     * @param {HTMLElement} panelEl - El contenedor principal del panel.
+     * @param {HTMLElement} overlayEl - El fondo oscuro.
+     * @param {object} recursos - Datos precargados para los selects.
      */
     constructor(panelEl, overlayEl, recursos = { cargos: [], servicios: [] }) {
         this.#panelEl = panelEl;
         this.#overlayEl = overlayEl;
         this.#recursos = recursos;
 
-        // Encontrar elementos internos
+        // Encontrar elementos internos críticos
         this.#titleEl = this.#panelEl.querySelector('#panel-title');
         this.#formEl = this.#panelEl.querySelector('#panel-form');
         this.#backBtnEl = this.#panelEl.querySelector('#panel-back-btn');
 
-        // Inicializar los listeners base UNA SOLA VEZ
+        // Configurar escuchadores de eventos una única vez
         this.#initListeners();
     }
 
-    // --- API Pública (Métodos llamados desde main.js) ---
+    // =================================================
+    // === API PÚBLICA (Métodos usados por main.js) ===
+    // =================================================
 
     /**
-     * Abre el panel para ver/editar una empresa existente.
-     * @param {object} companyData - Los datos de la empresa.
+     * Abre el panel visualizando los detalles de una empresa existente.
+     * @param {object} companyData - Objeto con datos de la empresa.
      */
     async openForCompany(companyData) {
         this.#currentCompany = companyData;
         this.#isEditingEmployee = false;
         this.#titleEl.textContent = `Detalles de ${companyData.nombre_empresa}`;
 
-        // 1. Renderizar el HTML del formulario de empresa
-        this.#formEl.innerHTML = ui.getPanelContentHTML(companyData);
+        // 1. Renderizar el HTML base (Info + Formulario oculto)
+        this.#formEl.innerHTML = templateBuilder.getPanelContentHTML(companyData);
 
-        // 2. Inicializar widgets
+        // 2. Inicializar el widget de servicios (en modo lectura/edición oculta)
         this.#initCompanyWidgets(companyData.servicios);
 
-        // 3. Mostrar el panel
+        // 3. Mostrar el panel animado
         this.show();
 
-        // 4. Cargar empleados
+        // 4. Cargar la lista de empleados asíncronamente
         await this.#loadEmployees(companyData.id);
     }
 
     /**
-     * Abre el panel para registrar una nueva empresa.
+     * Abre el panel limpio para registrar una nueva empresa.
      */
     openForNewCompany() {
         this.#currentCompany = null;
         this.#isEditingEmployee = false;
         this.#titleEl.textContent = 'Registrar Nueva Empresa';
 
-        // 1. Renderizar el HTML (modo "isNew")
-        this.#formEl.innerHTML = ui.getPanelContentHTML(null);
-
-        // 2. Inicializar widgets (en modo edición)
+        // 1. Renderizar HTML en modo "Nuevo"
+        this.#formEl.innerHTML = templateBuilder.getPanelContentHTML(null);
+        
+        // 2. Inicializar widgets habilitados para edición
         this.#initCompanyWidgets([], true);
 
-        // 3. Mostrar el panel
+        // 3. Mostrar panel
         this.show();
     }
 
-    /** Muestra el panel y el overlay */
+    /** Despliega el panel agregando la clase CSS */
     show() {
         document.body.classList.add('panel-is-open');
     }
 
-    /** Cierra y limpia el panel */
+    /** Cierra el panel, limpia el DOM y destruye widgets para liberar memoria */
     close() {
         document.body.classList.remove('panel-is-open');
-        this.#formEl.innerHTML = ''; // Limpia el contenido
+        this.#formEl.innerHTML = ''; // Limpieza del DOM
         
-        // Resetea el estado interno
+        // Reset del estado interno
         this.#currentCompany = null;
         this.#empleados = [];
         this.#isEditingEmployee = false;
         
-        // Destruye widgets para prevenir fugas de memoria
+        // Destrucción de instancias de Syncfusion
         this.#destroyWidgets();
     }
 
-    // --- Manejadores de Eventos Internos ---
+    // =================================================
+    // === MANEJO DE EVENTOS INTERNOS ===
+    // =================================================
 
-    /** Configura los listeners base del panel */
     #initListeners() {
-        // Clic en el overlay para cerrar
+        // Cerrar al dar clic fuera o en el botón volver
         this.#overlayEl.addEventListener('click', () => this.close());
-
-        // Clic en el botón "atrás"
         this.#backBtnEl.addEventListener('click', () => this.#handleBack());
-
-        // Manejador central para el formulario (submit)
+        
+        // Manejador central del Submit (evita recarga)
         this.#formEl.addEventListener('submit', (e) => this.#handleSubmit(e));
 
-        // Delegación de eventos para clics DENTRO del formulario
+        // Delegación de eventos: Clics dinámicos dentro del formulario
         this.#formEl.addEventListener('click', (e) => this.#handleClickDelegation(e));
-
-        // Delegación de eventos para inputs DENTRO del formulario
+        
+        // Delegación de eventos: Inputs dinámicos (Buscador, File Upload)
         this.#formEl.addEventListener('input', (e) => this.#handleInputDelegation(e));
     }
 
-    /** Maneja el clic en el botón "Atrás" */
+    /** Lógica inteligente del botón "Atrás" */
     #handleBack() {
         if (this.#isEditingEmployee) {
-            // Si estaba editando un empleado, vuelve al panel de la empresa
+            // Si estoy editando empleado, "Atrás" significa volver a la Empresa
             this.openForCompany(this.#currentCompany);
         } else {
-            // Si estaba en el panel de la empresa, cierra
+            // Si estoy en la empresa, "Atrás" significa cerrar
             this.close();
         }
     }
 
-    /** Maneja TODOS los clics dentro del formulario */
+    /** Centralizador de clics (Router interno de acciones) */
     #handleClickDelegation(e) {
-        // 1. Manejar clics en el toggle de estado del empleado
+        // A. Toggle Estado Empleado (Switch)
         if (e.target.classList.contains('toggle-estado-empleado')) {
             const card = e.target.closest('.employee-card-compact');
-            if (e.target.disabled || !card) return;
+            if (!card || e.target.disabled) return;
             
             const empleadoId = card.dataset.employeeId;
             const nuevoEstado = e.target.checked;
@@ -151,17 +164,20 @@ export class SidePanel {
             return;
         }
 
-        // 2. Manejar clics en botones de filtro de empleados
+        // B. Filtros de la lista de Empleados
         const filterBtn = e.target.closest('#panel-empleados-section .btn-filter');
         if (filterBtn) {
+            // Gestión de clases 'active'
             this.#formEl.querySelectorAll('#panel-empleados-section .btn-filter')
                 .forEach(btn => btn.classList.remove('active'));
             filterBtn.classList.add('active');
+            
+            // Aplicar filtro
             this.#filterEmpleados();
             return;
         }
         
-        // 3. Manejar clics en botones de acción (data-action)
+        // C. Botones de Acción (data-action)
         const actionTarget = e.target.closest('[data-action]');
         if (!actionTarget) return;
 
@@ -169,87 +185,94 @@ export class SidePanel {
 
         switch (action) {
             case 'edit-company':
+                // Activa el modo edición visualmente
                 this.#formEl.querySelector('.info-card').classList.add('is-editing');
                 if (this.#serviciosWidget) this.#serviciosWidget.enabled = true;
                 break;
+
             case 'cancel-edit-company':
-                if (this.#currentCompany) {
-                    this.openForCompany(this.#currentCompany); // Recarga el panel
-                } else {
-                    this.close(); // Estaba creando, así que cierra
-                }
+                // Recarga el panel o cierra si era nuevo
+                this.#currentCompany ? this.openForCompany(this.#currentCompany) : this.close();
                 break;
+
             case 'register-employee':
-                this.#initEmployeeForm(null); // Abre el form de empleado en modo "nuevo"
+                // Cambia la vista al formulario de empleado vacío
+                this.#initEmployeeForm(null);
                 break;
+
             case 'edit-employee':
+                // Carga datos del empleado seleccionado y muestra formulario
                 const card = e.target.closest('.employee-card-compact');
-                const empleadoId = card.dataset.employeeId;
-                const employeeData = this.#empleados.find(emp => emp.id == empleadoId);
-                if (employeeData) {
-                    this.#initEmployeeForm(employeeData);
+                const empId = card.dataset.employeeId;
+                const empData = this.#empleados.find(e => e.id == empId);
+                
+                if (empData) {
+                    this.#initEmployeeForm(empData);
                 } else {
-                    mostrarNotificacion('No se pudieron cargar los datos del empleado.');
+                    ui.showNotification('Error al cargar datos del empleado', 'error');
                 }
                 break;
+
             case 'cancel-edit-employee':
-                this.openForCompany(this.#currentCompany); // Vuelve al panel de empresa
+                // Vuelve a la vista de la empresa
+                this.openForCompany(this.#currentCompany);
                 break;
-            case 'trigger-image-upload': // Mapeado del getEmployeeFormHTML
+
+            case 'trigger-image-upload':
+                // Proxy para el input file oculto
                 this.#formEl.querySelector('#imagen_empleado').click();
                 break;
         }
     }
 
-    /** Maneja TODOS los inputs dentro del formulario */
     #handleInputDelegation(e) {
-        // 1. Buscador de empleados en el panel
+        // Buscador en tiempo real de empleados
         if (e.target.id === 'buscador-panel-empleados') {
             this.#filterEmpleados();
-            return;
         }
-        // 2. Preview de imagen de empleado
+        // Previsualización de imagen al seleccionar archivo
         if (e.target.id === 'imagen_empleado') {
             this.#handleImagePreview(e);
-            return;
         }
     }
 
-    /** Maneja el submit central del formulario */
     async #handleSubmit(e) {
         e.preventDefault();
         
         if (this.#isEditingEmployee) {
             await this.#handleSaveEmployee();
         } else {
-            // Solo guarda si el submitter fue el botón de guardar
+            // Asegurarse que el submit venga del botón de guardar empresa
             if (e.submitter && e.submitter.dataset.action === 'save-company') {
                 await this.#handleSaveCompany();
             }
         }
     }
-    
-    // --- Lógica de Formularios y Widgets ---
 
-    /** Inicializa el formulario de Empleado (Crear/Editar) */
+    // =================================================
+    // === GESTIÓN DE WIDGETS Y FORMULARIOS ===
+    // =================================================
+
+    /** Renderiza e inicializa el formulario de Empleado */
     #initEmployeeForm(employeeData) {
         this.#isEditingEmployee = true;
-        this.#titleEl.textContent = employeeData ? `Editar ${employeeData.first_name || 'Empleado'}` : 'Registrar Nuevo Empleado';
+        this.#titleEl.textContent = employeeData ? 'Editar Empleado' : 'Nuevo Empleado';
         
-        // 1. Renderizar HTML
-        this.#formEl.innerHTML = ui.getEmployeeFormHTML(employeeData, this.#recursos.cargos);
+        // HTML
+        this.#formEl.innerHTML = templateBuilder.getEmployeeFormHTML(employeeData, this.#recursos.cargos);
         
-        // 2. Destruir widget de servicios (si existía)
+        // Limpieza de widget de empresa (no necesario aquí)
         if (this.#serviciosWidget) {
             this.#serviciosWidget.destroy();
             this.#serviciosWidget = null;
         }
 
-        // 3. Inicializar widget de cargo
-        const cargoMultiselectElem = this.#formEl.querySelector('#cargo-empleado-multiselect');
-        const cargoHiddenInput = this.#formEl.querySelector('#cargo-empleado-hidden');
+        // Inicialización del MultiSelect para Cargo
+        const cargoElem = this.#formEl.querySelector('#cargo-empleado-multiselect');
+        const cargoInput = this.#formEl.querySelector('#cargo-empleado-hidden');
         
-        // abusamos de la biblioteca ej2
+        if (this.#cargoWidget) this.#cargoWidget.destroy();
+
         this.#cargoWidget = new ej.dropdowns.MultiSelect({
             dataSource: this.#recursos.cargos, 
             fields: { value: 'id', text: 'text' },
@@ -258,39 +281,35 @@ export class SidePanel {
             maximumSelectionLength: 1,
             value: employeeData ? [employeeData.cargo] : [],
             allowCustomValue: true,
-            // cuando se seleccione cargo el valor se guarda en el input oculto
+            // Sincronización con input oculto para el FormData
             change: (args) => {
-                cargoHiddenInput.value = (args.value && args.value.length > 0) ? args.value[0] : '';
+                cargoInput.value = (args.value && args.value.length > 0) ? args.value[0] : '';
             }
         });
-        this.#cargoWidget.appendTo(cargoMultiselectElem);
+        this.#cargoWidget.appendTo(cargoElem);
     }
 
-    /** Inicializa el widget de servicios para el form de Empresa */
+    /** Inicializa el widget de Servicios para Empresa */
     #initCompanyWidgets(selectedServices = [], isEditing = false) {
-        const multiselectElement = this.#formEl.querySelector('#servicios-multiselect');
-        if (!multiselectElement) return;
+        const elem = this.#formEl.querySelector('#servicios-multiselect');
+        if (!elem) return;
 
-        // Destruir widget de cargo (si existía)
-        if (this.#cargoWidget) {
-            this.#cargoWidget.destroy();
-            this.#cargoWidget = null;
-        }
+        // Limpieza de memoria
+        this.#destroyWidgets();
 
-        // Multiselect es de la biblioteca de ej2 que estamos usando
         this.#serviciosWidget = new ej.dropdowns.MultiSelect({
-            dataSource: this.#recursos.servicios, // Cargamos nuestros servicios
-            fields: { value: 'id', text: 'text' }, // Como los vamos a organizar
-            placeholder: 'Selecciona servicios', // Si no se selecciona nada entonces dejamos este texto
-            mode: 'Box', // Muestra cada seleccion como una caja
-            value: selectedServices, // Los servicios seleccionados (VARIOS EN ESTE CASO)
-            enabled: isEditing, // Habilitado solo si isEditing es true
-            allowCustomValue: true // Nos permite añadir nuevos servicios
+            dataSource: this.#recursos.servicios,
+            fields: { value: 'id', text: 'text' },
+            placeholder: 'Selecciona servicios',
+            mode: 'Box',
+            value: selectedServices,
+            enabled: isEditing, // Solo habilitado si estamos editando/creando
+            allowCustomValue: true
         });
-        this.#serviciosWidget.appendTo(multiselectElement);
+        this.#serviciosWidget.appendTo(elem);
     }
 
-    /** Destruye todos los widgets activos para limpiar memoria */
+    /** Destruye widgets para evitar fugas de memoria en SPA */
     #destroyWidgets() {
         if (this.#serviciosWidget) {
             this.#serviciosWidget.destroy();
@@ -302,182 +321,169 @@ export class SidePanel {
         }
     }
 
-    /** Muestra la vista previa de la imagen seleccionada */
+    /** Previsualización de imagen local (FileReader) */
     #handleImagePreview(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        const imagePreview = this.#formEl.querySelector('#image-preview');
-        const placeholderText = this.#formEl.querySelector('#placeholder-text');
+        const preview = this.#formEl.querySelector('#image-preview');
+        const placeholder = this.#formEl.querySelector('#placeholder-text');
         
         const reader = new FileReader();
         reader.onload = (e) => {
-            imagePreview.src = e.target.result;
-            imagePreview.style.display = 'block';
-            placeholderText.style.display = 'none';
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
         };
         reader.readAsDataURL(file);
     }
 
-    // --- Lógica de Carga y Renderizado de Empleados ---
+    // =================================================
+    // === LÓGICA DE DATOS (EMPLEADOS) ===
+    // =================================================
 
-    /** Busca y renderiza la lista de empleados para la empresa actual */
     async #loadEmployees(empresaId) {
         const container = this.#formEl.querySelector('#panel-empleados-container');
         if (!container) return;
-        container.innerHTML = "<p>Cargando empleados...</p>";
+        
+        container.innerHTML = '<div style="text-align:center; padding:20px;">Cargando empleados...</div>';
         
         try {
             const data = await api.fetchEmpleados(empresaId);
+            // Ordenar: Activos primero
             this.#empleados = data.empleados.sort((a, b) => b.estado - a.estado);
-            this.#renderEmpleados(this.#empleados); // Renderiza la lista completa
+            this.#renderEmpleados(this.#empleados);
         } catch (error) {
-            container.innerHTML = `<p style="color: red;">${error.message}</p>`;
+            container.innerHTML = `<p style="color: red; text-align:center;">${error.message}</p>`;
         }
     }
 
-    /**
-     * Renderiza la lista de empleados en el panel.
-     * @param {Array} lista - La lista de empleados a renderizar.
-     */
     #renderEmpleados(lista) {
         const container = this.#formEl.querySelector('#panel-empleados-container');
         if (!container) return;
         
         container.innerHTML = '';
         if (lista.length === 0) {
-            container.innerHTML = "<p>No hay empleados para el filtro actual.</p>";
+            container.innerHTML = "<p style='text-align:center; color: var(--color-texto-secundario); padding: 20px;'>No se encontraron empleados.</p>";
             return;
         }
         
         const isCompanyActive = this.#currentCompany ? this.#currentCompany.estado : true;
+        
         lista.forEach(emp => {
-            const cardHTML = ui.createEmpleadoCard(emp, isCompanyActive);
+            const cardHTML = templateBuilder.createEmpleadoCard(emp, isCompanyActive);
             container.insertAdjacentHTML('beforeend', cardHTML);
         });
     }
 
-    /** Filtra y re-renderiza la lista de empleados en el panel */
+    /** Filtra la lista local de empleados (Buscador + Tabs Estado) */
     #filterEmpleados() {
-        const panelSearch = this.#formEl.querySelector('#buscador-panel-empleados');
-        const botonActivo = this.#formEl.querySelector('#panel-empleados-section .btn-filter.active');
-        
-        const terminoBusqueda = panelSearch ? panelSearch.value.toLowerCase() : '';
-        const filtroActivo = botonActivo ? botonActivo.dataset.filter : 'todos';
+        const searchVal = this.#formEl.querySelector('#buscador-panel-empleados')?.value.toLowerCase() || '';
+        const filterVal = this.#formEl.querySelector('#panel-empleados-section .btn-filter.active')?.dataset.filter || 'todos';
 
-        const empleadosFiltrados = this.#empleados.filter(emp => {
-            let pasaEstado = (filtroActivo === 'todos') ||
-                             (filtroActivo === 'activos' && emp.estado === true) ||
-                             (filtroActivo === 'inactivos' && emp.estado === false);
-
-            let pasaBusqueda = false;
-            if (terminoBusqueda === '') {
-                pasaBusqueda = true;
-            } else {
-                pasaBusqueda = (emp.first_name || '').toLowerCase().includes(terminoBusqueda) ||
-                               (emp.email || '').toLowerCase().includes(terminoBusqueda) ||
-                               (emp.numero_documento || '').toLowerCase().includes(terminoBusqueda);
-            }
-            return pasaEstado && pasaBusqueda;
+        const filtrados = this.#empleados.filter(emp => {
+            const matchEstado = (filterVal === 'todos') ||
+                              (filterVal === 'activos' && emp.estado) ||
+                              (filterVal === 'inactivos' && !emp.estado);
+            
+            const matchSearch = !searchVal || 
+                              (emp.nombre_completo || '').toLowerCase().includes(searchVal) ||
+                              (emp.numero_documento || '').includes(searchVal);
+            
+            return matchEstado && matchSearch;
         });
 
-        this.#renderEmpleados(empleadosFiltrados);
+        this.#renderEmpleados(filtrados);
     }
 
-    // --- Lógica de Guardado y Actualización (API) ---
+    // =================================================
+    // === OPERACIONES DE GUARDADO (API + UI) ===
+    // =================================================
 
     async #handleSaveCompany() {
         const formData = new FormData(this.#formEl);
-      
+        
+        // Procesar los valores del widget MultiSelect manualmente
         if (this.#serviciosWidget) {
-            formData.delete('servicios_input_temp');
-            const servicioIDs = this.#serviciosWidget.value || [];
-            servicioIDs.forEach(id => formData.append('servicios', id));
-        }
-        if (!formData.get('id')) {
-            formData.delete('id');
+            formData.delete('servicios_input_temp'); // Limpiar campo temporal
+            const ids = this.#serviciosWidget.value || [];
+            // Enviar cada ID como un valor separado para la lista
+            ids.forEach(id => formData.append('servicios', id));
         }
         
-        // ¡Llamada limpia a utils.js!
-        mostrarCarga('Guardando Empresa...'); 
-        
+        // Limpiar ID si está vacío (para que Django lo trate como creación)
+        if (!formData.get('id')) formData.delete('id');
+
+        // Feedback Visual Global
+        ui.showLoading('Guardando Empresa...');
+
         try {
             const result = await api.saveEmpresa(formData);
             
-            // ¡Llamada limpia a utils.js!
-            ocultarCarga();
-            mostrarNotificacion(result.message, 'success');
+            ui.hideLoading();
+            ui.showNotification(result.message, 'success');
             
-            this.openForCompany(result.empresa); 
+            // Recargar panel con los datos frescos y notificar a la vista principal
+            this.openForCompany(result.empresa);
             this.onCompanySaved();
-            
+
         } catch (error) {
-            // ¡Llamada limpia a utils.js!
-            ocultarCarga();
-            mostrarNotificacion(error.message, 'error', 'Error al guardar empresa');
+            ui.hideLoading();
+            ui.showNotification(error.message, 'error');
         }
     }
 
     async #handleSaveEmployee() {
         const formData = new FormData(this.#formEl);
-        
-        // Limpieza de FormData (Solución al error '...got []')
-        formData.delete('cargo_input_temp');
+        formData.delete('cargo_input_temp'); // Limpiar temporal
 
+        // Procesar Cargo desde el Widget
         if (this.#cargoWidget && this.#cargoWidget.value && this.#cargoWidget.value.length > 0) {
-            // Obtenemos el valor (ej: "1" o "Supervisor")
-            const cargoValue = this.#cargoWidget.value[0];
-            // Lo asignamos a la clave 'cargo' que el backend espera
-            formData.set('cargo', cargoValue);
-         } else {
-            // Asegurarse de que 'cargo' exista, aunque esté vacío
-            if (!formData.has('cargo')) {
-                formData.set('cargo', '');
-            }
+            formData.set('cargo', this.#cargoWidget.value[0]);
+        } else {
+            if (!formData.has('cargo')) formData.set('cargo', '');
         }
 
-        if (!formData.get('id')) {
-            formData.delete('id');
-        }
+        if (!formData.get('id')) formData.delete('id');
+        
+        // Vincular empleado a la empresa actual
         formData.append('id_empresa', this.#currentCompany.id);
 
-        // ¡Llamada limpia a utils.js!
-        mostrarCarga('Guardando Empleado...');
+        ui.showLoading('Guardando Empleado...');
 
         try {
             const result = await api.saveEmployee(formData);
-
-            // ¡Llamada limpia a utils.js!
-            ocultarCarga();
-            mostrarNotificacion(result.message, 'success');
             
+            ui.hideLoading();
+            ui.showNotification(result.message, 'success');
+            
+            // Volver a la vista de la empresa tras guardar
             this.openForCompany(this.#currentCompany);
 
         } catch (error) {
-            // ¡Llamada limpia a utils.js!
-            ocultarCarga();
-            mostrarNotificacion(error.message, 'error', 'Error al guardar empleado');
+            ui.hideLoading();
+            ui.showNotification(error.message, 'error');
         }
     }
 
-    async #handleUpdateEstadoEmpleado(empleadoId, nuevoEstado, cardElement) {
-        const toggle = cardElement.querySelector('.toggle-estado-empleado');
+    async #handleUpdateEstadoEmpleado(empId, nuevoEstado, card) {
+        const toggle = card.querySelector('.toggle-estado-empleado');
         
         try {
-            const response = await api.updateEmpleadoEstado(empleadoId, nuevoEstado);
+            const response = await api.updateEmpleadoEstado(empId, nuevoEstado);
             
-            // ¡Llamada limpia a utils.js!
-            mostrarNotificacion(response.message, 'success');
+            ui.showNotification(response.message, 'success');
             
-            const employeeData = this.#empleados.find(emp => emp.id == empleadoId);
-            if (employeeData) employeeData.estado = nuevoEstado;
+            // Actualizar modelo local para que el filtro funcione correctamente
+            const emp = this.#empleados.find(e => e.id == empId);
+            if (emp) emp.estado = nuevoEstado;
             
+            // Refrescar vista (ej. si estoy en tab 'Activos' y lo desactivo, debe desaparecer)
             this.#filterEmpleados();
 
         } catch (error) {
-            // ¡Llamada limpia a utils.js!
-            mostrarNotificacion(error.message, 'error');
-            toggle.checked = !nuevoEstado;
+            ui.showNotification(error.message, 'error');
+            toggle.checked = !nuevoEstado; // Revertir visualmente el switch si falló
         }
     }
 }
