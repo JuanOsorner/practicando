@@ -1,8 +1,3 @@
-/* ======================================================= */
-/* ===    CSS FACTORIZADO: DESCARGO RESPONSABILIDAD    === */
-/* ===     (Usa variables globales de global.css)      === */
-/* ======================================================= */
-
 /* NOTA: No redefinimos :root aquí porque ya heredamos de home.html.
    Usamos las variables de global.css:
    --color-primario-oscuro

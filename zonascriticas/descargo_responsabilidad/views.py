@@ -25,7 +25,7 @@ def responsabilidad_view(request):
             'usuario': request.user,
             # Puedes agregar más contexto aquí si necesitas datos de la empresa, etc.
         }
-        return render(request, 'descargo_responsabilidad/mobile_form.html', context)
+        return render(request, 'mobile_form.html', context)
     else:
         # Si es escritorio, mostramos la advertencia
-        return render(request, 'descargo_responsabilidad/desktop_warning.html')
+        return render(request, 'desktop_warning.html')

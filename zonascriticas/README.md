@@ -1,99 +1,111 @@
-# Zonascriticas
+# Proyecto Zonascriticas
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-4.2-blue?style=for-the-badge&logo=django)](https://www.djangoproject.com/)
-[![MySQL](https://img.shields.io/badge/MySQL-blue?style=for-the-badge&logo=mysql)](https://www.mysql.com/)
-[![API REST](https://img.shields.io/badge/API_REST-blue?style=for-the-badge&logo=dependabot)](https://www.django-rest-framework.org/)
+**Zonascriticas** es una aplicación web desarrollada con Django, diseñada para la gestión de empresas, empleados y el control de zonas críticas. La aplicación cuenta con un sistema de autenticación personalizado, perfiles de usuario, y una interfaz para la administración de datos relacionados con las empresas y sus empleados.
 
-Zonascriticas es una aplicación web desarrollada con Django que se encarga de la gestión de empresas, empleados y perfiles de usuario. La aplicación cuenta con un sistema de autenticación personalizado y expone varios puntos de conexión de API para la gestión de datos.
+## Características Principales
 
-## ✨ Características
+- **Autenticación Personalizada:** Sistema de inicio de sesión propio que utiliza el número de documento del usuario.
+- **Perfiles de Usuario:** Los usuarios pueden ver y actualizar su información personal, incluyendo su foto de perfil.
+- **Gestión de Empresas:** Permite crear, leer, actualizar y eliminar (CRUD) empresas, así como gestionar su estado (activas/inactivas).
+- **Gestión de Empleados:** Funcionalidad para administrar los empleados asociados a cada empresa, incluyendo sus cargos y estado.
+- **Descargo de Responsabilidad:** Presenta un descargo de responsabilidad que se adapta al dispositivo del usuario (móvil o de escritorio).
+- **Roles de Usuario:** Diferencia entre usuarios de tipo `Administrador` y `Usuario`, redirigiendo a cada uno a su respectiva interfaz al iniciar sesión.
 
-- **Gestión de empresas y empleados:** Permite crear, actualizar y listar empresas y empleados.
-- **Perfiles de usuario:** Cada usuario tiene un perfil que puede ser actualizado, incluyendo una imagen de perfil.
-- **Autenticación personalizada:** Utiliza un sistema de autenticación propio en lugar del sistema de autenticación por defecto de Django.
-- **API REST:** Expone puntos de conexión de API para interactuar con los datos de la aplicación.
-- **Servicio de archivos estáticos y multimedia:** Configurado para servir archivos estáticos (CSS, JavaScript) y multimedia (imágenes de perfil).
+## Estructura del Proyecto
 
-## 💻 Tecnologías utilizadas
+El proyecto está organizado en las siguientes aplicaciones de Django:
 
-- **Backend:** Python, Django
-- **Base de datos:** MySQL
-- **Frontend:** HTML, CSS, JavaScript
-- **Otros:** python-dotenv, Pillow
+- `login`: Maneja la autenticación de usuarios y el modelo `Usuario`.
+- `home`: Contiene la vista principal que redirige a los usuarios según su rol.
+- `perfil`: Gestiona el perfil de los usuarios, permitiendo la visualización y actualización de sus datos.
+- `empresas`: Contiene toda la lógica para la gestión de empresas, empleados, cargos y servicios.
+- `descargo_responsabilidad`: Muestra un descargo de responsabilidad a los usuarios de tipo `Usuario`.
 
-## 🔧 Puesta en marcha
+## Requisitos
 
-Siga estos pasos para poner en marcha el proyecto en su entorno local:
+Para ejecutar este proyecto, necesitarás tener instalado lo siguiente:
 
-### Requisitos previos
+- Python 3.x
+- Django
+- MySQL (o la base de datos que configures en `.env`)
 
-- Python 3.10 o superior
-- Pip (gestor de paquetes de Python)
-- MySQL
+Las dependencias de Python se encuentran en el archivo `requirements.txt` y pueden ser instaladas con el siguiente comando:
 
-### Instalación
+```bash
+pip install -r requirements.txt
+```
 
-1. **Clone el repositorio:**
+## Configuración
+
+1. **Clona el repositorio:**
 
    ```bash
-   git clone https://github.com/tu-usuario/zonascriticas.git
+   git clone <URL-del-repositorio>
    cd zonascriticas
    ```
 
-2. **Cree un entorno virtual:**
+2. **Crea un entorno virtual (recomendado):**
 
    ```bash
    python -m venv entorno_zc
    source entorno_zc/bin/activate  # En Windows: entorno_zc\Scripts\activate
    ```
 
-3. **Instale las dependencias:**
+3. **Instala las dependencias:**
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure las variables de entorno:**
+4. **Configura las variables de entorno:**
 
-   Cree un archivo `.env` en la raíz del proyecto y añada las siguientes variables:
+   Crea un archivo `.env` en la raíz del proyecto (junto a `manage.py`) y añade las siguientes variables:
 
    ```env
-   SECRET_KEY=tu_super_secreto
+   SECRET_KEY=tu_secret_key
    DEBUG=True
    ALLOWED_HOSTS=127.0.0.1,localhost
 
    DB_ENGINE=django.db.backends.mysql
-   DB_NAME=nombre_de_tu_bd
-   DB_USER=tu_usuario_de_bd
-   DB_PASSWORD=tu_contraseña_de_bd
+   DB_NAME=tu_base_de_datos
+   DB_USER=tu_usuario
+   DB_PASSWORD=tu_contraseña
    DB_HOST=localhost
    DB_PORT=3306
    ```
 
-5. **Ejecute las migraciones:**
+5. **Aplica las migraciones:**
 
    ```bash
    python manage.py migrate
    ```
 
-6. **Inicie el servidor de desarrollo:**
+## Uso
 
-   ```bash
-   python manage.py runserver
-   ```
+Para iniciar el servidor de desarrollo, ejecuta el siguiente comando:
 
-La aplicación estará disponible en `http://127.0.0.1:8000/`.
+```bash
+python manage.py runserver
+```
 
-## 🏗️ Estructura del proyecto
+La aplicación estará disponible en `http://127.0.0.1:8000`.
 
-El proyecto está organizado en las siguientes aplicaciones de Django:
+- **Inicio de sesión:** Accede a la raíz del sitio para iniciar sesión con un número de documento de un usuario registrado.
+- **Panel de Administrador:** Si inicias sesión como `Administrador`, serás redirigido al panel de gestión de empresas y empleados.
+- **Descargo de Responsabilidad:** Si inicias sesión como `Usuario`, verás la página de descargo de responsabilidad.
 
-- `login`: Gestiona la autenticación de usuarios.
-- `home`: Muestra el panel de control principal de la aplicación.
-- `perfil`: Gestiona los perfiles de usuario.
-- `empresas`: Gestiona las empresas y los empleados.
+## API Endpoints
 
-## 📄 Licencia
+La aplicación `empresas` expone varios endpoints para gestionar los datos a través de una interfaz dinámica:
 
-Este proyecto está bajo la Licencia MIT. Consulte el archivo `LICENSE` para más detalles.
+- `GET /empresas/list/`: Lista todas las empresas.
+- `GET /empresas/empleados/<empresa_id>/`: Lista los empleados de una empresa específica.
+- `GET /empresas/recursos/`: Obtiene listas de cargos y servicios.
+- `POST /empresas/create/`: Crea una nueva empresa.
+- `POST /empresas/update/<empresa_id>/`: Actualiza una empresa existente.
+- `POST /empresas/empleado/create/`: Crea un nuevo empleado.
+- `POST /empresas/empleado/update/<empleado_id>/`: Actualiza un empleado existente.
+- `POST /empresas/estado/empresa/<empresa_id>/`: Cambia el estado de una empresa.
+- `POST /empresas/estado/empleado/<empleado_id>/`: Cambia el estado de un empleado.
+- `POST /perfil/update/`: Actualiza el perfil del usuario.
+- `POST /perfil/update-image/`: Actualiza la imagen de perfil del usuario.
