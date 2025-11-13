@@ -1,19 +1,18 @@
 /**
  * EmpresasView.js
- * Componente de clase que maneja la vista principal de la cuadrícula de empresas,
- * la búsqueda y los filtros.
+ * Actualizado para soportar Multi-Vista (Web y Móvil simultáneos)
  */
 import * as api from './apiService.js';
 import * as ui from './uiComponents.js';
 import { mostrarNotificacion } from './utils.js';
 
 export class EmpresasView {
-    // Elementos del DOM
+    // Elementos del DOM (Ahora serán arrays o NodeLists)
     #container;
-    #gridContainer;
-    #searchInput;
+    #gridContainers; // Plural: manejaremos varios contenedores
+    #searchInputs;   // Plural: manejaremos varios inputs
     #filterButtons;
-    #newButton;
+    #newButtons;     // Plural: botón registrar web y móvil
 
     // Estado interno
     #empresas = [];
@@ -21,55 +20,74 @@ export class EmpresasView {
     #busquedaActual = '';
     #searchTimeout = null;
 
-    // Callbacks de comunicación (hacia main.js)
-    onCardClick = (empresa) => {}; // Se llama al hacer clic en una tarjeta
-    onNewClick = () => {};         // Se llama al hacer clic en "Registrar Empresa"
+    // Callbacks
+    onCardClick = (empresa) => {}; 
+    onNewClick = () => {}; 
 
     constructor(containerElement) {
-        this.#container = containerElement;
+        // containerElement aquí es irrelevante porque buscamos en todo el document
+        // para encontrar ambas vistas (web y móvil)
         
-        // Encontrar elementos clave dentro de este componente
-        this.#gridContainer = this.#container.querySelector('#empresas-container');
-        this.#searchInput = this.#container.querySelector('#buscador-empresas');
-        this.#filterButtons = this.#container.querySelectorAll('.filter-group .btn-filter');
-        this.#newButton = this.#container.querySelector('#btn-registrar-empresa');
+        // 1. Buscamos TODOS los contenedores de grid (por clase)
+        this.#gridContainers = document.querySelectorAll('.js-empresas-container');
+        
+        // 2. Buscamos TODOS los inputs de búsqueda (por clase)
+        this.#searchInputs = document.querySelectorAll('.js-buscador-empresas');
+        
+        // 3. Botones de filtro (delegación global o búsqueda amplia)
+        // Asumimos que los botones de filtro funcionan bien, pero idealmente deberían ser clases también.
+        this.#filterButtons = document.querySelectorAll('.btn-filter');
+
+        // 4. Botones de nuevo registro (puede haber uno en web y otro en móvil)
+        this.#newButtons = document.querySelectorAll('#btn-registrar-empresa'); // Ojo: IDs duplicados en HTML es ilegal, deberías cambiarlo a clase, pero usaremos querySelectorAll para intentar capturarlos.
         
         this.#initListeners();
     }
 
-    /** Configura los listeners para la búsqueda, filtros y clics */
     #initListeners() {
-        // 1. Buscador (con debounce)
-        this.#searchInput.addEventListener('input', () => {
-            clearTimeout(this.#searchTimeout);
-            this.#searchTimeout = setTimeout(() => {
-                this.#busquedaActual = this.#searchInput.value.trim();
-                this.loadEmpresas();
-            }, 300);
+        // 1. Configurar TODOS los buscadores para que se sincronicen
+        this.#searchInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const valor = e.target.value;
+                // Sincronizar visualmente el otro input (si escribo en móvil, que aparezca en web)
+                this.#searchInputs.forEach(i => i.value = valor);
+                
+                clearTimeout(this.#searchTimeout);
+                this.#searchTimeout = setTimeout(() => {
+                    this.#busquedaActual = valor.trim();
+                    this.loadEmpresas();
+                }, 300);
+            });
         });
 
-        // 2. Botones de Filtro
+        // 2. Filtros (Esto se mantiene similar, asumiendo que compartes lógica)
         this.#filterButtons.forEach(button => {
             button.addEventListener('click', () => {
-                this.#filterButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                this.#filtroActual = button.dataset.filter;
+                // Actualizar estilo en TODOS los botones del mismo tipo
+                const filterType = button.dataset.filter;
+                this.#filterButtons.forEach(btn => {
+                    if(btn.dataset.filter === filterType) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                
+                this.#filtroActual = filterType;
                 this.loadEmpresas();
             });
         });
 
-        // 3. Botón "Registrar Empresa"
-        this.#newButton.addEventListener('click', () => {
-            this.onNewClick(); // Notifica al "director"
+        // 3. Botones de "Nuevo"
+        this.#newButtons.forEach(btn => {
+            btn.addEventListener('click', () => this.onNewClick());
         });
 
-        // 4. Delegación de clics en la cuadrícula (para tarjetas y toggles)
-        this.#gridContainer.addEventListener('click', (e) => {
-            this.#handleGridClick(e);
+        // 4. Delegación de clics en CADA contenedor
+        this.#gridContainers.forEach(container => {
+            container.addEventListener('click', (e) => {
+                this.#handleGridClick(e);
+            });
         });
     }
 
-    /** Carga las empresas desde la API y las renderiza */
     async loadEmpresas() {
         try {
             const data = await api.fetchEmpresas(this.#filtroActual, this.#busquedaActual);
@@ -80,79 +98,78 @@ export class EmpresasView {
         }
     }
 
-    /** Renderiza la cuadrícula con el estado actual */
     #render() {
-        this.#gridContainer.innerHTML = '';
-        if (this.#empresas.length === 0) {
-            this.#gridContainer.innerHTML = "<p>No se encontraron empresas.</p>";
-            return;
-        }
-        this.#empresas.forEach(empresa => {
-            const cardHTML = ui.createEmpresaCard(empresa);
-            this.#gridContainer.insertAdjacentHTML('beforeend', cardHTML);
+        // Renderizamos el contenido en TODOS los contenedores disponibles (Web y Móvil)
+        this.#gridContainers.forEach(container => {
+            container.innerHTML = ''; // Limpiar
+            
+            if (this.#empresas.length === 0) {
+                container.innerHTML = "<p>No se encontraron empresas.</p>";
+                return;
+            }
+            
+            this.#empresas.forEach(empresa => {
+                const cardHTML = ui.createEmpresaCard(empresa);
+                container.insertAdjacentHTML('beforeend', cardHTML);
+            });
         });
     }
 
-    /** Maneja los clics dentro de la cuadrícula */
     #handleGridClick(e) {
         const card = e.target.closest('.empleado-card');
         if (!card) return;
 
         const empresaId = card.dataset.id;
         
-        // 1. Clic en el toggle de estado
+        // Toggle estado
         if (e.target.classList.contains('toggle-estado')) {
-            e.preventDefault(); // Previene que el toggle cambie antes de la confirmación
+            e.preventDefault(); 
             const toggle = e.target;
             const nuevoEstado = toggle.checked;
-            this.#handleUpdateEstado(empresaId, nuevoEstado, toggle);
+            this.#handleUpdateEstado(empresaId, nuevoEstado); // Ya no pasamos 'toggle' específico porque hay que actualizar ambos
             return;
         }
         
-        // 2. Clic en la tarjeta para abrir el panel
+        // Abrir panel
         if (e.target.closest('[data-action="open-panel"]')) {
             const empresaData = this.#empresas.find(emp => emp.id == empresaId);
             if (empresaData) {
-                this.onCardClick(empresaData); // Notifica al "director"
+                this.onCardClick(empresaData);
             }
         }
     }
 
-    /** Maneja la lógica de actualizar estado (incluyendo la alerta) */
-    #handleUpdateEstado(empresaId, nuevoEstado, toggleElement) {
+    #handleUpdateEstado(empresaId, nuevoEstado) {
+        // Lógica de confirmación igual...
         if (nuevoEstado === false) {
-            // Requiere confirmación para desactivar
             Swal.fire({
                 title: '¿Desactivar Empresa?',
-                text: "Esta acción desactivará a TODOS los empleados de esta empresa.",
+                text: "Se desactivarán los empleados.",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, desactivar',
+                confirmButtonText: 'Sí',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.#performEstadoUpdate(empresaId, false);
                 } else {
-                    toggleElement.checked = true; // Revierte el toggle
+                    // Revertir visualmente en TODOS los grids
+                    this.loadEmpresas(); 
                 }
             });
         } else {
-            // Activar no requiere confirmación
             this.#performEstadoUpdate(empresaId, true);
         }
     }
 
-    /** Llama a la API para cambiar el estado y recarga la vista */
     async #performEstadoUpdate(empresaId, nuevoEstado) {
         try {
             const response = await api.updateEmpresaEstado(empresaId, nuevoEstado);
             mostrarNotificacion(response.message, 'success');
-            await this.loadEmpresas(); // Recarga la cuadrícula
+            await this.loadEmpresas(); 
         } catch (error) {
             mostrarNotificacion(error.message);
-            await this.loadEmpresas(); // Recarga para revertir el estado visual
+            await this.loadEmpresas(); 
         }
     }
 }

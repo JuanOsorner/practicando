@@ -19,7 +19,7 @@
         <div class="header">
             <div class="search-container">
                 <i class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></i>
-                <input type="search" id="buscador-empresas" placeholder="Buscar por Nombre o NIT...">
+                <input type="search" id="buscador-empresas" class="js-buscador-empresas" placeholder="Buscar por Nombre o NIT...">
             </div>
             <div class="filter-group">
                 <button class="btn-filter active" data-filter="todos">Todos</button>
@@ -32,21 +32,8 @@
             </button>
         </div>
 
-        <div class="grid" id="empresas-container">
+        <div class="grid js-empresas-container" id="empresas-container">
             </div>
-    </div>
-</div>
-
-<div class="side-panel-overlay" id="panel-overlay"></div>
-<div class="side-panel" id="side-panel">
-    <div class="panel-header">
-        <button class="panel-close-btn" id="panel-back-btn" title="Volver">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-        </button>
-        <h2 id="panel-title">Cargando...</h2>
-    </div>
-    <div class="panel-body">
-        <form id="panel-form" novalidate enctype="multipart/form-data"></form>
     </div>
 </div>
 {% endblock %}
@@ -60,7 +47,7 @@
         <div class="header">
             <div class="search-container">
                 <i class="input-icon"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg></i>
-                <input type="search" id="buscador-empresas" placeholder="Buscar por Nombre o NIT...">
+                <input type="search" id="buscador-empresas" class="js-buscador-empresas" placeholder="Buscar por Nombre o NIT...">
             </div>
             <div class="filter-group">
                 <button class="btn-filter active" data-filter="todos">Todos</button>
@@ -73,10 +60,25 @@
             </button>
         </div>
 
-        <div class="grid" id="empresas-container">
+        <div class="grid js-empresas-container" id="empresas-container">
             </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extras %}
+    <div class="side-panel-overlay" id="panel-overlay"></div>
+    <div class="side-panel" id="side-panel">
+        <div class="panel-header">
+            <button class="panel-close-btn" id="panel-back-btn" title="Volver">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+            </button>
+            <h2 id="panel-title">Cargando...</h2>
+        </div>
+        <div class="panel-body">
+            <form id="panel-form" novalidate enctype="multipart/form-data"></form>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

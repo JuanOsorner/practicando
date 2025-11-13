@@ -18,7 +18,9 @@ urlpatterns = [
     path('perfil/', include('perfil.urls')),
     
     path('empresas/', include('empresas.urls')),
-    # path('jornadas/', include('jornadas.urls')), <---- No las manejamos por el momento
+    
+    #Redireccion a nuestro descargo de responsabilidad
+    path('responsabilidad/', include('descargo_responsabilidad.urls')),
 ]
 
 # Esto le dice a Django que sirva los archivos de MEDIA_ROOT en la URL MEDIA_URL

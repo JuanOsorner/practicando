@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'home',
     'perfil',
     'empresas',
+    'descargo_responsabilidad',
 ]
 
 MIDDLEWARE = [

@@ -394,6 +394,46 @@ input:checked + .slider:before { transform: translateX(22px); }
     height: 20px;
 }
 
+.input-group select {
+    /* 1. Matar el estilo por defecto del navegador (iOS/Android/Web) */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+
+    /* 2. Heredar dimensiones y bordes de tus inputs normales */
+    width: 100%;
+    padding: 12px 40px 12px 16px; /* Más padding a la derecha para la flecha */
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    font-size: 16px;
+    font-family: var(--fuente-principal);
+    color: var(--color-texto-principal);
+    background-color: var(--color-superficie);
+    
+    /* 3. Transiciones suaves */
+    transition: all 0.2s ease-out;
+    cursor: pointer;
+
+    /* 4. FLECHA PERSONALIZADA (SVG en Base64 color Púrpura) */
+    /* Esto dibuja una flechita del color de tu marca sin necesitar una imagen externa */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23632778' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+}
+
+/* Estado Focus (Cuando tocas el select) */
+.input-group select:focus {
+    outline: none;
+    border-color: var(--color-primario-oscuro);
+    box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
+}
+
+/* Corrección para el placeholder simulado (opción disabled) */
+.input-group select:invalid,
+.input-group select option[value=""][disabled] {
+    color: var(--color-texto-secundario);
+}
 
 /* --- 7. Panel Lateral --- */
 .side-panel-overlay {

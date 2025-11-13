@@ -1,0 +1,422 @@
+/* ======================================================= */
+/* ===    CSS FACTORIZADO: DESCARGO RESPONSABILIDAD    === */
+/* ===     (Usa variables globales de global.css)      === */
+/* ======================================================= */
+
+/* NOTA: No redefinimos :root aquí porque ya heredamos de home.html.
+   Usamos las variables de global.css:
+   --color-primario-oscuro
+   --color-fondo-app
+   --color-superficie
+   --color-borde
+   --color-texto-principal
+   --color-texto-secundario
+   --radio-borde
+   --sombra-suave
+*/
+
+/* --- Ajustes del Layout Base --- */
+.main-card {
+    /* Hereda fondo y bordes, pero aseguramos espaciado para el formulario */
+    background: var(--color-superficie);
+    padding: 24px 15px;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 100%; /* Ocupa el ancho del iframe container */
+    box-sizing: border-box;
+    min-height: auto; /* Dejar que el contenido defina la altura */
+}
+
+/* --- Componentes del Formulario --- */
+.header-descargo {
+    text-align: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-borde);
+    margin-bottom: 24px;
+}
+
+.page-title {
+    font-size: 1.3rem; /* Ajustado para móvil */
+    font-weight: 600;
+    color: var(--color-primario-oscuro);
+    margin: 0;
+}
+
+/* Botones reutilizando identidad */
+.btn-primary, .btn-secondary, .btn-ver-politica {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radio-borde);
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background-color: var(--color-primario-oscuro);
+    color: var(--color-texto-sobre-primario);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primario-medio-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-suave);
+}
+
+.btn-primary:disabled {
+    background-color: var(--color-texto-secundario);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-secondary {
+    background-color: var(--color-fondo-app);
+    color: var(--color-texto-secundario);
+    border: 1px solid var(--color-borde);
+}
+
+.btn-secondary:hover {
+    background-color: var(--color-borde);
+}
+
+.btn-primary i {
+    margin-left: 8px;
+}
+
+.btn-ver-politica {
+    padding: 6px 12px;
+    font-size: 13px;
+    background-color: transparent;
+    color: var(--color-texto-secundario);
+    box-shadow: none;
+    border: 1px solid var(--color-borde);
+}
+
+.btn-ver-politica:hover {
+    background-color: var(--color-fondo-app);
+    border-color: var(--color-texto-secundario);
+    color: var(--color-texto-principal);
+}
+
+.btn-ver-politica i {
+    font-size: 12px;
+    margin-left: 6px;
+}
+
+/* Texto del contrato */
+.disclaimer-text {
+    font-size: 14px; /* Legible en móvil */
+    line-height: 1.6;
+    color: var(--color-texto-principal);
+    background-color: var(--color-fondo-app);
+    padding: 16px;
+    border-radius: var(--radio-borde);
+    border: 1px solid var(--color-borde);
+}
+
+.disclaimer-text strong {
+    color: var(--color-primario-oscuro);
+}
+
+.disclaimer-text ol {
+    padding-left: 20px;
+    margin: 1em 0;
+}
+
+/* Checkboxes y Aceptación */
+.grupo-aceptacion {
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    padding: 16px;
+    margin: 24px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    background-color: var(--color-superficie);
+}
+
+.grupo-checkbox {
+    display: flex;
+    align-items: flex-start; /* Alineación superior para texto largo */
+    gap: 12px;
+}
+
+.grupo-checkbox label {
+    font-size: 14px;
+    cursor: pointer;
+    flex-grow: 1;
+    line-height: 1.4;
+}
+
+.grupo-checkbox input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-borde);
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    margin-top: 2px;
+}
+
+.grupo-checkbox input[type="checkbox"]:checked {
+    background-color: var(--color-primario-oscuro);
+    border-color: var(--color-primario-oscuro);
+}
+
+.grupo-checkbox input[type="checkbox"]:checked::before {
+    content: '\2713';
+    display: block;
+    font-size: 14px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Sección Firmas */
+#seccion-firma-y-boton {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-in-out, opacity 0.4s ease-in-out;
+}
+
+#seccion-firma-y-boton.visible {
+    max-height: 1500px; /* Suficiente para contener firmas y botón */
+    opacity: 1;
+}
+
+.firmas-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Una columna en móvil por defecto */
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.firma-box {
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    padding: 16px;
+    box-shadow: var(--sombra-suave);
+    background-color: var(--color-superficie);
+}
+
+.firma-box label {
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: 14px;
+    display: block;
+    color: var(--color-primario-oscuro);
+}
+
+.canvas-wrapper {
+    position: relative;
+    margin-top: 10px;
+}
+
+.firma-canvas {
+    width: 100%;
+    height: 160px;
+    background-color: var(--color-fondo-app);
+    border-radius: 8px;
+    border: 2px dashed var(--color-borde);
+    /* Importante: en móvil queremos poder tocarlo para abrir modal */
+    pointer-events: none; 
+}
+
+.btn-clear-signature {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    pointer-events: auto;
+    background-color: var(--color-superficie);
+    color: var(--color-texto-secundario);
+    border: 1px solid var(--color-borde);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Acciones */
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-borde);
+    margin-top: 24px;
+}
+
+.form-actions .btn-primary {
+    width: 100%;
+}
+
+/* Inputs Interactivos (Cédula y QR trigger) */
+.input-interactivo, .scan-trigger {
+    display: inline-block;
+    position: relative;
+    color: var(--color-primario-oscuro);
+    border-bottom: 2px dotted var(--color-primario-medio);
+    cursor: pointer;
+    padding: 2px 4px;
+    margin: 0 2px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.input-interactivo:hover, .scan-trigger:hover {
+    background-color: rgba(53, 36, 96, 0.05);
+}
+
+.oculto {
+    display: none !important;
+}
+
+/* --- Modales (Overlay Global) --- */
+.modal-overlay, .scanner-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Encima de todo */
+    padding: 15px;
+    box-sizing: border-box;
+    backdrop-filter: blur(4px);
+}
+
+.modal-contenido, .scanner-modal-content {
+    background: var(--color-superficie);
+    padding: 20px;
+    border-radius: var(--radio-borde);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-titulo, .scanner-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-primario-oscuro);
+    margin: 0 0 16px 0;
+    text-align: center;
+}
+
+.modal-canvas-wrapper {
+    width: 100%;
+    height: 40vh; /* Altura generosa para firmar */
+    margin-bottom: 20px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background-color: #fff;
+}
+
+#modal-canvas-firma {
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+}
+
+.modal-acciones {
+    display: flex;
+    gap: 12px;
+}
+
+.modal-acciones .btn-primary, .modal-acciones .btn-secondary {
+    flex: 1;
+}
+
+/* Estilos Específicos Scanner */
+.scanner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-borde);
+    margin-bottom: 15px;
+}
+
+.scanner-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+}
+
+.scanner-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-borde);
+    margin-bottom: 15px;
+}
+
+.scanner-tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--color-texto-secundario);
+    border-bottom: 2px solid transparent;
+}
+
+.scanner-tab.active {
+    color: var(--color-primario-oscuro);
+    border-bottom-color: var(--color-primario-oscuro);
+    font-weight: 600;
+}
+
+.scanner-tab-content {
+    display: none;
+}
+
+.scanner-tab-content.active {
+    display: block;
+}
+
+.file-scanner-label {
+    background-color: var(--color-primario-oscuro);
+    color: white;
+    padding: 12px;
+    border-radius: var(--radio-borde);
+    text-align: center;
+    display: block;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+/* --- Media Queries --- */
+@media (min-width: 768px) {
+    .firmas-container {
+        grid-template-columns: 1fr 1fr;
+    }
+    .form-actions {
+        flex-direction: row-reverse;
+    }
+    .form-actions .btn-primary {
+        width: auto;
+        min-width: 200px;
+    }
+}
