@@ -5,39 +5,17 @@
 
 {% block styles %}
     <link rel="stylesheet" href="{% static 'descargo_responsabilidad/css/mobile_form.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-    
-    <style>
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(53, 36, 96, 0.4); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(53, 36, 96, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(53, 36, 96, 0); }
-        }
-        .elemento-pulsante { animation: pulse 2s infinite; }
-        .scan-trigger { color: var(--color-primario); font-weight: 600; cursor: pointer; border-bottom: 2px dotted var(--color-primario-hover); padding: 2px 5px; margin: -2px -5px; border-radius: 4px; transition: background-color 0.2s ease; }
-        .scan-trigger:hover { background-color: rgba(53, 36, 96, 0.05); }
-        .scanner-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1050; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .scanner-modal-content { background: white; padding: 0; border-radius: 12px; width: 90%; max-width: 500px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
-        .scanner-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--color-primario); color: white; }
-        .scanner-header h3 { margin: 0; font-size: 1.1rem; }
-        .scanner-close-btn { background: none; border: none; font-size: 2rem; color: white; cursor: pointer; line-height: 1; opacity: 0.8; }
-        .scanner-close-btn:hover { opacity: 1; }
-        .scanner-body { padding: 20px; }
-        .scanner-tabs { display: flex; border-bottom: 1px solid var(--color-borde); margin-bottom: 20px; }
-        .scanner-tab { flex: 1; padding: 12px; text-align: center; cursor: pointer; background-color: var(--color-fondo); color: var(--color-texto-secundario); font-weight: 600; border-bottom: 3px solid transparent; transition: all 0.2s ease; }
-        .scanner-tab.active { color: var(--color-primario); border-bottom-color: var(--color-primario); background-color: white; }
-        .scanner-tab-content { display: none; }
-        .scanner-tab-content.active { display: block; }
-        #qr-reader { border: 2px dashed #ccc; border-radius: 8px; }
-        .file-scanner-label { background-color: var(--color-primario); color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; text-align: center; display: block; font-weight: 600; transition: background-color 0.2s ease; }
-        .file-scanner-label:hover { background-color: var(--color-primario-hover); }
-        .file-scanner-label i { margin-right: 10px; }
-        #qr-input-file { display: none; }
-    </style>
-{% endblock %}
+    {% endblock %}
 
 {% block content_user %}
-<div class="main-card">
+<div 
+  class="main-card" 
+  id="descargo-form-container"
+  data-url-buscar-usuario="{% url 'api-buscar-usuario' %}"
+  data-url-buscar-zona="{% url 'api-buscar-zona' %}"
+  data-url-procesar-ingreso="{% url 'api-procesar-ingreso' %}"
+  data-url-dashboard="{% url 'dashboard' %}"
+>
     
     <header class="header-descargo">
         <h2 class="page-title">Descargo de Responsabilidad y Registro de Ingreso</h2>
@@ -46,7 +24,7 @@
     <div class="disclaimer-text">
         <p>
             En la <span id="qr-ciudad">[Ciudad por definir]</span>, y con el fin de ingresar a la zona crítica denominada 
-            <span id="qr-nombre-zona" class="scan-trigger elemento-pulsante">[Toque aquí para escanear la zona]</span>,
+            <span id="scan-trigger-zona" class="scan-trigger elemento-pulsante">[Toque aquí para escanear la zona]</span>,
             a fecha de <strong id="fecha-actual">{% now "d/m/Y" %}</strong>, yo, 
             <strong><span id="nombre-empleado">{{ user.first_name|default:user.username }}</span></strong>, mayor de edad, identificado(a) con 
             documento de identidad número <strong><span id="cedula-empleado">{{ user.numero_documento }}</span></strong>, 
@@ -54,44 +32,21 @@
             <strong><span id="nombre-empresa">{{ user.empresa.nombre_empresa|default:"Joli Foods" }}</span></strong>, declaro de manera libre y voluntaria que he leído, comprendido y aceptado los siguientes términos y condiciones para el acceso a las Zonas Críticas de <strong>JOLI FOODS S.A.S.</strong>:
         </p>
         
-        <ol>
-            <li>
-                <strong>Declaraciones y Conocimiento:</strong> Declaro haber sido informado(a) sobre las políticas, normativas de seguridad, procedimientos de emergencia y las condiciones bajo las cuales se me permite el acceso. Reconozco que las Zonas Críticas contienen infraestructura vital para el funcionamiento de <strong>Jolifoods S.A.S.</strong>, y que cualquier daño o alteración puede tener consecuencias graves.
-            </li>
-            <li>
-                <strong>Responsabilidad:</strong> Asumo total responsabilidad por cualquier daño que cause a los equipos, sistemas o instalaciones, ya sea por acción directa, negligencia o incumplimiento de las normas. Me comprometo a indemnizar a <strong>Jolifoods S.A.S.</strong> por todos los costos, pérdidas y perjuicios que resulten de mis acciones.
-            </li>
-            <li>
-                <strong>Normas de Acceso y Permanencia:</strong> Me comprometo a acatar las siguientes normas en todo momento:
-                <ul>
-                    <li>Mi acceso se limitará estrictamente a las áreas para las cuales he recibido autorización previa.</li>
-                    <li>Se prohíbe estrictamente utilizar dispositivos electrónicos no autorizados.</li>
-                    <li>Se prohíbe tomar fotografías o grabar videos sin autorización explícita y por escrito.</li>
-                    <li>Me abstendré de alterar, mover, sacar o desconectar cualquier equipo sin la debida autorización.</li>
-                    <li>No ingresaré con alimentos, bebidas o cualquier sustancia que pueda representar un riesgo para los equipos o sistemas.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Confidencialidad:</strong> Me comprometo a mantener la más estricta confidencialidad sobre cualquier información técnica, operativa o de cualquier otra índole a la que tenga acceso. Esta obligación de confidencialidad persistirá indefinidamente, incluso después de que mi relación con <strong>Jolifoods S.A.S.</strong> haya terminado.
-            </li>
-            <li>
-                <strong>Supervisión y Terminación del Acceso:</strong> Comprendo que mi ingreso se realiza bajo la autorización y supervisión directa de un responsable de Jolifoods S.A.S., 
-                identificado como <strong id="nombre-responsable-jolifoods">[Esperando responsable...]</strong>, con 
-                cédula de ciudadanía número 
-                <span id="contenedor-cedula-responsable" class="input-interactivo elemento-pulsante">
-                    <span id="texto-placeholder-cedula" class="placeholder-texto">
-                        [Haga clic aquí para ingresar la cédula]
-                        <i class="fas fa-pencil-alt fa-xs"></i>
-                    </span>
-                    <input type="number" id="input-cedula-responsable" class="input-oculto oculto" placeholder="Ingrese la cédula">
-                </span>
-                y cargo de <strong id="cargo-responsable-jolifoods">[Esperando responsable...]</strong>.
-            </li>
-        </ol>
         <p>
-            En constancia de lo anterior, procedo a firmar este documento de manera digital.
+            Comprendo que mi ingreso se realiza bajo la autorización y supervisión directa de un responsable de Jolifoods S.A.S., 
+            identificado como <strong id="responsable-nombre">[Esperando responsable...]</strong>, con 
+            cédula de ciudadanía número 
+            <span id="responsable-cedula-container" class="input-interactivo elemento-pulsante">
+                <span id="responsable-cedula-placeholder" class="placeholder-texto">
+                    [Haga clic aquí para ingresar la cédula]
+                    <i class="fas fa-pencil-alt fa-xs"></i>
+                </span>
+                <input type="number" id="responsable-cedula-input" class="input-oculto oculto" placeholder="Ingrese la cédula">
+            </span>
+            y cargo de <strong id="responsable-cargo">[Esperando responsable...]</strong>.
         </p>
-    </div>
+        
+        </div>
 
     <div class="grupo-aceptacion">
         <div class="grupo-checkbox">
@@ -140,8 +95,6 @@
     </div>
 </div>
 {% endblock %}
-
-{# Usamos block extras para los modales, para que queden fuera del overflow del content #}
 {% block extras %}
     <div id="modal-firma" class="modal-overlay oculto">
         <div class="modal-contenido">
@@ -168,12 +121,11 @@
                     <div class="scanner-tab" data-tab="file"><i class="fas fa-image"></i> Archivo</div>
                 </div>
                 <div id="tab-content-camera" class="scanner-tab-content active">
-                    <div id="qr-reader"></div>
+                    <div id="qr-reader-camera"></div>
                 </div>
                 <div id="tab-content-file" class="scanner-tab-content">
                     <label for="qr-input-file" class="file-scanner-label"><i class="fas fa-upload"></i> Seleccionar Imagen</label>
                     <input type="file" id="qr-input-file" accept="image/*" style="display: none;">
-                    <div id="qr-reader-results"></div>
                 </div>
             </div>
         </div>
@@ -181,13 +133,5 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
-    <!--<script>
-        // Variables pasadas desde Django para JS
-        const cedulaVisitanteInicial = "{{ user.numero_documento }}";
-    </script>-->
-    
-    {% endblock %}
+    <script type="module" src="{% static 'descargo_responsabilidad/js/form_controller.js' %}"></script>
+{% endblock %}

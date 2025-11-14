@@ -1,25 +1,15 @@
-/* NOTA: No redefinimos :root aquí porque ya heredamos de home.html.
-   Usamos las variables de global.css:
-   --color-primario-oscuro
-   --color-fondo-app
-   --color-superficie
-   --color-borde
-   --color-texto-principal
-   --color-texto-secundario
-   --radio-borde
-   --sombra-suave
-*/
+/* zonascriticas/descargo_responsabilidad/static/descargo_responsabilidad/css/mobile_form.css */
+/* Versión Limpia (Sin caracteres U+00A0) */
 
 /* --- Ajustes del Layout Base --- */
 .main-card {
-    /* Hereda fondo y bordes, pero aseguramos espaciado para el formulario */
     background: var(--color-superficie);
     padding: 24px 15px;
     margin: 0 auto;
     width: 100%;
-    max-width: 100%; /* Ocupa el ancho del iframe container */
+    max-width: 100%;
     box-sizing: border-box;
-    min-height: auto; /* Dejar que el contenido defina la altura */
+    min-height: auto;
 }
 
 /* --- Componentes del Formulario --- */
@@ -31,7 +21,7 @@
 }
 
 .page-title {
-    font-size: 1.3rem; /* Ajustado para móvil */
+    font-size: 1.3rem;
     font-weight: 600;
     color: var(--color-primario-oscuro);
     margin: 0;
@@ -108,7 +98,7 @@
 
 /* Texto del contrato */
 .disclaimer-text {
-    font-size: 14px; /* Legible en móvil */
+    font-size: 14px;
     line-height: 1.6;
     color: var(--color-texto-principal);
     background-color: var(--color-fondo-app);
@@ -126,6 +116,48 @@
     margin: 1em 0;
 }
 
+/* * ==========================================================
+ * INICIO DE LA CORRECCIÓN 1: Forzar el color de los SPANs
+ * ==========================================================
+ */
+
+.disclaimer-text p span {
+    color: inherit; 
+    font-weight: inherit;
+}
+
+.input-interactivo, 
+.scan-trigger {
+    display: inline-block;
+    position: relative;
+    color: var(--color-primario-oscuro) !important;
+    border-bottom: 2px dotted var(--color-primario-medio);
+    cursor: pointer;
+    padding: 2px 4px;
+    margin: 0 2px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.input-interactivo:hover, 
+.scan-trigger:hover {
+    background-color: rgba(53, 36, 96, 0.05);
+}
+
+#nombre-empleado,
+#cedula-empleado,
+#cargo-empleado,
+#nombre-empresa {
+    color: var(--color-primario-oscuro);
+    font-weight: 600;
+}
+
+/* ==========================================================
+ * FIN DE LA CORRECCIÓN 1
+ * ==========================================================
+ */
+
+
 /* Checkboxes y Aceptación */
 .grupo-aceptacion {
     border: 1px solid var(--color-borde);
@@ -140,7 +172,7 @@
 
 .grupo-checkbox {
     display: flex;
-    align-items: flex-start; /* Alineación superior para texto largo */
+    align-items: flex-start;
     gap: 12px;
 }
 
@@ -189,13 +221,13 @@
 }
 
 #seccion-firma-y-boton.visible {
-    max-height: 1500px; /* Suficiente para contener firmas y botón */
+    max-height: 1500px;
     opacity: 1;
 }
 
 .firmas-container {
     display: grid;
-    grid-template-columns: 1fr; /* Una columna en móvil por defecto */
+    grid-template-columns: 1fr;
     gap: 24px;
     margin-bottom: 32px;
 }
@@ -227,8 +259,7 @@
     background-color: var(--color-fondo-app);
     border-radius: 8px;
     border: 2px dashed var(--color-borde);
-    /* Importante: en móvil queremos poder tocarlo para abrir modal */
-    pointer-events: none; 
+    pointer-events: auto; 
 }
 
 .btn-clear-signature {
@@ -263,23 +294,6 @@
     width: 100%;
 }
 
-/* Inputs Interactivos (Cédula y QR trigger) */
-.input-interactivo, .scan-trigger {
-    display: inline-block;
-    position: relative;
-    color: var(--color-primario-oscuro);
-    border-bottom: 2px dotted var(--color-primario-medio);
-    cursor: pointer;
-    padding: 2px 4px;
-    margin: 0 2px;
-    font-weight: 600;
-    transition: background-color 0.2s ease;
-}
-
-.input-interactivo:hover, .scan-trigger:hover {
-    background-color: rgba(53, 36, 96, 0.05);
-}
-
 .oculto {
     display: none !important;
 }
@@ -291,11 +305,11 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Fondo oscuro */
+    background-color: rgba(0, 0, 0, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 2000; /* Encima de todo */
+    z-index: 2000;
     padding: 15px;
     box-sizing: border-box;
     backdrop-filter: blur(4px);
@@ -322,7 +336,7 @@
 
 .modal-canvas-wrapper {
     width: 100%;
-    height: 40vh; /* Altura generosa para firmar */
+    height: 40vh;
     margin-bottom: 20px;
     border: 1px solid var(--color-borde);
     border-radius: 8px;
@@ -402,6 +416,60 @@
     margin-top: 10px;
 }
 
+/* * ==========================================================
+ * INICIO DE LA CORRECCIÓN 2: Añadir la animación PULSANTE
+ * ==========================================================
+ */
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(53, 36, 96, 0.4); }
+    70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(53, 36, 96, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(53, 36, 96, 0); }
+}
+
+.elemento-pulsante {
+    animation: pulse 2s infinite;
+    border-radius: 4px; 
+}
+
+/* ==========================================================
+ * FIN DE LA CORRECCIÓN 2
+ * ==========================================================
+ */
+
+/* * ==========================================================
+ * INICIO DE LA CORRECCIÓN 3: Animación de "Glow" para firmas
+ * ==========================================================
+ */
+
+@keyframes subtle-glow {
+  0%, 100% {
+    border-color: var(--color-borde);
+    box-shadow: var(--sombra-suave);
+  }
+  50% {
+    border-color: var(--color-primario-oscuro);
+    box-shadow: 0 4px 15px rgba(53, 36, 96, 0.2);
+  }
+}
+
+#seccion-firma-y-boton.visible .firma-box {
+  animation-name: subtle-glow;
+  animation-duration: 2.5s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+#seccion-firma-y-boton.visible .firma-box:last-child {
+  animation-delay: 0.5s;
+}
+
+/* ==========================================================
+ * FIN DE LA CORRECCIÓN 3
+ * ==========================================================
+ */
+
+
 /* --- Media Queries --- */
 @media (min-width: 768px) {
     .firmas-container {
@@ -413,5 +481,9 @@
     .form-actions .btn-primary {
         width: auto;
         min-width: 200px;
+    }
+    .firma-canvas {
+        pointer-events: auto;
+        cursor: crosshair;
     }
 }

@@ -13,6 +13,55 @@ from login.models import Usuario
 
 logger = logging.getLogger(__name__)
 
+class UsuarioService:
+    """
+    Encapsula la lógica de negocio relacionada con la búsqueda
+    y validación de usuarios para operaciones específicas.
+    """
+    
+    @staticmethod
+    def buscar_responsable_por_documento(documento: str) -> dict:
+        """
+        Busca un usuario por documento y valida si puede ser "responsable".
+        Retorna un DTO (diccionario) solo con la data necesaria para el frontend.
+        """
+        if not documento:
+            raise ValidationError("El documento no puede estar vacío.")
+
+        try:
+            # 1. Búsqueda en capa de datos
+            user = Usuario.objects.get(numero_documento=documento)
+            
+            # 2. Validaciones de Negocio
+            if not user.is_active:
+                raise ValidationError(f"El usuario {user.first_name} se encuentra inactivo.")
+            
+            # TODO: Definir una lógica más estricta si es necesario.
+            # Por ahora, cualquier usuario activo que no sea el visitante puede ser responsable.
+            # if user.tipo != 'Administrador':
+            #     raise ValidationError("El usuario no tiene permisos para ser responsable.")
+
+            # 3. Preparar DTO de respuesta (Datos seguros para el frontend)
+            cargo_nombre = user.cargo.nombre if user.cargo else "No asignado"
+            
+            return {
+                "nombre": user.first_name,
+                "cargo": cargo_nombre,
+                "numero_documento": user.numero_documento,
+                "id": user.id # El frontend lo necesitará para el POST
+            }
+            
+        except Usuario.DoesNotExist:
+            # Capturamos la excepción del modelo y la relanzamos
+            # como una excepción de negocio más clara.
+            raise ValueError(f"No se encontró ningún usuario con el documento {documento}.")
+        except ValidationError as e:
+            # Capturamos nuestras propias validaciones de negocio
+            raise e
+        except Exception as e:
+            logger.error(f"Error inesperado en buscar_responsable_por_documento: {e}")
+            raise Exception("Error interno al validar el responsable.")
+
 class ZonaService:
     """
     Encargado de validar e interpretar los códigos QR de las zonas.
