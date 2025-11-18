@@ -26,15 +26,19 @@ load_dotenv(dotenv_path=env_path)
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
+# ➡️ 
 SECRET_KEY = os.getenv('SECRET_KEY', 'Fallo')
 
+# ➡️ Esta configuración sirve para realizar un DEBUG: Nos va a saltar un error de Django diciendo que tenemos mal
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+# ➡️ Esta configuracion nos evita tener ataques de dominio con HOST HEADER
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Application definition: Eliminamos las tres lineas porque no las vamos a usar para nuestra base de datos
 # Vamos a personalizar nuestro propio sistema de login
 
+# ➡️ Le decimos a Django cuales son las apps que vamos a usar
 INSTALLED_APPS = [
     #'django.contrib.admin',
     #'django.contrib.auth',
@@ -49,25 +53,28 @@ INSTALLED_APPS = [
     'descargo_responsabilidad',
 ]
 
+#➡️ Este es nuestro scanner de seguridad: este es el filtro que deben pasar las peticiones y las respuestas
+# Estos middleware se ejecutan en orden
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    #'django.contrib.auth.middleware.AuthenticationMiddleware',
+    #'django.contrib.auth.middleware.AuthenticationMiddleware', 
+    'login.middleware.CustomAuthMiddleware', # Nuestro middleware para autenticacion personalizado
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Creamos nuestro sistema de autenticacion personalizado para nuestra bd
-    'login.middleware.CustomAuthMiddleware',
 ]
 
+# ➡️ Esta configuracion es para nuestro enrutamiento de urls.py con la de  ZONASCRITICAS
 ROOT_URLCONF = 'zonascriticas.urls'
 
+# ➡️ Esta configuracion nos sirve para poder utilizar de manera adecuada el DTL: Django Templates 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [], # DIR BUSCA LA DIRECCION DE LA CARPETA TEMPALTES
+        'APP_DIRS': True, # LE DICE A DJANGO BUSCA: login/templates/login.html SI LO ENCUENTRA LO RENDERIZA
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',

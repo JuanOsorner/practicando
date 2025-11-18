@@ -2,6 +2,7 @@
  * descargo_responsabilidad/static/descargo_responsabilidad/js/canvas.js
  * Módulo de Lógica de Firma (SignaturePad Abstraction)
  *
+ * SOLUCIÓN ROBUSTA: Corrige la "Race Condition"
  */
 
 // Asumimos que SignaturePad se carga globalmente desde home.html
@@ -25,17 +26,16 @@ export class CanvasManager {
         this.modalLimpiarBtn = document.getElementById('modal-btn-limpiar');
 
         // Propiedades de Desktop
-        this.pad = null; // El pad de escritorio se inicializará MÁS TARDE
-        this.desktopInitialized = false;
+        this.pad = null; // El pad de escritorio
+        this.desktopInitialized = false; // Bandera
 
-        // Detectar si es táctil
         this.isTactil = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
         if (this.isTactil) {
             // MÓVIL: Solo añadimos el listener para abrir el modal
             this.canvasEl.addEventListener('click', () => this.abrirModal());
         } else {
-            // DESKTOP: No hacemos NADA. Esperamos a onCheckboxChange.
+            // DESKTOP: No hacemos NADA. Esperamos a prepararCanvas().
         }
 
         // Listener del botón de limpiar
@@ -48,49 +48,52 @@ export class CanvasManager {
     }
 
     /**
-     * Inicializa el pad de firma para DESKTOP.
-     * Se debe llamar SÓLO cuando el canvas sea visible.
+     * (NUEVO MÉTODO)
+     * Llamado por el controlador DESPUÉS de que la animación CSS ha terminado.
+     * Este es el único punto de entrada para la inicialización.
      */
-    initDesktopPad() {
-        if (this.isTactil || this.desktopInitialized) {
+    prepararCanvas() {
+        // Evitar doble inicialización
+        if (this.desktopInitialized) return;
+
+        const wrapper = this.canvasEl.parentElement;
+        if (!wrapper || wrapper.clientWidth === 0) {
+            console.warn(`CanvasManager (${this.canvasEl.id}): wrapper no encontrado o clientWidth es 0.`);
+            // Si el clientWidth es 0, no podemos hacer nada.
             return;
         }
 
-        const wrapper = this.canvasEl.parentElement;
-
-        // --- INICIO DE LA CORRECCIÓN CLAVE ---
-        // El problema de leer clientHeight/clientWidth es que falla
-        // si la animación de CSS no ha terminado.
-        
-        // Solución: No leemos. Asignamos los valores que sabemos que son correctos.
-        
-        // 1. Forzamos el tamaño del bitmap del canvas
-        // El ancho (width) es el del wrapper (que es 100% de su contenedor)
+        // 1. Dimensionar el bitmap del canvas
+        // Leemos el ancho del wrapper (que ahora SÍ es correcto)
         this.canvasEl.width = wrapper.clientWidth;
-        
-        // El alto (height) lo define el CSS en .firma-canvas como 160px.
-        // Lo asignamos explícitamente.
+        // El alto lo define el CSS (.firma-canvas) como 160px.
         this.canvasEl.height = 160; 
-        
-        // 2. Redimensionamos el pad (si ya existía por error) o lo creamos
-        if (this.pad) {
-            // Si ya existía un pad de 0x0, lo actualizamos
-            this.pad.clear(); 
+
+        if (this.isTactil) {
+            // MÓVIL: Solo necesitábamos dimensionar el canvas de previsualización.
+            // No creamos un SignaturePad aquí.
         } else {
-            // Creamos el pad
-            this.pad = new SignaturePad(this.canvasEl);
+            // DESKTOP: Inicializamos el pad completo.
+            if (this.pad) {
+                this.pad.clear(); 
+            } else {
+                this.pad = new SignaturePad(this.canvasEl);
+            }
         }
         
-        // --- FIN DE LA CORRECCIÓN CLAVE ---
-
-        this.desktopInitialized = true; 
+        // Marcamos como inicializado para ambos flujos (móvil y desktop)
+        // para que no se vuelva a ejecutar el dimensionamiento.
+        this.desktopInitialized = true;
     }
+
 
     limpiar() {
         if (this.isTactil) {
+            // En móvil, solo limpiamos el canvas de previsualización
             const ctx = this.canvasEl.getContext('2d');
             ctx.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
         } else {
+            // En desktop, usamos el método del pad
             if (this.pad) {
                 this.pad.clear();
             }
@@ -99,10 +102,16 @@ export class CanvasManager {
 
     isEmpty() {
         if (this.isTactil) {
+            // En móvil, leemos el pixel data de nuestro canvas de previsualización
+            // Si el canvas AÚN es 0x0 (porque falló prepararCanvas), reportar vacío.
+            if (this.canvasEl.width === 0 || this.canvasEl.height === 0) {
+                return true;
+            }
             const ctx = this.canvasEl.getContext('2d', { willReadFrequently: true });
             const data = ctx.getImageData(0, 0, this.canvasEl.width, this.canvasEl.height).data;
             return data.every(p => p === 0);
         } else {
+            // En desktop, delegamos al pad
             return this.pad ? this.pad.isEmpty() : true;
         }
     }
@@ -112,11 +121,14 @@ export class CanvasManager {
             return null;
         }
         
+        // Este canvas temporal asegura un fondo blanco
         const tempCanvas = document.createElement('canvas');
+        
+        // Usamos las dimensiones del bitmap del canvas (que ahora son correctas)
         tempCanvas.width = this.canvasEl.width;
         tempCanvas.height = this.canvasEl.height;
-        const ctx = tempCanvas.getContext('2d');
         
+        const ctx = tempCanvas.getContext('2d');
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         ctx.drawImage(this.canvasEl, 0, 0);
@@ -139,6 +151,7 @@ export class CanvasManager {
 
         modal.classList.remove('oculto');
 
+        // Asignamos los eventos de forma segura
         this.modalLimpiarBtn.onclick = () => this.modalPad.clear();
         this.modalGuardarBtn.onclick = () => this.guardarFirmaModal();
     }
@@ -149,13 +162,30 @@ export class CanvasManager {
             return;
         }
 
+        // --- INICIO DE CAMBIOS (Fallback de robustez) ---
+        // Doble verificación: Si el canvas de previsualización AÚN no tiene
+        // el tamaño correcto (porque prepararCanvas falló), se lo damos AHORA.
+        if (!this.desktopInitialized || this.canvasEl.width === 0) {
+            const wrapper = this.canvasEl.parentElement;
+            if (wrapper) {
+                this.canvasEl.width = wrapper.clientWidth;
+                this.canvasEl.height = 160;
+                this.desktopInitialized = true;
+            }
+        }
+        // --- FIN DE CAMBIOS ---
+
         const dataURL = this.modalPad.toDataURL();
         const ctxDestino = this.canvasEl.getContext('2d');
         const img = new Image();
         
         img.onload = () => {
             ctxDestino.clearRect(0, 0, this.canvasEl.width, this.canvasEl.height);
+            
+            // Dibuja la firma del modal en el canvas de previsualización
+            // (que ahora tiene el tamaño correcto)
             ctxDestino.drawImage(img, 0, 0, this.canvasEl.width, this.canvasEl.height);
+            
             this.cerrarModal();
         };
         img.src = dataURL;
@@ -165,7 +195,7 @@ export class CanvasManager {
         const modal = document.getElementById('modal-firma');
         if (modal) modal.classList.add('oculto');
         if (this.modalPad) {
-            this.modalPad.off();
+            this.modalPad.off(); // Limpia listeners
             this.modalPad = null;
         }
     }

@@ -102,3 +102,8 @@ La aplicación expone una serie de endpoints para la gestión dinámica de datos
 -   `/empresas/empleado/update/<empleado_id>/`: Actualizar empleado.
 -   `/perfil/update/`: Actualizar perfil de usuario.
 -   `/perfil/update-image/`: Actualizar imagen de perfil.
+
+## Observaciones tecnicas
+
+1.**SISTEMA PERSONALIZADO DE MIDDLEWARE**Nuestra aplicación esta usando un sistema personalizado de middleware para poder personalizar nuestra tabla de usuarios que es nuestra tabla principal en la base de datos. Sin este sistema
+no podriamos utilizar el sistema de autenticacion de Django pues este esta hecho para la tabla auth_user. **LA RAZON** Usamos esto porque nuestro proyecto no requiere campos como contraseña.

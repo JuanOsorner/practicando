@@ -1,7 +1,7 @@
 /*
  * descargo_responsabilidad/static/descargo_responsabilidad/js/form_controller.js
  *
- * 
+ * SOLUCIÓN ROBUSTA: Corrige la "Race Condition"
  */
 
 // --- 1. Importaciones de Módulos ---
@@ -47,7 +47,12 @@ class DescargoFormController {
             spinner: document.getElementById('loading-spinner')
         };
         
-        // Instanciamos los módulos (el constructor de CanvasManager ya NO inicializa el pad)
+        // --- INICIO DE CAMBIOS ---
+        // Bandera de estado para evitar inicializaciones múltiples
+        this.firmasInicializadas = false;
+        // --- FIN DE CAMBIOS ---
+        
+        // Instanciamos los módulos
         this.scanner = new QRScanner('scan-trigger-zona');
         this.canvasVisitante = new CanvasManager('firma-visitante-canvas');
         this.canvasResponsable = new CanvasManager('firma-responsable-canvas');
@@ -64,11 +69,26 @@ class DescargoFormController {
         this.elementos.btnSiguiente.addEventListener('click', () => this.onSubmit());
         window.addEventListener('qrCodeScanned', (e) => this.onZonaEscaneada(e.detail.codigo));
         
-        this.onCheckboxChange();
+        // --- INICIO DE CAMBIOS ---
+        // Escuchamos el fin de la transición CSS
+        this.elementos.seccionFirmas.addEventListener('transitionend', (e) => {
+            // Nos aseguramos que la transición sea la del max-height
+            if (e.propertyName === 'max-height') {
+                this.onSeccionFirmasVisible();
+            }
+        });
+        // --- FIN DE CAMBIOS ---
+
+        this.onCheckboxChange(); // Llamada inicial
     }
 
     // --- 3. Lógica de Eventos ---
 
+    /**
+     * (MODIFICADO)
+     * Ahora solo se encarga de cambiar la visibilidad.
+     * La inicialización se delega a 'onSeccionFirmasVisible'.
+     */
     onCheckboxChange() {
         const ambosAceptados = this.elementos.checkDescargo.checked && this.elementos.checkPoliticas.checked;
 
@@ -76,12 +96,36 @@ class DescargoFormController {
         this.elementos.seccionFirmas.classList.toggle('visible', ambosAceptados);
         
         // 2. Si se van a MOSTRAR...
-        if (ambosAceptados) {
-            this.canvasVisitante.initDesktopPad();
-            this.canvasResponsable.initDesktopPad();
+        if (ambosAceptados && !this.firmasInicializadas) {
+            // Añadimos un fallback por si 'transitionend' no se dispara
+            // (ej. transiciones deshabilitadas o CSS no cargado).
+            // 550ms es > que la transición de 0.5s (500ms).
+            setTimeout(() => this.onSeccionFirmasVisible(), 550);
         }
-       
     }
+
+    /**
+     * (NUEVO MÉTODO)
+     * Se llama CUANDO la transición CSS ha terminado (o en el fallback).
+     * Ahora es seguro leer clientWidth.
+     */
+    onSeccionFirmasVisible() {
+        // Verificamos que esté visible y que no lo hayamos hecho ya
+        if (this.firmasInicializadas || !this.elementos.seccionFirmas.classList.contains('visible')) {
+            return;
+        }
+
+        // ¡Solo se ejecuta UNA VEZ!
+        this.firmasInicializadas = true; 
+
+        // Ahora que el layout es estable, preparamos los canvas.
+        this.canvasVisitante.prepararCanvas();
+        this.canvasResponsable.prepararCanvas();
+    }
+
+    // ... (El resto de métodos: activarModoEdicionResponsable, onBuscarResponsable, 
+    // ... onZonaEscaneada, onSubmit, preguntarIngreso, redirigir, mostrarSpinner)
+    // ... (NO REQUIEREN CAMBIOS) ...
 
     activarModoEdicionResponsable() {
         this.elementos.respPlaceholder.classList.add('oculto');
