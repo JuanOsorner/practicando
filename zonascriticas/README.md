@@ -1,109 +1,97 @@
-# Proyecto Zonascriticas
+# Proyecto Zonas Críticas
 
-**Zonascriticas** es una aplicación web Django para la gestión de empresas y empleados, con un enfoque en el control de "zonas críticas".
+**Zonas Críticas** es una aplicación web desarrollada con Django, diseñada para gestionar y registrar el acceso de personal a áreas restringidas o "zonas críticas". El sistema garantiza que cada usuario lea y acepte un descargo de responsabilidad antes de su ingreso, generando una constancia en PDF de dicha aceptación.
 
-## Resumen del Funcionamiento
+## Flujo Principal de Funcionamiento
 
-El sistema funciona con dos roles principales: **Administrador** y **Usuario**.
+El proceso central de la aplicación se puede resumir en los siguientes pasos:
 
--   Los **Administradores** tienen acceso a un panel de control para gestionar empresas, servicios, cargos y empleados. Pueden crear, editar y cambiar el estado de cada uno de estos elementos.
--   Los **Usuarios** (empleados) inician sesión con su número de documento. Al ingresar, son dirigidos a una página de **descargo de responsabilidad** que deben aceptar. Esta página se muestra en un formato adaptado para dispositivos móviles, ya que se espera que el acceso principal sea desde campo.
+1.  **Autenticación del Usuario**: Un empleado (denominado "visitante") inicia sesión en la aplicación utilizando su número de documento. El sistema utiliza un middleware de autenticación personalizado que no requiere contraseña.
+2.  **Descargo de Responsabilidad**: Una vez autenticado, el usuario es dirigido a un formulario de descargo de responsabilidad, optimizado para dispositivos móviles.
+3.  **Validación de Datos**: En el formulario, el usuario debe:
+    *   Escanear el **código QR** de la zona a la que desea ingresar.
+    *   Ingresar el número de documento de un **empleado responsable** que autoriza el acceso.
+    *   Aceptar las políticas y el descargo de responsabilidad.
+    *   Proporcionar su **firma digital** directamente en la pantalla.
+4.  **Registro y Generación de PDF**: Al enviar el formulario, el sistema:
+    *   Crea un **registro de ingreso** en la base de datos con toda la información.
+    *   Genera un **documento PDF** con los detalles del descargo, las firmas y los datos del registro.
+    *   Almacena el PDF en el sistema.
+5.  **Notificación por Correo**: Automáticamente, se envía una copia del PDF generado al correo electrónico del usuario "visitante" como constancia.
 
-El flujo principal es el siguiente:
+Adicionalmente, la aplicación cuenta con un panel de administración donde se pueden gestionar empresas, empleados, cargos y otros catálogos del sistema.
 
-1.  Un **Administrador** registra una **empresa** y a sus **empleados**, asignándoles un cargo.
-2.  El **empleado** (Usuario) ingresa a la aplicación con su número de documento.
-3.  El sistema valida al usuario y le presenta el **descargo de responsabilidad**.
-4.  La interacción del usuario queda registrada, cumpliendo con el propósito de control de la aplicación.
+## Características Técnicas Destacadas
 
-## Características
+-   **Backend**: Django.
+-   **Frontend**: Vistas renderizadas con Django Templates, con un fuerte enfoque en un formulario para móviles.
+-   **Generación de PDF**: Utiliza la librería `xhtml2pdf` para convertir plantillas HTML a documentos PDF.
+-   **Autenticación sin Contraseña**: Sistema de login personalizado basado en número de documento.
+-   **APIs Internas**: Endpoints para validar usuarios y zonas en tiempo real desde el frontend.
+-   **Servicios**: La lógica de negocio está encapsulada en clases de servicio (`DescargoService`, `PDFService`, `UsuarioService`) para una mejor organización del código.
 
--   **Autenticación Personalizada:** Login basado en número de documento.
--   **Gestión Administrativa (CRUD):**
-    -   Empresas
-    -   Empleados
-    -   Cargos
-    -   Servicios
--   **Perfiles de Usuario:** Los usuarios pueden actualizar su información personal y foto de perfil.
--   **Diseño Adaptativo:** La vista de descargo de responsabilidad está optimizada para móviles.
--   **Roles y Permisos:** Sistema de redirección basado en el rol del usuario (`Administrador` o `Usuario`).
+## Instalación y Puesta en Marcha
 
-## Estructura del Proyecto
+Sigue estos pasos para configurar el entorno de desarrollo local.
 
--   `login`: Maneja la autenticación y el modelo `Usuario`.
--   `home`: Redirige a los usuarios según su rol.
--   `perfil`: Gestiona los perfiles de usuario.
--   `empresas`: Contiene la lógica de negocio para la gestión de empresas y empleados.
--   `descargo_responsabilidad`: Muestra el aviso de responsabilidad a los usuarios.
-
-## Requisitos
-
--   Python 3.x
--   Django
--   MySQL (o la base de datos configurada en `.env`)
-
-Instala las dependencias con:
-```bash
-pip install -r requirements.txt
-```
-
-## Configuración
-
-1.  **Clona el repositorio:**
+1.  **Clonar el repositorio**
     ```bash
     git clone <URL-del-repositorio>
     cd zonascriticas
     ```
-2.  **Crea un entorno virtual:**
+
+2.  **Crear y activar un entorno virtual**
     ```bash
+    # Crear el entorno
     python -m venv entorno_zc
-    source entorno_zc/bin/activate  # En Windows: entorno_zc\Scripts\activate
+
+    # Activar en Windows
+    entorno_zc\Scripts\activate
+
+    # Activar en macOS/Linux
+    source entorno_zc/bin/activate
     ```
-3.  **Instala las dependencias:**
+
+3.  **Instalar dependencias**
     ```bash
     pip install -r requirements.txt
     ```
-4.  **Configura las variables de entorno** en un archivo `.env` en la raíz del proyecto:
+
+4.  **Configurar variables de entorno**
+    Crea un archivo `.env` en la raíz del proyecto y añade las siguientes variables. Asegúrate de reemplazar los valores de ejemplo.
     ```env
-    SECRET_KEY=tu_secret_key
+    # Clave secreta de Django
+    SECRET_KEY=tu_super_secreto_aqui
+
+    # Configuración de Debug
     DEBUG=True
     ALLOWED_HOSTS=127.0.0.1,localhost
 
+    # Configuración de la Base de Datos (ejemplo con MySQL)
     DB_ENGINE=django.db.backends.mysql
-    DB_NAME=tu_base_de_datos
-    DB_USER=tu_usuario
+    DB_NAME=zonascriticas_db
+    DB_USER=root
     DB_PASSWORD=tu_contraseña
     DB_HOST=localhost
     DB_PORT=3306
+
+    # Configuración para envío de correos (ejemplo con Gmail)
+    EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+    EMAIL_HOST=smtp.gmail.com
+    EMAIL_PORT=587
+    EMAIL_USE_TLS=True
+    EMAIL_HOST_USER=tu_correo@gmail.com
+    EMAIL_HOST_PASSWORD=tu_contraseña_de_aplicacion
+    DEFAULT_FROM_EMAIL=tu_correo@gmail.com
     ```
-5.  **Aplica las migraciones:**
+
+5.  **Aplicar las migraciones de la base de datos**
     ```bash
     python manage.py migrate
     ```
 
-## Uso
-
-Inicia el servidor de desarrollo:
-```bash
-python manage.py runserver
-```
-La aplicación estará disponible en `http://127.0.0.1:8000`.
-
-## API Endpoints
-
-La aplicación expone una serie de endpoints para la gestión dinámica de datos desde el frontend:
-
--   `/empresas/list/`: Lista de empresas.
--   `/empresas/empleados/<empresa_id>/`: Lista de empleados por empresa.
--   `/empresas/recursos/`: Lista de cargos y servicios.
--   `/empresas/create/`: Crear empresa.
--   `/empresas/update/<empresa_id>/`: Actualizar empresa.
--   `/empresas/empleado/create/`: Crear empleado.
--   `/empresas/empleado/update/<empleado_id>/`: Actualizar empleado.
--   `/perfil/update/`: Actualizar perfil de usuario.
--   `/perfil/update-image/`: Actualizar imagen de perfil.
-
-## Observaciones tecnicas
-
-1.**SISTEMA PERSONALIZADO DE MIDDLEWARE**Nuestra aplicación esta usando un sistema personalizado de middleware para poder personalizar nuestra tabla de usuarios que es nuestra tabla principal en la base de datos. Sin este sistema
-no podriamos utilizar el sistema de autenticacion de Django pues este esta hecho para la tabla auth_user. **LA RAZON** Usamos esto porque nuestro proyecto no requiere campos como contraseña.
+6.  **Iniciar el servidor de desarrollo**
+    ```bash
+    python manage.py runserver
+    ```
+    La aplicación estará disponible en `http://127.0.0.1:8000`.
