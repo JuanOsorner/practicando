@@ -3,6 +3,38 @@ from login.models import Usuario
 # Importamos la lógica desacoplada
 from .utils import path_pdf_generator 
 
+class Ubicacion(models.Model):
+    """
+    Catálogo maestro de Zonas Críticas sincronizado con Freshservice.
+    Fuente de verdad para validar QRs.
+    """
+    nombre = models.CharField(max_length=255, verbose_name="Nombre de la Zona")
+    
+    # asset_tag en Freshservice. Debe ser único para validar el QR.
+    codigo_qr = models.CharField(max_length=100, unique=True, verbose_name="Código QR (Asset Tag)")
+    
+    ciudad = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Guardamos el ID original por si necesitamos actualizar data futura
+    # De esta manera nos evitamos que si por ejemplo alguien cambia los datos del freshservice
+    # Los datos no se dupliquen en la base de datos
+    freshservice_id = models.BigIntegerField(unique=True, verbose_name="ID Freshservice")
+    
+    descripcion = models.TextField(blank=True, null=True)
+    
+    # Para soft-deletes: si borran la zona en FS, la marcamos inactiva aquí
+    activa = models.BooleanField(default=True) 
+    
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'ubicaciones'
+        verbose_name = "Ubicación / Zona Crítica"
+        verbose_name_plural = "Ubicaciones"
+
+    def __str__(self):
+        return f"{self.nombre} ({self.ciudad}) - {self.codigo_qr}"
+
 class DocumentoPDF(models.Model):
     class TipoDocumento(models.TextChoices):
         DESCARGO = 'DESCARGO', 'Descargo de Responsabilidad'

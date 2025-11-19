@@ -1,4 +1,6 @@
 import logging
+import requests
+import os
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -10,9 +12,145 @@ from xhtml2pdf import pisa
 from .models import RegistroIngreso, DocumentoPDF
 from .utils import decodificar_imagen_base64
 from login.models import Usuario
+from .models import Ubicacion
 
 logger = logging.getLogger(__name__)
 
+class FreshserviceSync:
+    """
+    Servicio encargado de sincronizar activos usando Paginación y Palabras Clave.
+    """
+    
+    DOMAIN = os.getenv('FRESHSERVICE_DOMAIN')
+    API_KEY = os.getenv('FRESHSERVICE_API_KEY')
+    # Leemos las palabras clave y las limpiamos
+    KEYWORDS_STR = os.getenv('FRESHSERVICE_KEYWORDS', '')
+    # Convertimos a lista: ['datacenter', 'impresora', 'dc']
+    KEYWORDS = [k.strip().lower() for k in KEYWORDS_STR.split(',') if k.strip()]
+
+    @staticmethod
+    def _obtener_valor_dinamico(diccionario, prefijo):
+        if not diccionario: return None
+        for key, value in diccionario.items():
+            if key.startswith(prefijo): return value
+        return None
+
+    @staticmethod
+    def _es_zona_critica(nombre_activo):
+        """
+        Algoritmo de coincidencia:
+        Devuelve True si alguna palabra clave está dentro del nombre del activo.
+        """
+        if not nombre_activo:
+            return False
+        
+        nombre_lower = nombre_activo.lower()
+        
+        for keyword in FreshserviceSync.KEYWORDS:
+            # Buscamos la palabra clave dentro del nombre
+            if keyword in nombre_lower:
+                return True
+        return False
+
+    @classmethod
+    def sincronizar_activos(cls):
+        if not cls.DOMAIN or not cls.API_KEY:
+            raise ValueError("Faltan credenciales en .env")
+        
+        if not cls.KEYWORDS:
+            print("⚠️ ADVERTENCIA: No hay palabras clave definidas en FRESHSERVICE_KEYWORDS.")
+
+        base_url = f"https://{cls.DOMAIN}/api/v2/assets"
+        auth = (cls.API_KEY, 'X')
+        
+        # Estadísticas
+        stats = {
+            'total_paginas': 0,
+            'total_analizados': 0,
+            'importados': 0,
+            'creados': 0,
+            'actualizados': 0
+        }
+
+        page = 1
+        continuar = True
+
+        print(f"🔍 Iniciando búsqueda por palabras clave: {cls.KEYWORDS}")
+
+        while continuar:
+            # Petición paginada
+            params = {
+                'include': 'type_fields',
+                'per_page': 50,  # Máximo permitido por Freshservice
+                'page': page
+            }
+            
+            try:
+                print(f"⏳ Descargando página {page}...")
+                response = requests.get(base_url, params=params, auth=auth)
+                
+                # Si falla (ej: 429 Rate Limit), lanzamos error
+                response.raise_for_status()
+                
+                data = response.json()
+                activos = data.get('assets', [])
+
+                # SI LA LISTA ESTÁ VACÍA, TERMINAMOS EL BUCLE
+                if not activos:
+                    break
+
+                stats['total_paginas'] += 1
+                stats['total_analizados'] += len(activos)
+
+                for asset in activos:
+                    nombre = asset.get('name', '')
+                    
+                    # 1. FILTRO DE PALABRAS CLAVE 🕵️‍♂️
+                    if not cls._es_zona_critica(nombre):
+                        continue # Si no coincide, pasamos al siguiente
+                    
+                    # 2. VALIDACIÓN DE INTEGRIDAD
+                    type_fields = asset.get('type_fields', {})
+                    ciudad = cls._obtener_valor_dinamico(type_fields, 'ubicacin_')
+                    asset_tag = asset.get('asset_tag')
+
+                    # Si es impresora, quizás la ciudad no es obligatoria en FS, 
+                    # pero para tu app sí. Tú decides. 
+                    # Aquí asumimos que si tiene QR, lo importamos.
+                    if not asset_tag:
+                        continue
+
+                    # 3. GUARDADO (UPSERT)
+                    obj, created = Ubicacion.objects.update_or_create(
+                        freshservice_id=asset.get('id'),
+                        defaults={
+                            'nombre': nombre,
+                            'codigo_qr': asset_tag,
+                            'ciudad': ciudad if ciudad else "No Definida", # Fallback por si acaso
+                            'descripcion': asset.get('description', ''),
+                            'activa': True
+                        }
+                    )
+
+                    stats['importados'] += 1
+                    if created:
+                        stats['creados'] += 1
+                    else:
+                        stats['actualizados'] += 1
+
+                # Preparamos siguiente iteración
+                page += 1
+                
+                # Pausa de seguridad para no saturar la API (buena práctica en scripts masivos)
+                import time
+                time.sleep(0.5) 
+
+            except requests.RequestException as e:
+                logger.error(f"Error en página {page}: {e}")
+                raise e
+
+        return stats
+        
 class UsuarioService:
     """
     Encapsula la lógica de negocio relacionada con la búsqueda
