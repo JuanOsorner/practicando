@@ -1,7 +1,8 @@
 /*
- * descargo_responsabilidad/static/descargo_responsabilidad/js/form_controller.js
- *
- * SOLUCIÓN ROBUSTA: Corrige la "Race Condition"
+ * form_controller.js
+ * * Controlador principal del formulario de Descargo de Responsabilidad.
+ * Orquesta la interacción entre el Escáner QR, los Canvas de Firma y la API de Django.
+ * * ACTUALIZACIÓN FASE 2: Ahora envía IDs relacionales (idZona) en lugar de texto plano.
  */
 
 // --- 1. Importaciones de Módulos ---
@@ -14,12 +15,14 @@ import { QRScanner } from './scanner.js';
 class DescargoFormController {
 
     constructor(container) {
+        // Validación defensiva: Si el HTML no cargó bien, detenemos todo.
         if (!container) {
             console.error("Controlador no pudo iniciarse: Contenedor no encontrado.");
             return;
         }
         this.container = container;
         
+        // Mapeo de URLs desde los data-attributes del HTML (Desacoplamiento)
         this.urls = {
             buscarUsuario: container.dataset.urlBuscarUsuario,
             buscarZona: container.dataset.urlBuscarZona,
@@ -27,105 +30,113 @@ class DescargoFormController {
             dashboard: container.dataset.urlDashboard
         };
 
+        // Estado interno de la aplicación
         this.estado = {
-            responsable: null,
-            zona: null,
+            responsable: null, // Objeto completo del usuario responsable (incluye ID)
+            zona: null,        // Objeto completo de la zona (incluye ID, nombre, ciudad)
         };
 
+        // Cache de elementos del DOM para no buscarlos repetidamente
         this.elementos = {
             checkDescargo: document.getElementById('check-acepta-descargo'),
             checkPoliticas: document.getElementById('check-acepta-politicas'),
             seccionFirmas: document.getElementById('seccion-firma-y-boton'),
+            
+            // Elementos del Responsable
             respContainer: document.getElementById('responsable-cedula-container'),
             respPlaceholder: document.getElementById('responsable-cedula-placeholder'),
             respInput: document.getElementById('responsable-cedula-input'),
             respNombre: document.getElementById('responsable-nombre'),
             respCargo: document.getElementById('responsable-cargo'),
+            
+            // Elementos de la Zona
             zonaTrigger: document.getElementById('scan-trigger-zona'),
             zonaCiudad: document.getElementById('qr-ciudad'),
+            
+            // Acciones
             btnSiguiente: document.getElementById('btn-siguiente'),
             spinner: document.getElementById('loading-spinner')
         };
         
-        // --- INICIO DE CAMBIOS ---
-        // Bandera de estado para evitar inicializaciones múltiples
+        // Bandera para evitar reinicializar los canvas múltiples veces
         this.firmasInicializadas = false;
-        // --- FIN DE CAMBIOS ---
         
-        // Instanciamos los módulos
+        // Instanciamos los submódulos
         this.scanner = new QRScanner('scan-trigger-zona');
         this.canvasVisitante = new CanvasManager('firma-visitante-canvas');
         this.canvasResponsable = new CanvasManager('firma-responsable-canvas');
     }
 
+    /**
+     * Punto de arranque. Asigna todos los Event Listeners.
+     */
     init() {
+        // 1. Escuchar cambios en los checkboxes para mostrar/ocultar firmas
         this.elementos.checkDescargo.addEventListener('change', () => this.onCheckboxChange());
         this.elementos.checkPoliticas.addEventListener('change', () => this.onCheckboxChange());
+
+        // 2. Lógica de búsqueda de responsable (UI Interactiva)
         this.elementos.respContainer.addEventListener('click', () => this.activarModoEdicionResponsable());
         this.elementos.respInput.addEventListener('blur', () => this.onBuscarResponsable());
         this.elementos.respInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.elementos.respInput.blur();
         });
+
+        // 3. Envío del formulario
         this.elementos.btnSiguiente.addEventListener('click', () => this.onSubmit());
+
+        // 4. Escuchar evento global del Scanner (Desacoplado)
         window.addEventListener('qrCodeScanned', (e) => this.onZonaEscaneada(e.detail.codigo));
         
-        // --- INICIO DE CAMBIOS ---
-        // Escuchamos el fin de la transición CSS
+        // 5. Lógica de "Race Condition" para los Canvas (Esperar transición CSS)
         this.elementos.seccionFirmas.addEventListener('transitionend', (e) => {
-            // Nos aseguramos que la transición sea la del max-height
+            // Solo reaccionamos si lo que cambió de tamaño fue la altura (max-height)
             if (e.propertyName === 'max-height') {
                 this.onSeccionFirmasVisible();
             }
         });
-        // --- FIN DE CAMBIOS ---
 
-        this.onCheckboxChange(); // Llamada inicial
+        // Llamada inicial para asegurar estado correcto al cargar la página
+        this.onCheckboxChange(); 
     }
 
-    // --- 3. Lógica de Eventos ---
+    // --- 3. Lógica de Eventos de Interfaz ---
 
     /**
-     * (MODIFICADO)
-     * Ahora solo se encarga de cambiar la visibilidad.
-     * La inicialización se delega a 'onSeccionFirmasVisible'.
+     * Gestiona la visibilidad de la sección de firmas.
+     * No inicializa los canvas directamente para evitar que se vean borrosos (tamaño 0).
      */
     onCheckboxChange() {
         const ambosAceptados = this.elementos.checkDescargo.checked && this.elementos.checkPoliticas.checked;
 
-        // 1. Inicia la animación del CSS
+        // Toggle clase CSS para iniciar la animación
         this.elementos.seccionFirmas.classList.toggle('visible', ambosAceptados);
         
-        // 2. Si se van a MOSTRAR...
+        // Fallback de seguridad: Si la transición CSS falla o el navegador es lento,
+        // forzamos la inicialización después de 550ms.
         if (ambosAceptados && !this.firmasInicializadas) {
-            // Añadimos un fallback por si 'transitionend' no se dispara
-            // (ej. transiciones deshabilitadas o CSS no cargado).
-            // 550ms es > que la transición de 0.5s (500ms).
             setTimeout(() => this.onSeccionFirmasVisible(), 550);
         }
     }
 
     /**
-     * (NUEVO MÉTODO)
-     * Se llama CUANDO la transición CSS ha terminado (o en el fallback).
-     * Ahora es seguro leer clientWidth.
+     * Se ejecuta cuando la sección de firmas ya está completamente desplegada.
+     * Aquí es seguro calcular el ancho de los canvas.
      */
     onSeccionFirmasVisible() {
-        // Verificamos que esté visible y que no lo hayamos hecho ya
+        // Guard clause: Si ya inicializamos o la sección se ocultó, no hacemos nada.
         if (this.firmasInicializadas || !this.elementos.seccionFirmas.classList.contains('visible')) {
             return;
         }
 
-        // ¡Solo se ejecuta UNA VEZ!
         this.firmasInicializadas = true; 
 
-        // Ahora que el layout es estable, preparamos los canvas.
+        // Preparamos los canvas con las dimensiones correctas
         this.canvasVisitante.prepararCanvas();
         this.canvasResponsable.prepararCanvas();
     }
 
-    // ... (El resto de métodos: activarModoEdicionResponsable, onBuscarResponsable, 
-    // ... onZonaEscaneada, onSubmit, preguntarIngreso, redirigir, mostrarSpinner)
-    // ... (NO REQUIEREN CAMBIOS) ...
+    // --- 4. Lógica de Negocio: Responsable ---
 
     activarModoEdicionResponsable() {
         this.elementos.respPlaceholder.classList.add('oculto');
@@ -140,41 +151,57 @@ class DescargoFormController {
 
     async onBuscarResponsable() {
         const documento = this.elementos.respInput.value.trim();
+        
+        // Si borró el número, cancelamos edición
         if (!documento) {
             this.desactivarModoEdicionResponsable();
             return;
         }
 
         ui.showLoading('Buscando responsable...');
+        
         try {
             const data = await api.get(`${this.urls.buscarUsuario}?documento=${documento}`);
+            
+            // Guardamos el objeto completo (incluyendo ID) en el estado
             this.estado.responsable = data;
             
+            // Actualizamos UI
             this.elementos.respNombre.textContent = data.nombre;
             this.elementos.respCargo.textContent = data.cargo;
             this.elementos.respPlaceholder.textContent = data.numero_documento;
             
             ui.hideLoading();
         } catch (error) {
+            // Reset en caso de error
             this.estado.responsable = null;
             this.elementos.respNombre.textContent = '[Esperando responsable...]';
             this.elementos.respCargo.textContent = '[Esperando responsable...]';
             this.elementos.respPlaceholder.innerHTML = '[Haga clic aquí para ingresar la cédula] <i class="fas fa-pencil-alt fa-xs"></i>';
             this.elementos.respInput.value = '';
+            
             ui.showError(error.message || 'Responsable no encontrado');
         } finally {
             this.desactivarModoEdicionResponsable();
         }
     }
 
+    // --- 5. Lógica de Negocio: Escaneo de Zona ---
+
     async onZonaEscaneada(codigo) {
         ui.showLoading('Validando zona...');
         try {
+            // Consultamos a la API (que ahora busca en la DB local Ubicacion)
             const data = await api.get(`${this.urls.buscarZona}?codigo=${codigo}`);
+            
+            // IMPORTANTE: 'data' contiene { id, nombre, ciudad, descripcion }
             this.estado.zona = data;
+            
+            // Actualizamos UI
             this.elementos.zonaTrigger.textContent = data.nombre;
             this.elementos.zonaCiudad.textContent = data.ciudad;
-            this.elementos.zonaTrigger.classList.remove('elemento-pulsante');
+            this.elementos.zonaTrigger.classList.remove('elemento-pulsante'); // Dejamos de pulsar
+            
             ui.hideLoading();
             ui.showNotification('Zona validada con éxito', 'success');
         } catch (error) {
@@ -182,12 +209,16 @@ class DescargoFormController {
             this.elementos.zonaTrigger.textContent = '[Toque aquí para escanear la zona]';
             this.elementos.zonaCiudad.textContent = '[Ciudad por definir]';
             this.elementos.zonaTrigger.classList.add('elemento-pulsante');
-            ui.showError(error.message || 'Código QR no válido');
+            
+            ui.showError(error.message || 'Código QR no válido o zona inactiva');
         }
     }
 
+    // --- 6. Lógica de Envío (Submit) ---
+
     async onSubmit() {
         
+        // A. Validaciones Previas
         if (!this.estado.zona) {
             return ui.showError('Debes escanear una zona válida antes de continuar.', 'Dato Faltante');
         }
@@ -201,25 +232,34 @@ class DescargoFormController {
             return ui.showError('La firma del responsable es obligatoria.', 'Dato Faltante');
         }
 
+        // B. Preguntar Propósito (Equipos / Actividades / Visita)
         const decision = await this.preguntarIngreso();
         
         if (decision === 'cancel') {
-            return;
+            return; // Usuario canceló en el modal
         }
 
+        // Convertimos decisión en valor para la BD
         const ingresaEquiposValor = (decision === 'equipos') ? 'SI' : 'NO';
 
+        // C. Construcción del Payload
+        // AQUÍ ESTÁ EL CAMBIO CLAVE: Enviamos IDs, no textos.
         const payload = {
             idResponsable: this.estado.responsable.id,
-            nombreZona: this.estado.zona.nombre,
-            ciudadZona: this.estado.zona.ciudad,
+            
+            // ID RELACIONAL: Enviamos el PK de la tabla Ubicaciones
+            idZona: this.estado.zona.id, 
+            
             aceptaDescargo: this.elementos.checkDescargo.checked,
             aceptaPoliticas: this.elementos.checkPoliticas.checked,
             ingresaEquipos: ingresaEquiposValor,
+            
+            // Firmas en formato Base64
             firmaVisitante: this.canvasVisitante.toDataURL(),
             firmaResponsable: this.canvasResponsable.toDataURL()
         };
 
+        // D. Envío al Backend
         this.mostrarSpinner(true);
         
         try {
@@ -229,14 +269,15 @@ class DescargoFormController {
                 title: '¡Registro Exitoso!',
                 text: 'Tu descargo de responsabilidad ha sido guardado y enviado a tu correo.',
                 icon: 'success',
-                confirmButtonText: 'Entendido'
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#352460'
             });
 
             this.redirigir(decision);
 
         } catch (error) {
             ui.showError(error.message || 'No se pudo guardar el registro.', 'Error del Servidor');
-            this.mostrarSpinner(false);
+            this.mostrarSpinner(false); // Solo ocultamos spinner si falló, si fue éxito redirigimos
         }
     }
 
@@ -259,32 +300,41 @@ class DescargoFormController {
         } else if (resultado.isDenied) {
             return 'actividades';
         } else {
+            // Si el usuario hace clic en "Solo Visita" (Botón cancelar)
             if (resultado.dismiss === Swal.DismissReason.cancel) {
                 return 'visita';
             }
+            // Si hace clic fuera del modal o ESC
             return 'cancel';
         }
     }
 
+    /**
+     * Enrutador simple basado en la decisión del usuario.
+     * NOTA: En fases futuras, aquí cambiaremos las URLs de destino.
+     */
     redirigir(decision) {
         ui.showLoading('Redirigiendo...');
         
+        // Por ahora todos van al dashboard, pero la lógica está lista para separar caminos.
         if (decision === 'equipos') {
             window.location.href = this.urls.dashboard; 
         } else if (decision === 'actividades') {
             window.location.href = this.urls.dashboard;
         } else {
+            // Visita simple
             window.location.href = this.urls.dashboard;
         }
     }
     
     mostrarSpinner(mostrar) {
         this.elementos.spinner.classList.toggle('oculto', !mostrar);
+        // Ocultamos el botón para evitar doble envío
         this.elementos.btnSiguiente.style.display = mostrar ? 'none' : 'block';
     }
 }
 
-// --- 4. Punto de Entrada ---
+// --- 7. Punto de Entrada ---
 document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById('descargo-form-container');
     if (container) {

@@ -202,29 +202,31 @@ class UsuarioService:
 
 class ZonaService:
     """
-    Encargado de validar e interpretar los códigos QR de las zonas.
+    Encargado de validar e interpretar los códigos QR de las zonas usando la DB Local.
     """
     @staticmethod
     def obtener_info_zona(codigo_qr):
         """
-        Recibe el string del QR y busca la zona.
-        NOTA: Como aún no tenemos modelo de 'Zonas', simulamos la lógica o
-        puedes conectarlo a tu modelo real si ya existe.
+        Busca la zona en la tabla sincronizada Ubicacion.
         """
-        # MOCK para simular el json que deberia llegar al front
-        zonas_mock = {
-            'ZONA_NORTE_01': {'nombre': 'Cuarto de Servidores A', 'ciudad': 'Medellín'},
-            'ZONA_SUR_02': {'nombre': 'Planta de Producción B', 'ciudad': 'Bogotá'},
-            'LAB_CALIDAD': {'nombre': 'Laboratorio de Calidad', 'ciudad': 'Cali'},
-        }
-        
-        zona = zonas_mock.get(codigo_qr)
-        
-        if not zona:
-            # Si el código no está en la base de datos (o mock)
-            raise ValueError(f"El código QR '{codigo_qr}' no corresponde a una zona válida.")
+        if not codigo_qr:
+            raise ValueError("El código QR está vacío.")
+
+        try:
+            # CONSULTA REAL A LA BASE DE DATOS
+            zona = Ubicacion.objects.get(codigo_qr=codigo_qr, activa=True)
             
-        return zona
+            # Retornamos DTO incluyendo el ID
+            return {
+                'id': zona.id, # VITAL PARA LA RELACIÓN
+                'nombre': zona.nombre,
+                'ciudad': zona.ciudad,
+                'descripcion': zona.descripcion
+            }
+            
+        except Ubicacion.DoesNotExist:
+            # Si no está en la base de datos, significa que no sincronizamos esa zona
+            raise ValueError(f"El código QR '{codigo_qr}' no corresponde a una Zona Crítica válida o no ha sido sincronizada.")
 
 class PDFService:
     """
@@ -241,8 +243,9 @@ class PDFService:
             'visitante': registro_ingreso.visitante,
             'responsable': registro_ingreso.responsable,
             'fecha': timezone.now(),
-            # IMPORTANTE: xhtml2pdf necesita rutas absolutas o staticfiles configurados
             'STATIC_URL': settings.STATIC_URL, 
+            'nombre_zona': registro_ingreso.ubicacion.nombre,
+            'ciudad_zona': registro_ingreso.ubicacion.ciudad,
         }
 
         # 2. Renderizamos el HTML a string
@@ -280,65 +283,58 @@ class PDFService:
 
 class DescargoService:
     """
-    Orquestador principal. Recibe los datos "crudos" del frontend
-    y coordina a los otros servicios.
+    Orquestador principal. Ahora usa IDs relacionales.
     """
     @staticmethod
     def procesar_ingreso(data, usuario_visitante):
-        """
-        Procesa todo el flujo de ingreso.
-        Args:
-            data (dict): JSON recibido del frontend (firmas, cedula responsable, checks, etc).
-            usuario_visitante (Usuario): El usuario logueado que está llenando el form.
-        """
-        # 1. Validar Zona (QR)
-        # El frontend envía el nombre/ciudad ya resueltos, pero idealmente validaríamos el código de nuevo.
-        # Por ahora confiamos en los datos enviados o usamos ZonaService si el frontend manda el código.
-        
-        # 2. Validar Responsable
+        # 1. Validar Responsable
         try:
             responsable = Usuario.objects.get(numero_documento=data.get('cedulaResponsable'))
         except Usuario.DoesNotExist:
             raise ValueError("El responsable indicado no existe en el sistema.")
 
-        # 3. Crear el Registro de Ingreso (Transacción BD)
+        # 2. Validar Ubicación (Zona)
+        try:
+            # El frontend debe enviar 'idZona'
+            id_zona = data.get('idZona') 
+            ubicacion = Ubicacion.objects.get(pk=id_zona)
+        except Ubicacion.DoesNotExist:
+            raise ValueError("La zona indicada no es válida.")
+
+        # 3. Crear el Registro de Ingreso (CON RELACIÓN)
         registro = RegistroIngreso(
             visitante=usuario_visitante,
             responsable=responsable,
-            nombre_zona=data.get('nombreZona'),
-            ciudad_zona=data.get('ciudadZona'),
+            ubicacion=ubicacion, # Guardamos el objeto, no el nombre
             acepta_descargo=data.get('aceptaDescargo'),
             acepta_politicas=data.get('aceptaPoliticas'),
             ingresa_equipos=data.get('ingresaEquipos', 'NO'),
-            # Convertir Base64 a Archivos Django
             firma_visitante=decodificar_imagen_base64(data.get('firmaVisitante'), f"vis_{usuario_visitante.id}.png"),
             firma_responsable=decodificar_imagen_base64(data.get('firmaResponsable'), f"resp_{responsable.id}.png"),
         )
-        registro.save() # Guardamos para tener IDs y rutas de firmas
+        registro.save()
 
-        # 4. Generar el PDF (En memoria)
+        # 4. Generar el PDF
         pdf_bytes = PDFService.generar_pdf_descargo(registro)
         nombre_pdf = f"descargo_zona_{registro.id}.pdf"
 
-        # 5. Guardar el PDF en el sistema centralizado (DocumentoPDF)
+        # 5. Guardar Documento
         documento = DocumentoPDF(
             usuario=usuario_visitante,
             tipo=DocumentoPDF.TipoDocumento.DESCARGO,
-            descripcion=f"Ingreso a {registro.nombre_zona}"
+            descripcion=f"Ingreso a {ubicacion.nombre}" # Accedemos al nombre por relación
         )
-        # Guardamos el contenido binario en el FileField
         documento.archivo.save(nombre_pdf, ContentFile(pdf_bytes))
         documento.save()
 
-        # 6. Vincular el documento al registro
+        # 6. Vincular
         registro.documento_asociado = documento
         registro.save()
 
-        # 7. Enviar Correo (Async idealmente, pero síncrono por ahora)
+        # 7. Enviar Correo
         try:
             PDFService.enviar_correo_con_adjunto(usuario_visitante, pdf_bytes, nombre_pdf)
         except Exception as e:
-            # No detenemos el proceso si falla el correo, solo logueamos
             logger.error(f"Error enviando correo de descargo: {e}")
 
         return registro
