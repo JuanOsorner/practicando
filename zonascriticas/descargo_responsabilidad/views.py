@@ -11,9 +11,12 @@ import json
 # Importamos los servicios de negocio
 from .services import UsuarioService, ZonaService, DescargoService
 
+# Importamos nuestro decorador
+from .decorators import no_tener_zona_activa
 
 # --- VISTA HTML (Existente) ---
 @login_custom_required
+@no_tener_zona_activa # <--- Estamos protegiendo esta vista si el usuario no ha terminado acticidades
 def responsabilidad_view(request: HttpRequest) -> HttpResponse:
     """
     Vista principal del descargo (Renderiza HTML).

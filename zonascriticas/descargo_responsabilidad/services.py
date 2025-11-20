@@ -5,6 +5,7 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.conf import settings
+from django.core.files.base import ContentFile
 from io import BytesIO
 from xhtml2pdf import pisa
 
@@ -250,7 +251,7 @@ class PDFService:
 
         # 2. Renderizamos el HTML a string
         # Necesitamos crear este template: 'descargo_responsabilidad/pdf/template_pdf.html'
-        html_string = render_to_string('descargo_responsabilidad/pdf/template_pdf.html', context)
+        html_string = render_to_string('template_pdf.html', context)
 
         # 3. Convertimos HTML a PDF (bytes)
         pdf_file = BytesIO()
@@ -289,23 +290,27 @@ class DescargoService:
     def procesar_ingreso(data, usuario_visitante):
         # 1. Validar Responsable
         try:
-            responsable = Usuario.objects.get(numero_documento=data.get('cedulaResponsable'))
+            id_responsable = data.get('idResponsable')
+            if not id_responsable:
+                 raise ValueError("No se recibió el ID del responsable.")
+                 
+            responsable = Usuario.objects.get(pk=id_responsable)
+            
         except Usuario.DoesNotExist:
             raise ValueError("El responsable indicado no existe en el sistema.")
 
         # 2. Validar Ubicación (Zona)
         try:
-            # El frontend debe enviar 'idZona'
             id_zona = data.get('idZona') 
             ubicacion = Ubicacion.objects.get(pk=id_zona)
         except Ubicacion.DoesNotExist:
             raise ValueError("La zona indicada no es válida.")
 
-        # 3. Crear el Registro de Ingreso (CON RELACIÓN)
+        # 3. Crear el Registro
         registro = RegistroIngreso(
             visitante=usuario_visitante,
             responsable=responsable,
-            ubicacion=ubicacion, # Guardamos el objeto, no el nombre
+            ubicacion=ubicacion,
             acepta_descargo=data.get('aceptaDescargo'),
             acepta_politicas=data.get('aceptaPoliticas'),
             ingresa_equipos=data.get('ingresaEquipos', 'NO'),
@@ -313,25 +318,22 @@ class DescargoService:
             firma_responsable=decodificar_imagen_base64(data.get('firmaResponsable'), f"resp_{responsable.id}.png"),
         )
         registro.save()
-
-        # 4. Generar el PDF
+        
+        # 4. Generar PDF (Recordatorio: pasar variables al contexto)
         pdf_bytes = PDFService.generar_pdf_descargo(registro)
         nombre_pdf = f"descargo_zona_{registro.id}.pdf"
-
-        # 5. Guardar Documento
+        
         documento = DocumentoPDF(
             usuario=usuario_visitante,
             tipo=DocumentoPDF.TipoDocumento.DESCARGO,
-            descripcion=f"Ingreso a {ubicacion.nombre}" # Accedemos al nombre por relación
+            descripcion=f"Ingreso a {ubicacion.nombre}"
         )
         documento.archivo.save(nombre_pdf, ContentFile(pdf_bytes))
         documento.save()
 
-        # 6. Vincular
         registro.documento_asociado = documento
         registro.save()
 
-        # 7. Enviar Correo
         try:
             PDFService.enviar_correo_con_adjunto(usuario_visitante, pdf_bytes, nombre_pdf)
         except Exception as e:
