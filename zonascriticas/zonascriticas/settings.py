@@ -164,3 +164,33 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
+
+# Configuraciones de seguridad 
+
+# 1. Evita que JavaScript acceda a la cookie de sesión (Anti-XSS)
+SESSION_COOKIE_HTTPONLY = True
+
+# 2. La cookie solo se envía en conexiones HTTPS (Activar en Producción, Falso en Dev local si no tienes SSL)
+# Como usas .env, lo ligamos a tu variable DEBUG. Si NO es debug, es True.
+SESSION_COOKIE_SECURE = False if DEBUG else True 
+CSRF_COOKIE_SECURE = False if DEBUG else True
+
+# 3. Protección contra Cross-Site Request Forgery
+SESSION_COOKIE_SAMESITE = 'Lax' 
+
+# 4. Cierra la sesión si el usuario cierra el navegador (Opcional, pero recomendado para empresas)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# 5. Motor de Sesión (Usaremos base de datos por defecto, es seguro)
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+
+# CONFIGURACION PARA MANEJAR EL BLOQUEO DE IPs
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'seguridad_cache', # AQUI COLOCAMOS EL NOMBRE DE LA TABLA
+    }
+}
+
+# OBSERVACIÓN: Cuando se monte este proyecto en producción se debe ejecutar de nuevo el comando
+# python manage.py createchachetable

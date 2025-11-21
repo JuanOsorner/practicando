@@ -5,6 +5,9 @@ from django.shortcuts import render, redirect
 # from django.contrib.auth import login, logout
 from django.views.decorators.http import require_POST
 from .models import Usuario
+from .utils import SecurityJail
+
+from django.views.decorators.csrf import csrf_protect # Importante para proteger el POST
 
 def mostrar_login(request: HttpRequest) -> HttpResponse:
     """Mostramos el login"""
@@ -20,11 +23,17 @@ def logout_view(request):
         pass
     return redirect('login') 
 
-@require_POST 
+@require_POST
+@csrf_protect
 def login_api(request: HttpRequest) -> JsonResponse:
-    """
-    Maneja el login (Versión manual).
-    """
+    
+    # --- 1. FASE DE SEGURIDAD: Verificar IP antes de leer datos ---
+    puede_pasar, mensaje_error = SecurityJail.verificar_acceso(request)
+    if not puede_pasar:
+        # Retornamos 429 Too Many Requests
+        return JsonResponse({'status': False, 'mensaje': mensaje_error}, status=429)
+    
+    # --- 2. Lógica Normal ---
     documento = request.POST.get('documento', '').strip()
     
     if not documento:
@@ -34,13 +43,26 @@ def login_api(request: HttpRequest) -> JsonResponse:
         user = Usuario.objects.get(numero_documento=documento)
     
     except Usuario.DoesNotExist:
+        # --- 3. REGISTRAR EL FALLO (Aumentar contador de la IP) ---
+        SecurityJail.registrar_fallo(request)
+        # Retornamos 404 (o 401 para ser más oscuros)
         return JsonResponse({'status': False, 'mensaje': 'El documento no se encuentra registrado.'}, status=404)
 
     if not user.is_active: 
-        return JsonResponse({'status': False, 'mensaje': 'Usuario inactivo. Por favor contacte al administrador.'}, status=403)
+        # ¿Contamos usuario inactivo como ataque? 
+        # Generalmente NO, es un error de RRHH, no de un hacker. No llamamos a registrar_fallo.
+        return JsonResponse({'status': False, 'mensaje': 'Usuario inactivo.'}, status=403)
 
-    # Guardamos el ID del usuario en la sesión manualmente.
+    # --- 4. ÉXITO: Limpieza de Sesión ---
+    if request.session.get('id_usuario_logueado'):
+        request.session.flush()
+    
+    if not request.session.session_key:
+        request.session.create()
+    else:
+        request.session.cycle_key()
+
     request.session['id_usuario_logueado'] = user.id
-    request.session.set_expiry(86400) # 1 día
+    request.session.set_expiry(86400) 
 
     return JsonResponse({'status': True, 'mensaje': 'Inicio de sesión exitoso.'})
