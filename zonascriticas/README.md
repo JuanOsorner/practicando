@@ -1,97 +1,70 @@
-# Proyecto Zonas Críticas
+# Zonascriticas
 
-**Zonas Críticas** es una aplicación web desarrollada con Django, diseñada para gestionar y registrar el acceso de personal a áreas restringidas o "zonas críticas". El sistema garantiza que cada usuario lea y acepte un descargo de responsabilidad antes de su ingreso, generando una constancia en PDF de dicha aceptación.
+Zonascriticas es una aplicación web construida con Django que controla y monitorea el acceso a zonas críticas en una empresa. Permite gestionar la entrada y salida de empleados y visitantes, así como las herramientas y equipos que portan.
 
-## Flujo Principal de Funcionamiento
+## Características
 
-El proceso central de la aplicación se puede resumir en los siguientes pasos:
+*   **Autenticación de usuarios:** Los usuarios pueden iniciar sesión en la aplicación utilizando su número de documento.
+*   **Roles de usuario:** La aplicación tiene dos roles de usuario: Administrador y Usuario.
+*   **Perfil de usuario:** Los usuarios pueden ver y actualizar su información de perfil.
+*   **Gestión de empresas y empleados:** Los administradores pueden gestionar las empresas y sus empleados.
+*   **Control de acceso a zonas críticas:** La aplicación controla el acceso a las zonas críticas a través de un descargo de responsabilidad y un código QR.
+*   **Registro de herramientas y equipos:** Los usuarios pueden registrar las herramientas y equipos que ingresan a las zonas críticas.
+*   **Historial de entradas y salidas:** La aplicación mantiene un registro de todas las entradas y salidas de las zonas críticas.
 
-1.  **Autenticación del Usuario**: Un empleado (denominado "visitante") inicia sesión en la aplicación utilizando su número de documento. El sistema utiliza un middleware de autenticación personalizado que no requiere contraseña.
-2.  **Descargo de Responsabilidad**: Una vez autenticado, el usuario es dirigido a un formulario de descargo de responsabilidad, optimizado para dispositivos móviles.
-3.  **Validación de Datos**: En el formulario, el usuario debe:
-    *   Escanear el **código QR** de la zona a la que desea ingresar.
-    *   Ingresar el número de documento de un **empleado responsable** que autoriza el acceso.
-    *   Aceptar las políticas y el descargo de responsabilidad.
-    *   Proporcionar su **firma digital** directamente en la pantalla.
-4.  **Registro y Generación de PDF**: Al enviar el formulario, el sistema:
-    *   Crea un **registro de ingreso** en la base de datos con toda la información.
-    *   Genera un **documento PDF** con los detalles del descargo, las firmas y los datos del registro.
-    *   Almacena el PDF en el sistema.
-5.  **Notificación por Correo**: Automáticamente, se envía una copia del PDF generado al correo electrónico del usuario "visitante" como constancia.
+## Empezando
 
-Adicionalmente, la aplicación cuenta con un panel de administración donde se pueden gestionar empresas, empleados, cargos y otros catálogos del sistema.
+Para obtener una copia local y ponerla en funcionamiento, siga estos sencillos pasos.
 
-## Características Técnicas Destacadas
+### Prerrequisitos
 
--   **Backend**: Django.
--   **Frontend**: Vistas renderizadas con Django Templates, con un fuerte enfoque en un formulario para móviles.
--   **Generación de PDF**: Utiliza la librería `xhtml2pdf` para convertir plantillas HTML a documentos PDF.
--   **Autenticación sin Contraseña**: Sistema de login personalizado basado en número de documento.
--   **APIs Internas**: Endpoints para validar usuarios y zonas en tiempo real desde el frontend.
--   **Servicios**: La lógica de negocio está encapsulada en clases de servicio (`DescargoService`, `PDFService`, `UsuarioService`) para una mejor organización del código.
+*   Python 3.11
+*   Django 4.2
+*   Git
 
-## Instalación y Puesta en Marcha
+### Instalación
 
-Sigue estos pasos para configurar el entorno de desarrollo local.
-
-1.  **Clonar el repositorio**
-    ```bash
-    git clone <URL-del-repositorio>
-    cd zonascriticas
+1.  Clona el repositorio
+    ```sh
+    git clone https://github.com/jfosorio/zonascriticas.git
     ```
-
-2.  **Crear y activar un entorno virtual**
-    ```bash
-    # Crear el entorno
+2.  Crea un entorno virtual
+    ```sh
     python -m venv entorno_zc
-
-    # Activar en Windows
-    entorno_zc\Scripts\activate
-
-    # Activar en macOS/Linux
-    source entorno_zc/bin/activate
     ```
-
-3.  **Instalar dependencias**
-    ```bash
+3.  Activa el entorno virtual
+    ```sh
+    entorno_zc\Scripts\activate
+    ```
+4.  Instala las dependencias
+    ```sh
     pip install -r requirements.txt
     ```
-
-4.  **Configurar variables de entorno**
-    Crea un archivo `.env` en la raíz del proyecto y añade las siguientes variables. Asegúrate de reemplazar los valores de ejemplo.
-    ```env
-    # Clave secreta de Django
-    SECRET_KEY=tu_super_secreto_aqui
-
-    # Configuración de Debug
-    DEBUG=True
-    ALLOWED_HOSTS=127.0.0.1,localhost
-
-    # Configuración de la Base de Datos (ejemplo con MySQL)
-    DB_ENGINE=django.db.backends.mysql
-    DB_NAME=zonascriticas_db
-    DB_USER=root
-    DB_PASSWORD=tu_contraseña
-    DB_HOST=localhost
-    DB_PORT=3306
-
-    # Configuración para envío de correos (ejemplo con Gmail)
-    EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
-    EMAIL_HOST=smtp.gmail.com
-    EMAIL_PORT=587
-    EMAIL_USE_TLS=True
-    EMAIL_HOST_USER=tu_correo@gmail.com
-    EMAIL_HOST_PASSWORD=tu_contraseña_de_aplicacion
-    DEFAULT_FROM_EMAIL=tu_correo@gmail.com
-    ```
-
-5.  **Aplicar las migraciones de la base de datos**
-    ```bash
+5.  Crea las tablas de la base de datos
+    ```sh
     python manage.py migrate
     ```
-
-6.  **Iniciar el servidor de desarrollo**
-    ```bash
+6.  Ejecuta el servidor de desarrollo
+    ```sh
     python manage.py runserver
     ```
-    La aplicación estará disponible en `http://127.0.0.1:8000`.
+
+## Estructura del Proyecto
+
+El proyecto se divide en las siguientes aplicaciones:
+
+*   `descargo_responsabilidad`: Gestiona el proceso de ingreso a una zona crítica, incluyendo el descargo de responsabilidad, el código QR y las firmas del visitante y el responsable.
+*   `empresas`: Gestiona las empresas y sus empleados.
+*   `home`: Actúa como un enrutador para la aplicación.
+*   `login`: Gestiona la autenticación de usuarios.
+*   `perfil`: Gestiona el perfil del usuario.
+*   `registro_herramientas`: Gestiona las herramientas y equipos que los usuarios ingresan a las zonas críticas.
+
+## Construido con
+
+*   [Django](https://www.djangoproject.com/) - El framework web utilizado
+*   [Python](https://www.python.org/) - El lenguaje de programación utilizado
+*   [SQLite](https://www.sqlite.org/index.html) - La base de datos utilizada para el desarrollo
+*   [HTML](https://developer.mozilla.org/en-US/docs/Web/HTML) - El lenguaje de marcado utilizado
+*   [CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) - El lenguaje de hojas de estilo utilizado
+*   [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript) - El lenguaje de programación utilizado para el frontend

@@ -64,6 +64,7 @@ class DocumentoPDF(models.Model):
 
 class RegistroIngreso(models.Model):
     class EstadoOpciones(models.TextChoices):
+        PENDIENTE_HERRAMIENTAS = 'Pendiente', 'Pendiente Registro Herramientas'
         EN_ZONA = 'En Zona', 'En Zona'
         FINALIZADO = 'Finalizado', 'Finalizado'
 

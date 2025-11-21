@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'perfil',
     'empresas',
     'descargo_responsabilidad',
+    'registro_herramientas',
 ]
 
 #➡️ Este es nuestro scanner de seguridad: este es el filtro que deben pasar las peticiones y las respuestas
@@ -165,7 +166,7 @@ EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
 
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 
-# Configuraciones de seguridad 
+# Configuraciones de seguridad 🚨🚨🚨🚨
 
 # 1. Evita que JavaScript acceda a la cookie de sesión (Anti-XSS)
 SESSION_COOKIE_HTTPONLY = True

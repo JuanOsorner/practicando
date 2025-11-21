@@ -1,16 +1,17 @@
 /*
  * descargo_responsabilidad/static/descargo_responsabilidad/js/scanner.js
  * Módulo de Lógica de Escaneo (Html5Qrcode Abstraction)
+ * REFACTORIZADO: Ahora usa core/image.js para optimizar memoria.
  */
 
-// Asumimos que Html5Qrcode se carga globalmente desde home.html
+// 1. IMPORTAMOS NUESTRO MÓDULO
+import { imageUtils } from '/static/home/js/core/image.js';
+
+// Asumimos que Html5Qrcode se carga globalmente
 const Html5Qrcode = window.Html5Qrcode;
 
 export class QRScanner {
 
-    /**
-     * @param {string} triggerId - ID del elemento que abre el modal (ej: 'scan-trigger-zona')
-     */
     constructor(triggerId) {
         this.triggerElement = document.getElementById(triggerId);
         
@@ -20,12 +21,12 @@ export class QRScanner {
         this.tabs = document.querySelectorAll('.scanner-tab');
         this.tabContents = document.querySelectorAll('.scanner-tab-content');
         this.fileInput = document.getElementById('qr-input-file');
-        this.cameraReaderDivId = 'qr-reader-camera'; // El ID del div en el HTML
+        this.cameraReaderDivId = 'qr-reader-camera'; 
 
-        this.html5Qrcode = null; // Instancia del lector de cámara
+        this.html5Qrcode = null; 
 
         if (!this.triggerElement || !this.modal) {
-            console.error("QRScanner: Elementos del DOM (trigger o modal) no encontrados.");
+            console.error("QRScanner: Elementos del DOM no encontrados.");
             return;
         }
         
@@ -36,7 +37,6 @@ export class QRScanner {
         this.triggerElement.addEventListener('click', () => this.openModal());
         this.closeBtn.addEventListener('click', () => this.closeModal());
         
-        // Lógica de Pestañas (Tabs)
         this.tabs.forEach(tab => {
             tab.addEventListener('click', () => this.switchTab(tab.dataset.tab));
         });
@@ -51,85 +51,81 @@ export class QRScanner {
 
     openModal() {
         this.modal.style.display = 'flex';
-        // Por defecto, al abrir, activamos la pestaña de la cámara
         this.switchTab('camera');
     }
 
     closeModal() {
-        this.stopCamera(); // Siempre intentar detener la cámara al cerrar
+        this.stopCamera(); 
         this.modal.style.display = 'none';
+        // Limpiamos el input file por si el usuario quiere subir la misma imagen 2 veces seguidas
+        this.fileInput.value = ''; 
     }
 
     switchTab(tabId) {
-        // Ocultar todos los contenidos y desactivar todas las pestañas
         this.tabContents.forEach(content => content.classList.remove('active'));
         this.tabs.forEach(tab => tab.classList.remove('active'));
 
-        // Mostrar el contenido y la pestaña seleccionados
         document.getElementById(`tab-content-${tabId}`).classList.add('active');
         document.querySelector(`.scanner-tab[data-tab="${tabId}"]`).classList.add('active');
 
         if (tabId === 'camera') {
             this.startCamera();
         } else {
-            this.stopCamera(); // Detener la cámara si cambiamos a la pestaña de archivo
+            this.stopCamera(); 
         }
     }
 
     startCamera() {
-        if (this.html5Qrcode && this.html5Qrcode.isScanning) {
-            return; // Ya está escaneando
-        }
+        if (this.html5Qrcode && this.html5Qrcode.isScanning) return;
 
         this.html5Qrcode = new Html5Qrcode(this.cameraReaderDivId);
-        
-        const config = { 
-            fps: 10, 
-            qrbox: (w, h) => ({ width: Math.min(w, h) * 0.7, height: Math.min(w, h) * 0.7 })
-        };
+        const config = { fps: 10, qrbox: (w, h) => ({ width: Math.min(w, h) * 0.7, height: Math.min(w, h) * 0.7 }) };
         
         this.html5Qrcode.start(
-            { facingMode: "environment" }, // Cámara trasera
+            { facingMode: "environment" }, 
             config,
-            (decodedText, decodedResult) => this.onScanSuccess(decodedText),
-            (errorMessage) => { /* Ignorar errores de "no se encontró QR" */ }
-        ).catch(err => {
-            console.error("Error al iniciar la cámara:", err);
-            // Aquí podríamos usar ui.js para mostrar un error si tuviéramos acceso
-        });
+            (decodedText) => this.onScanSuccess(decodedText),
+            (errorMessage) => { /* Ignorar errores de tracking */ }
+        ).catch(err => console.error("Error cámara:", err));
     }
 
     stopCamera() {
         if (this.html5Qrcode && this.html5Qrcode.isScanning) {
-            this.html5Qrcode.stop().catch(err => {
-                console.error("Error al detener la cámara:", err);
-            }).finally(() => {
+            this.html5Qrcode.stop().catch(err => console.error(err)).finally(() => {
                 this.html5Qrcode.clear();
                 this.html5Qrcode = null;
             });
         }
     }
 
-    scanFile(file) {
-        // Usamos una instancia temporal para escanear archivos
-        const fileScanner = new Html5Qrcode(this.cameraReaderDivId, false);
-        fileScanner.scanFile(file, true)
-            .then(decodedText => this.onScanSuccess(decodedText))
-            .catch(err => {
-                // Notificar al usuario que no se encontró QR
-                alert("No se pudo detectar un código QR en la imagen seleccionada.");
-            })
-            .finally(() => {
-                fileScanner.clear();
-            });
+    // --- AQUÍ ESTÁ LA REFACTORIZACIÓN CLAVE ---
+    async scanFile(file) {
+        try {
+            // 1. OPTIMIZACIÓN: Comprimimos la imagen antes de escanearla.
+            // Esto evita crashes en móviles cuando la foto pesa 10MB+
+            // Usamos maxWidth 1024px que es más que suficiente para un QR.
+            const compressedBlob = await imageUtils.compress(file, 1024, 0.8);
+            
+            // Convertimos Blob a File nuevamente porque Html5Qrcode prefiere File
+            const optimizedFile = new File([compressedBlob], "qr_optimizado.jpg", { type: "image/jpeg" });
+
+            // 2. Escaneo
+            const fileScanner = new Html5Qrcode(this.cameraReaderDivId, false);
+            const decodedText = await fileScanner.scanFile(optimizedFile, true);
+            
+            this.onScanSuccess(decodedText);
+            fileScanner.clear();
+
+        } catch (err) {
+            console.warn("Error escaneando archivo:", err);
+            // Si falla la compresión o el escaneo, intentamos con el archivo original como fallback
+            // o notificamos error.
+            alert("No se pudo detectar un código QR. Intenta enfocar mejor o usar la cámara.");
+        }
     }
 
     onScanSuccess(codigo) {
-        // ¡Éxito! Cerramos el modal
         this.closeModal();
-        
-        // Notificamos al resto de la aplicación (al form_controller)
-        // usando un Evento Global.
         window.dispatchEvent(new CustomEvent('qrCodeScanned', {
             detail: { codigo: codigo }
         }));
