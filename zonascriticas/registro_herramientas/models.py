@@ -1,28 +1,14 @@
 from django.db import models
-import uuid
 from login.models import Usuario
 from descargo_responsabilidad.models import RegistroIngreso
 
-# --- Generadores de Rutas ---
-
-def path_inventario_foto(instance, filename):
-    ext = filename.split('.')[-1]
-    nuevo_nombre = f"{uuid.uuid4()}.{ext}"
-    return f'herramientas/inventario/usuario_{instance.usuario.id}/{nuevo_nombre}'
-
-def path_evidencia_ingreso(instance, filename):
-    ext = filename.split('.')[-1]
-    nuevo_nombre = f"{uuid.uuid4()}.{ext}"
-    import datetime
-    fecha = datetime.date.today()
-    return f'herramientas/ingresos/{fecha.year}/{fecha.month}/ingreso_{instance.registro_ingreso.id}/{nuevo_nombre}'
-
+# IMPORTAMOS LA LÓGICA DESACOPLADA
+from .utils import path_inventario_foto, path_evidencia_ingreso
 
 # --- MODELO 1: EL CATÁLOGO (Inventario) ---
 
 class InventarioHerramienta(models.Model):
     
-    # DEFINICIÓN ESTRICTA DE CATEGORÍAS
     class CategoriaOpciones(models.TextChoices):
         HERRAMIENTA = 'HERRAMIENTA', 'Herramienta / Equipo General'
         COMPUTO = 'COMPUTO', 'Activo de Cómputo / Tecnológico'
@@ -35,20 +21,19 @@ class InventarioHerramienta(models.Model):
         verbose_name="Dueño"
     )
 
-    # Ahora la categoría es un selector estricto
     categoria = models.CharField(
         max_length=20, 
         choices=CategoriaOpciones.choices, 
         default=CategoriaOpciones.HERRAMIENTA,
         verbose_name="Tipo de Activo",
-        db_index=True # Indexamos esto para filtrar rápido en el frontend
+        db_index=True
     )
 
     nombre = models.CharField(max_length=255, verbose_name="Nombre del Activo")
     marca_serial = models.CharField(max_length=255, verbose_name="Marca / Serial")
     
     foto_referencia = models.ImageField(
-        upload_to=path_inventario_foto, 
+        upload_to=path_inventario_foto, # Usamos la función importada
         blank=True, null=True,
         db_column='foto_referencia_ruta',
         verbose_name="Foto de Referencia"
@@ -90,7 +75,7 @@ class HerramientaIngresada(models.Model):
     observaciones = models.TextField(blank=True, null=True)
     
     foto_evidencia = models.ImageField(
-        upload_to=path_evidencia_ingreso,
+        upload_to=path_evidencia_ingreso, # Usamos la función importada
         db_column='foto_ingreso_ruta',
         verbose_name="Foto Evidencia del Día"
     )

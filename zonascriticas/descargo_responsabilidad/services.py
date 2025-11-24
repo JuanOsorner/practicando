@@ -284,18 +284,15 @@ class PDFService:
 
 class DescargoService:
     """
-    Orquestador principal. Ahora usa IDs relacionales.
+    Orquestador principal.
     """
     @staticmethod
     def procesar_ingreso(data, usuario_visitante):
         # 1. Validar Responsable
         try:
             id_responsable = data.get('idResponsable')
-            if not id_responsable:
-                 raise ValueError("No se recibió el ID del responsable.")
-                 
+            if not id_responsable: raise ValueError("No se recibió el ID del responsable.")
             responsable = Usuario.objects.get(pk=id_responsable)
-            
         except Usuario.DoesNotExist:
             raise ValueError("El responsable indicado no existe en el sistema.")
 
@@ -306,20 +303,31 @@ class DescargoService:
         except Ubicacion.DoesNotExist:
             raise ValueError("La zona indicada no es válida.")
 
-        # 3. Crear el Registro
+        # --- 3. DETERMINAR EL ESTADO INICIAL (Lógica de Negocio) ---
+        ingresa_equipos_valor = data.get('ingresaEquipos', 'NO')
+        
+        # Si trae equipos, lo ponemos en PENDIENTE para que el Aiguilleur lo desvíe.
+        # Si NO trae equipos, pasa directo a EN ZONA.
+        if ingresa_equipos_valor == 'SI':
+            estado_inicial = RegistroIngreso.EstadoOpciones.PENDIENTE_HERRAMIENTAS
+        else:
+            estado_inicial = RegistroIngreso.EstadoOpciones.EN_ZONA
+
+        # 4. Crear el Registro
         registro = RegistroIngreso(
             visitante=usuario_visitante,
             responsable=responsable,
             ubicacion=ubicacion,
             acepta_descargo=data.get('aceptaDescargo'),
             acepta_politicas=data.get('aceptaPoliticas'),
-            ingresa_equipos=data.get('ingresaEquipos', 'NO'),
+            ingresa_equipos=ingresa_equipos_valor,
+            estado=estado_inicial, # <--- USAMOS EL ESTADO CALCULADO
             firma_visitante=decodificar_imagen_base64(data.get('firmaVisitante'), f"vis_{usuario_visitante.id}.png"),
             firma_responsable=decodificar_imagen_base64(data.get('firmaResponsable'), f"resp_{responsable.id}.png"),
         )
         registro.save()
         
-        # 4. Generar PDF (Recordatorio: pasar variables al contexto)
+        # 5. Generar PDF y Documento
         pdf_bytes = PDFService.generar_pdf_descargo(registro)
         nombre_pdf = f"descargo_zona_{registro.id}.pdf"
         

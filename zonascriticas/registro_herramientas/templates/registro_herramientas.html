@@ -1,0 +1,107 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Registro de Herramientas{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'registro_herramientas/css/tools.css' %}">
+{% endblock %}
+
+{% block content_user %}
+<div class="tools-container" id="tools-app"
+     data-url-inventario="{% url 'api_inventario' %}"
+     data-url-crear="{% url 'api_crear_inventario' %}"
+     data-url-registrar="{% url 'api_registrar_ingreso' %}"
+     data-url-finalizar="{% url 'api_finalizar_registro' %}"
+     data-url-dashboard="{% url 'dashboard' %}">
+
+    <header class="tools-header">
+        <h2>Registro de Equipos</h2>
+        <p>Selecciona los elementos que ingresas hoy.</p>
+    </header>
+
+    <div class="tabs-container">
+        <button class="tab-btn active" data-category="herramientas">
+            <i class="fas fa-tools"></i> Herramientas
+        </button>
+        <button class="tab-btn" data-category="computo">
+            <i class="fas fa-laptop"></i> Cómputo
+        </button>
+    </div>
+
+    <div id="inventory-list" class="inventory-grid">
+        <div class="loading-state">Cargando inventario...</div>
+    </div>
+
+    <button class="fab-add" id="btn-open-new-modal" title="Agregar nueva herramienta">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <div class="bottom-bar">
+        <span id="counter-text">0 elementos seleccionados</span>
+        <button id="btn-finish" class="btn-finish">Finalizar Ingreso</button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extras %}
+    <div id="modal-new-item" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3>Nuevo Ítem</h3>
+            <form id="form-new-item">
+                <div class="input-group">
+                    <select name="categoria" id="new-categoria" required>
+                        <option value="HERRAMIENTA">Herramienta General</option>
+                        <option value="COMPUTO">Equipo de Cómputo</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <input type="text" name="nombre" placeholder="Nombre (Ej: Taladro Makita)" required>
+                </div>
+                <div class="input-group">
+                    <input type="text" name="marca_serial" placeholder="Marca / Serial" required>
+                </div>
+                <div class="file-input-wrapper">
+                    <label for="new-item-photo"><i class="fas fa-camera"></i> Foto Referencia (Opcional)</label>
+                    <input type="file" id="new-item-photo" accept="image/*">
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" data-close="modal-new-item">Cancelar</button>
+                    <button type="submit" class="btn-confirm">Guardar en Inventario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-camera" class="modal-overlay hidden">
+        <div class="modal-content camera-content">
+            <h3>Evidencia de Ingreso</h3>
+            <p>Toma una foto del estado actual del equipo.</p>
+            
+            <div class="camera-viewport">
+                <video id="camera-video" autoplay playsinline></video>
+                <img id="camera-preview" class="hidden"> </div>
+
+            <div class="input-group">
+                <input type="text" id="entry-observaciones" placeholder="Observaciones (opcional)">
+            </div>
+
+            <div class="camera-controls">
+                <button id="btn-capture" class="btn-camera-action"><i class="fas fa-circle"></i></button>
+                
+                <div id="post-capture-actions" class="hidden">
+                    <button id="btn-retry" class="btn-secondary"><i class="fas fa-redo"></i></button>
+                    <button id="btn-confirm-entry" class="btn-primary"><i class="fas fa-check"></i> Guardar</button>
+                </div>
+            </div>
+            
+            <button class="btn-close-top" data-close="modal-camera"><i class="fas fa-times"></i></button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="module" src="{% static 'registro_herramientas/js/tools_controller.js' %}"></script>
+{% endblock %}
