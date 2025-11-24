@@ -41,9 +41,16 @@ def registro_herramientas_view(request: HttpRequest) -> HttpResponse:
 @login_custom_required
 @require_GET
 def api_obtener_inventario(request: HttpRequest) -> JsonResponse:
-    """API para llenar los selects/listas del frontend."""
     try:
-        data = HerramientasService.obtener_inventario_usuario(request.user)
+        # Buscamos el ingreso pendiente para saber el contexto
+        ingreso_pendiente = RegistroIngreso.objects.filter(
+            visitante=request.user,
+            estado=RegistroIngreso.EstadoOpciones.PENDIENTE_HERRAMIENTAS
+        ).first()
+        
+        ingreso_id = ingreso_pendiente.id if ingreso_pendiente else None
+
+        data = HerramientasService.obtener_inventario_usuario(request.user, ingreso_id)
         return JsonResponse({'status': True, 'data': data})
     except Exception as e:
         return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
@@ -109,3 +116,26 @@ def api_finalizar_registro(request: HttpRequest) -> JsonResponse:
         return JsonResponse({'status': True, 'mensaje': 'Registro finalizado. ¡Bienvenido!'})
     except Exception as e:
         return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
+
+@login_custom_required
+@require_POST
+def api_actualizar_inventario(request: HttpRequest, item_id: int) -> JsonResponse:
+    try:
+        HerramientasService.actualizar_item_inventario(
+            request.user,
+            item_id,
+            request.POST,
+            request.FILES.get('foto_referencia')
+        )
+        return JsonResponse({'status': True, 'mensaje': 'Ítem actualizado correctamente.'})
+    except Exception as e:
+        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+
+@login_custom_required
+@require_POST
+def api_eliminar_inventario(request: HttpRequest, item_id: int) -> JsonResponse:
+    try:
+        HerramientasService.eliminar_item_inventario(request.user, item_id)
+        return JsonResponse({'status': True, 'mensaje': 'Ítem eliminado del inventario.'})
+    except Exception as e:
+        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)   

@@ -66,21 +66,6 @@
 </div>
 {% endblock %}
 
-{% block extras %}
-    <div class="side-panel-overlay" id="panel-overlay"></div>
-    <div class="side-panel" id="side-panel">
-        <div class="panel-header">
-            <button class="panel-close-btn" id="panel-back-btn" title="Volver">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
-            </button>
-            <h2 id="panel-title">Cargando...</h2>
-        </div>
-        <div class="panel-body">
-            <form id="panel-form" novalidate enctype="multipart/form-data"></form>
-        </div>
-    </div>
-{% endblock %}
-
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.syncfusion.com/ej2/17.4.55/dist/ej2.min.js"></script>

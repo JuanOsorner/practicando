@@ -100,7 +100,22 @@
         </div>
     </div>
 
-    {% endif %}{% block extras %}
+    {% endif %}
+    <div id="global-panel-overlay" class="global-overlay"></div>
+
+    <aside id="global-side-panel" class="global-panel">
+        <div class="global-panel-header">
+            <button id="global-panel-close-btn" class="global-panel-close-btn" title="Cerrar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </button>
+            <span id="global-panel-title" class="global-panel-title">Título del Panel</span>
+        </div>
+        
+        <div id="global-panel-content" class="global-panel-body"></div>
+    </aside>
+    {% block extras %}
     {% endblock %}
     <script src="{% static 'home/js/home.js' %}"></script>
     {% block scripts %}

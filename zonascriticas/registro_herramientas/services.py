@@ -1,39 +1,59 @@
-"""
-Esta capa se encarga de la logica del negocio para nuestro modulo de registro de herramientas
-"""
+# zonascriticas/registro_herramientas/services.py
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
+# IMPORTANTE: Importar ProtectedError para manejar borrados seguros
+from django.db.models import ProtectedError
 from .models import InventarioHerramienta, HerramientaIngresada
 from descargo_responsabilidad.models import RegistroIngreso
 
 class HerramientasService:
     
     @staticmethod
-    def obtener_inventario_usuario(usuario):
+    def obtener_inventario_usuario(usuario, ingreso_id):
         """
-        Devuelve el inventario del usuario separado por categorías para el Frontend.
+        Devuelve el inventario y marca cuáles ya han sido ingresadas HOY.
         """
-        # Traemos todo el inventario de una vez para no hacer N queries
         items = InventarioHerramienta.objects.filter(usuario=usuario).order_by('-fecha_creacion')
         
+        # Buscamos los IDs de inventario que YA están en HerramientaIngresada para ESTE ingreso
+        ids_ingresados = HerramientaIngresada.objects.filter(
+            registro_ingreso_id=ingreso_id,
+            estado=HerramientaIngresada.EstadoHerramienta.INGRESADO
+        ).values_list('herramienta_inventario_id', flat=True)
+
+        # Helper para formatear
+        def formatear(item):
+            es_ingresado = item.id in ids_ingresados
+            # Si ya está ingresado, buscamos la foto de evidencia de hoy, si no, la de referencia
+            foto_url = item.foto_referencia.url if item.foto_referencia else None
+            
+            if es_ingresado:
+                # Opcional: Podrías querer mostrar la foto de evidencia del día en lugar de la de referencia
+                evidencia = HerramientaIngresada.objects.filter(
+                    registro_ingreso_id=ingreso_id, 
+                    herramienta_inventario_id=item.id
+                ).first()
+                if evidencia and evidencia.foto_evidencia:
+                    foto_url = evidencia.foto_evidencia.url
+
+            return {
+                'id': item.id, 
+                'nombre': item.nombre, 
+                'marca': item.marca_serial, 
+                'foto': foto_url,
+                'ingresado': es_ingresado, # FLAG IMPORTANTE
+                'categoria': item.categoria # IMPORTANTE para filtros en JS
+            }
+
         return {
             'herramientas': [
-                {
-                    'id': i.id, 
-                    'nombre': i.nombre, 
-                    'marca': i.marca_serial, 
-                    'foto': i.foto_referencia.url if i.foto_referencia else None
-                } 
-                for i in items if i.categoria == InventarioHerramienta.CategoriaOpciones.HERRAMIENTA
+                formatear(i) for i in items 
+                if i.categoria == InventarioHerramienta.CategoriaOpciones.HERRAMIENTA
             ],
             'computo': [
-                {
-                    'id': i.id, 
-                    'nombre': i.nombre, 
-                    'serial': i.marca_serial, # En cómputo le llamamos 'serial' al frontend
-                    'foto': i.foto_referencia.url if i.foto_referencia else None
-                } 
-                for i in items if i.categoria == InventarioHerramienta.CategoriaOpciones.COMPUTO
+                formatear(i) for i in items 
+                if i.categoria == InventarioHerramienta.CategoriaOpciones.COMPUTO
             ]
         }
 
@@ -98,19 +118,55 @@ class HerramientasService:
     def finalizar_proceso_registro(registro_ingreso):
         """
         Cierra la etapa de registro y pasa al usuario a 'EN_ZONA'.
-        Valida que al menos haya registrado algo si dijo que traía equipos.
         """
-        # Opcional: Validar si realmente metió herramientas
         conteo = HerramientaIngresada.objects.filter(registro_ingreso=registro_ingreso).count()
         
         if conteo == 0:
-            # Decisión de negocio: ¿Dejamos pasar si no registró nada aunque dijo que sí?
-            # Por seguridad, asumimos que si llegó aquí es porque DEBE registrar algo.
-            # Pero si el usuario se equivocó y no traía nada, podríamos dejarlo pasar o pedirle que cancele.
-            # Por ahora, permitimos finalizar (quizás se arrepintió de meter equipos).
             pass 
 
         # CAMBIO DE ESTADO -> El usuario ya puede entrar al Dashboard
         registro_ingreso.estado = RegistroIngreso.EstadoOpciones.EN_ZONA
         registro_ingreso.save()
         return True
+
+    # --- MÉTODOS NUEVOS DE GESTIÓN (CRUD) ---
+    # OJO: La indentación aquí es crucial. Deben estar DENTRO de la clase.
+
+    @staticmethod
+    def actualizar_item_inventario(usuario, item_id, data, archivo_foto=None):
+        """
+        Actualiza nombre, marca, categoría o foto de un ítem existente.
+        """
+        try:
+            item = InventarioHerramienta.objects.get(pk=item_id, usuario=usuario)
+        except InventarioHerramienta.DoesNotExist:
+            raise ValidationError("El ítem no existe o no te pertenece.")
+
+        # Actualización de campos
+        item.nombre = data.get('nombre', item.nombre)
+        item.marca_serial = data.get('marca_serial', item.marca_serial)
+        
+        new_cat = data.get('categoria')
+        if new_cat in [c[0] for c in InventarioHerramienta.CategoriaOpciones.choices]:
+            item.categoria = new_cat
+
+        if archivo_foto:
+            item.foto_referencia = archivo_foto
+        
+        item.save()
+        return item
+
+    @staticmethod
+    def eliminar_item_inventario(usuario, item_id):
+        """
+        Elimina un ítem del inventario. 
+        Si ya fue usado en algún ingreso, la BD lanzará ProtectedError.
+        """
+        try:
+            item = InventarioHerramienta.objects.get(pk=item_id, usuario=usuario)
+            item.delete()
+            return True
+        except InventarioHerramienta.DoesNotExist:
+            raise ValidationError("El ítem no existe.")
+        except ProtectedError:
+            raise ValidationError("No se puede eliminar: Este equipo tiene historial de ingresos. Edítalo o consérvalo.")

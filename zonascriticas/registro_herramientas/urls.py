@@ -10,4 +10,7 @@ urlpatterns = [
     path('api/inventario/crear/', views.api_crear_inventario, name='api_crear_inventario'),
     path('api/registrar-ingreso/', views.api_registrar_ingreso_herramienta, name='api_registrar_ingreso'),
     path('api/finalizar/', views.api_finalizar_registro, name='api_finalizar_registro'),
+
+    path('api/inventario/<int:item_id>/actualizar/', views.api_actualizar_inventario, name='api_actualizar_inventario'),
+    path('api/inventario/<int:item_id>/eliminar/', views.api_eliminar_inventario, name='api_eliminar_inventario'),
 ]

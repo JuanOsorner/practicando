@@ -20,8 +20,16 @@
         <p>Selecciona los elementos que ingresas hoy.</p>
     </header>
 
+    <div class="main-search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" id="main-search-input" placeholder="Buscar en equipos ingresados...">
+    </div>
+
     <div class="tabs-container">
-        <button class="tab-btn active" data-category="herramientas">
+        <button class="tab-btn active" data-category="todos">
+            <i class="fas fa-layer-group"></i> Todos
+        </button>
+        <button class="tab-btn" data-category="herramientas">
             <i class="fas fa-tools"></i> Herramientas
         </button>
         <button class="tab-btn" data-category="computo">
@@ -30,73 +38,42 @@
     </div>
 
     <div id="inventory-list" class="inventory-grid">
-        <div class="loading-state">Cargando inventario...</div>
+        <div class="loading-state">Cargando...</div>
     </div>
 
     <button class="fab-add" id="btn-open-new-modal" title="Agregar nueva herramienta">
         <i class="fas fa-plus"></i>
     </button>
 
-    <div class="bottom-bar">
-        <span id="counter-text">0 elementos seleccionados</span>
-        <button id="btn-finish" class="btn-finish">Finalizar Ingreso</button>
+    <div class="floating-footer">
+        <button id="btn-finish" class="btn-finish-floating">
+            Finalizar Ingreso (<span id="counter-text">0</span>)
+        </button>
     </div>
 
 </div>
 {% endblock %}
 
 {% block extras %}
-    <div id="modal-new-item" class="modal-overlay hidden">
-        <div class="modal-content">
-            <h3>Nuevo Ítem</h3>
-            <form id="form-new-item">
-                <div class="input-group">
-                    <select name="categoria" id="new-categoria" required>
-                        <option value="HERRAMIENTA">Herramienta General</option>
-                        <option value="COMPUTO">Equipo de Cómputo</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <input type="text" name="nombre" placeholder="Nombre (Ej: Taladro Makita)" required>
-                </div>
-                <div class="input-group">
-                    <input type="text" name="marca_serial" placeholder="Marca / Serial" required>
-                </div>
-                <div class="file-input-wrapper">
-                    <label for="new-item-photo"><i class="fas fa-camera"></i> Foto Referencia (Opcional)</label>
-                    <input type="file" id="new-item-photo" accept="image/*">
-                </div>
-                
-                <div class="modal-actions">
-                    <button type="button" class="btn-cancel" data-close="modal-new-item">Cancelar</button>
-                    <button type="submit" class="btn-confirm">Guardar en Inventario</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="modal-camera" class="modal-overlay hidden">
         <div class="modal-content camera-content">
             <h3>Evidencia de Ingreso</h3>
-            <p>Toma una foto del estado actual del equipo.</p>
-            
             <div class="camera-viewport">
                 <video id="camera-video" autoplay playsinline></video>
-                <img id="camera-preview" class="hidden"> </div>
-
-            <div class="input-group">
-                <input type="text" id="entry-observaciones" placeholder="Observaciones (opcional)">
+                <img id="camera-preview" class="hidden">
             </div>
-
+            <input type="file" id="evidence-file-input" accept="image/*" style="display:none;">
+            <div class="input-group">
+                <input type="text" id="entry-observaciones" placeholder="Observaciones (opcional)" class="styled-input-dark">
+            </div>
             <div class="camera-controls">
+                <button id="btn-gallery" class="btn-secondary-icon"><i class="fas fa-image"></i></button>
                 <button id="btn-capture" class="btn-camera-action"><i class="fas fa-circle"></i></button>
-                
-                <div id="post-capture-actions" class="hidden">
+                <div id="post-capture-actions" class="hidden" style="display: flex; gap: 15px;">
                     <button id="btn-retry" class="btn-secondary"><i class="fas fa-redo"></i></button>
                     <button id="btn-confirm-entry" class="btn-primary"><i class="fas fa-check"></i> Guardar</button>
                 </div>
             </div>
-            
             <button class="btn-close-top" data-close="modal-camera"><i class="fas fa-times"></i></button>
         </div>
     </div>
