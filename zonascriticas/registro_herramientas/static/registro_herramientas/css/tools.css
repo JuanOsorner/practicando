@@ -4,7 +4,6 @@
 
 .tools-container {
     padding: 20px;
-    /* Espacio extra abajo para que el último ítem no quede tapado por los botones flotantes */
     padding-bottom: 140px; 
     max-width: 900px;
     margin: 0 auto;
@@ -12,34 +11,16 @@
     position: relative;
 }
 
-.tools-header { 
-    margin-bottom: 20px; 
-    text-align: center; 
-}
-
-.tools-header h2 { 
-    color: var(--color-primario-oscuro); 
-    font-weight: 700;
-    margin-bottom: 5px;
-}
-
-.tools-header p { 
-    color: var(--color-texto-secundario); 
-    font-size: 0.95em; 
-}
+.tools-header { margin-bottom: 20px; text-align: center; }
+.tools-header h2 { color: var(--color-primario-oscuro); font-weight: 700; margin-bottom: 5px; }
+.tools-header p { color: var(--color-texto-secundario); font-size: 0.95em; }
 
 /* ====================================================== */
 /* === 2. BUSCADOR PRINCIPAL Y PESTAÑAS === */
 /* ====================================================== */
 
-.main-search-bar {
-    position: relative;
-    margin-bottom: 15px;
-}
-.main-search-bar i {
-    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-}
+.main-search-bar { position: relative; margin-bottom: 15px; }
+.main-search-bar i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--color-texto-secundario); }
 .main-search-bar input {
     width: 100%; padding: 12px 12px 12px 40px;
     border: 1px solid var(--color-borde);
@@ -50,81 +31,48 @@
     box-shadow: var(--sombra-suave);
     transition: border-color 0.3s;
 }
-.main-search-bar input:focus {
-    outline: none;
-    border-color: var(--color-primario-claro);
-}
+.main-search-bar input:focus { outline: none; border-color: var(--color-primario-claro); }
 
-/* --- CONTROLES DE SELECCIÓN (VISTA PRINCIPAL) --- */
+/* Tabs y Acciones */
 .tabs-container {
-    display: flex;
-    justify-content: space-between; /* Separar tabs del botón de acción */
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-    background: #eef0f3;
-    padding: 6px;
-    border-radius: 12px;
-    overflow: visible;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; margin-bottom: 20px;
+    background: #eef0f3; padding: 6px;
+    border-radius: 12px; overflow: visible;
 }
-
 .tabs-scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    flex-grow: 1;
-    scrollbar-width: none; /* Ocultar scrollbar */
+    display: flex; gap: 8px; overflow-x: auto;
+    flex-grow: 1; scrollbar-width: none;
 }
 .tabs-scroll::-webkit-scrollbar { display: none; }
 
 .tab-btn {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: transparent;
+    flex: 1; padding: 10px;
+    border: none; background: transparent;
     border-radius: var(--radio-borde);
-    font-weight: 600;
-    color: var(--color-texto-secundario);
-    cursor: pointer;
-    transition: all 0.3s ease;
+    font-weight: 600; color: var(--color-texto-secundario);
+    cursor: pointer; transition: all 0.3s ease;
     font-family: var(--fuente-principal);
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    font-size: 0.9em;
-    white-space: nowrap;
+    font-size: 0.9em; white-space: nowrap;
 }
-
 .tab-btn.active {
     background: var(--color-superficie);
     color: var(--color-primario-oscuro);
     box-shadow: var(--sombra-suave);
 }
 
-/* Botón "Retirar" (Modo Selección) */
+/* Botón "Retirar" */
 .action-chip {
-    padding: 8px 15px;
-    border-radius: 20px;
-    border: 1px solid transparent;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-    background: white;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    flex-shrink: 0;
+    padding: 8px 15px; border-radius: 20px;
+    border: 1px solid transparent; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: all 0.2s; background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05); flex-shrink: 0;
 }
-
-.action-chip.danger {
-    color: #c62828;
-    border-color: #ffcdd2;
-}
-
-.action-chip.danger:hover, 
-.action-chip.danger.active {
-    background-color: #c62828;
-    color: white;
+.action-chip.danger { color: #c62828; border-color: #ffcdd2; }
+.action-chip.danger:hover, .action-chip.danger.active {
+    background-color: #c62828; color: white;
     box-shadow: 0 4px 10px rgba(198, 40, 40, 0.3);
 }
 
@@ -133,284 +81,129 @@
 /* ====================================================== */
 
 .inventory-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 16px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 16px;
 }
-
-/* Estado de Carga / Vacío */
 .loading-state {
-    grid-column: 1 / -1;
-    text-align: center;
-    padding: 40px;
-    color: var(--color-texto-secundario);
-    background: #f9f9f9;
-    border-radius: 12px;
-    border: 2px dashed var(--color-borde);
+    grid-column: 1 / -1; text-align: center; padding: 40px;
+    color: var(--color-texto-secundario); background: #f9f9f9;
+    border-radius: 12px; border: 2px dashed var(--color-borde);
 }
 
-/* Tarjeta Grande (Main Card) */
+/* Tarjeta Main */
 .tool-card {
-    background: var(--color-superficie);
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    text-align: center;
-    border: 2px solid transparent;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+    background: var(--color-superficie); border-radius: 12px; padding: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center;
+    border: 2px solid transparent; position: relative;
+    display: flex; flex-direction: column; align-items: center;
     transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    overflow: hidden;
-    cursor: pointer;
+    overflow: hidden; cursor: pointer;
 }
-
 .tool-card:active { transform: scale(0.98); }
+.tool-card.added { border-color: #2ecc71; background-color: #f0fff4; }
 
-/* Estado Agregado Normal (Borde Verde) */
-.tool-card.added {
-    border-color: #2ecc71;
-    background-color: #f0fff4;
-}
-
-/* --- ESTADOS MODO ELIMINACIÓN (Bulk Delete) --- */
+/* Estados Modo Eliminación */
 .tool-card.selection-mode {
-    cursor: pointer;
-    transform: scale(0.98);
-    opacity: 0.7; /* Atenuado si no está seleccionado */
-    border-color: var(--color-borde);
-    background-color: white;
+    cursor: pointer; transform: scale(0.98);
+    opacity: 0.7; border-color: var(--color-borde); background-color: white;
 }
-
 .tool-card.selection-mode.selected {
-    border: 2px solid #c62828; /* Rojo Intenso */
-    background-color: #ffebee;
-    opacity: 1;
-    transform: scale(1);
+    border: 2px solid #c62828; background-color: #ffebee;
+    opacity: 1; transform: scale(1);
     box-shadow: 0 5px 15px rgba(198, 40, 40, 0.15);
 }
-
-/* Ocultar botones internos en modo selección */
 .tool-card.selection-mode .btn-remove-item,
-.tool-card.selection-mode .btn-edit-main {
-    display: none; 
-}
+.tool-card.selection-mode .btn-edit-main { display: none; }
 
-/* Botones de Acción en Card Principal */
+/* Botones en Card */
 .btn-remove-item, .btn-edit-main {
     position: absolute; top: 8px;
     width: 32px; height: 32px; border-radius: 50%;
     border: none; cursor: pointer; 
     display: flex; align-items: center; justify-content: center;
-    transition: transform 0.2s;
-    z-index: 5;
+    transition: transform 0.2s; z-index: 5;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-
-.btn-remove-item {
-    right: 8px;
-    background: #ffebee; color: #c62828;
-}
+.btn-remove-item { right: 8px; background: #ffebee; color: #c62828; }
 .btn-remove-item:hover { transform: scale(1.1); background: #ffcdd2; }
-
-.btn-edit-main {
-    left: 8px;
-    background: #e3f2fd; color: #1565c0;
-}
+.btn-edit-main { left: 8px; background: #e3f2fd; color: #1565c0; }
 .btn-edit-main:hover { transform: scale(1.1); background: #bbdefb; }
 
-/* Contenido Visual de la Card */
-.tool-icon {
-    font-size: 36px;
-    color: var(--color-primario-claro);
-    margin: 20px 0;
-}
-
+/* Contenido Card */
+.tool-icon { font-size: 36px; color: var(--color-primario-claro); margin: 20px 0; }
 .tool-card img {
-    width: 100%; height: 110px;
-    object-fit: cover;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #eee;
+    width: 100%; height: 110px; object-fit: cover;
+    border-radius: 8px; margin-bottom: 10px; border: 1px solid #eee;
 }
-
 .tool-name { 
-    font-weight: 700; font-size: 0.95em; 
-    color: var(--color-texto-principal); 
-    display: block; margin-bottom: 4px;
-    line-height: 1.2;
+    font-weight: 700; font-size: 0.95em; color: var(--color-texto-principal); 
+    display: block; margin-bottom: 4px; line-height: 1.2;
     width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-
-.tool-serial { 
-    font-size: 0.8em; color: var(--color-texto-secundario); 
-    margin-bottom: 8px; display: block;
-}
-
+.tool-serial { font-size: 0.8em; color: var(--color-texto-secundario); margin-bottom: 8px; display: block; }
 .status-text {
-    font-size: 0.65em; font-weight: 800;
-    color: #2ecc71; letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-top: auto; 
+    font-size: 0.65em; font-weight: 800; color: #2ecc71; 
+    letter-spacing: 0.5px; text-transform: uppercase; margin-top: auto; 
 }
 
 /* ====================================================== */
-/* === 4. BOTONES FLOTANTES PRINCIPALES === */
+/* === 4. BOTONES FLOTANTES (Específicos Tools) === */
 /* ====================================================== */
 
 .fab-add {
-    position: fixed;
-    bottom: 100px; 
-    right: 20px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: var(--color-primario-oscuro);
-    color: var(--color-texto-inverso);
+    position: fixed; bottom: 100px; right: 20px;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--color-primario-oscuro); color: var(--color-texto-inverso);
     border: none; font-size: 26px;
     box-shadow: 0 6px 20px rgba(53, 36, 96, 0.5);
-    cursor: pointer;
-    z-index: 60; 
+    cursor: pointer; z-index: 60; 
     display: flex; align-items: center; justify-content: center;
     transition: transform 0.2s;
 }
 .fab-add:active { transform: scale(0.9); }
 
 .floating-footer {
-    position: fixed;
-    bottom: 20px; 
-    left: 0; right: 0;
-    display: flex; justify-content: center;
-    pointer-events: none; 
-    z-index: 55;
-    background: transparent; 
-    border: none;
-    box-shadow: none;
+    position: fixed; bottom: 20px; left: 0; right: 0;
+    display: flex; justify-content: center; pointer-events: none; 
+    z-index: 55; background: transparent; border: none; box-shadow: none;
 }
-
 .btn-finish-floating {
-    pointer-events: auto; 
-    background: var(--color-acento);
-    color: var(--color-primario-oscuro);
-    border: none;
-    padding: 14px 40px;
-    border-radius: 30px;
+    pointer-events: auto; background: var(--color-acento);
+    color: var(--color-primario-oscuro); border: none;
+    padding: 14px 40px; border-radius: 30px;
     font-weight: 700; font-size: 1rem;
     box-shadow: 0 6px 20px rgba(255, 191, 0, 0.5); 
-    cursor: pointer;
-    transition: transform 0.2s;
+    cursor: pointer; transition: transform 0.2s;
 }
 .btn-finish-floating:active { transform: scale(0.95); }
 
-/* --- BOTONES FLOTANTES DE CONFIRMACIÓN (RETIRO) --- */
+/* Acciones Bulk Delete */
 .floating-action-wrapper {
-    position: fixed;
-    bottom: 90px; /* Encima del footer */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 10px;
-    z-index: 100;
-    animation: slideUp 0.3s ease;
+    position: fixed; bottom: 90px; left: 50%;
+    transform: translateX(-50%); display: flex; gap: 10px;
+    z-index: 100; animation: slideUp 0.3s ease;
 }
-
 .btn-floating-danger {
-    background: #c62828;
-    color: white;
-    border: none;
-    padding: 12px 25px;
-    border-radius: 30px;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    cursor: pointer;
+    background: #c62828; color: white; border: none;
+    padding: 12px 25px; border-radius: 30px; font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); cursor: pointer;
     display: flex; align-items: center; gap: 8px;
 }
-
 .btn-floating-secondary {
-    background: white;
-    color: #555;
-    border: none;
-    width: 45px; height: 45px;
-    border-radius: 50%;
+    background: white; color: #555; border: none;
+    width: 45px; height: 45px; border-radius: 50%;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-}
-
-@keyframes slideUp {
-    from { transform: translate(-50%, 20px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-}
-
-/* --- AJUSTES PARA MÓVIL --- */
-@media screen and (max-width: 1024px) {
-    .floating-footer { bottom: calc(var(--altura-footer-mobile) + 15px); }
-    .fab-add { bottom: calc(var(--altura-footer-mobile) + 85px); }
-    .floating-action-wrapper { bottom: calc(var(--altura-footer-mobile) + 85px); }
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
 }
 
 /* ====================================================== */
-/* === 5. ESTILOS INTERNOS DEL PANEL (Inyectados) === */
+/* === 5. ESTILOS INTERNOS DEL PANEL === */
 /* ====================================================== */
 
-/* FIX PANTALLA BLANCA: Flex 1 ocupa todo el espacio disponible */
-.panel-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    flex: 1;       /* CRÍTICO */
-    width: 100%;   /* CRÍTICO */
-    height: auto;
-    background-color: white; 
-}
-
-/* --- ZONA DE CARGA DE IMAGEN (SOLUCIÓN DEFINITIVA) --- */
-.image-upload-container {
-    width: 100%;
-    max-width: 200px;
-    aspect-ratio: 1 / 1; /* Cuadrado perfecto */
-    margin: 0 auto 15px auto;
-    
-    border: 2px dashed var(--color-borde);
-    border-radius: 16px;
-    background: #fafafa;
-    
-    position: relative; /* El padre crea el contexto de posición */
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    
-    /* Centrado del Placeholder */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.image-upload-container:hover {
-    border-color: var(--color-primario-medio);
-    background: #f0f0f0;
-}
-
-/* La imagen flota ENCIMA del placeholder y ocupa todo el espacio */
-.image-upload-container img#ref-preview {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    z-index: 5; /* Encima del placeholder */
-    background-color: #fff; 
-    display: none; /* JS controlará esto */
-}
-
+/* Elementos específicos del panel de herramientas */
 #ref-placeholder {
-    text-align: center;
-    color: var(--color-primario-claro);
-    z-index: 1; /* Queda debajo */
-    pointer-events: none;
+    text-align: center; color: var(--color-primario-claro);
+    z-index: 1; pointer-events: none;
 }
 #ref-placeholder i { font-size: 2.5em; margin-bottom: 8px; display: block; }
 #ref-placeholder span { font-size: 0.85em; font-weight: 600; }
@@ -426,60 +219,16 @@
     transition: all 0.2s ease;
 }
 .btn-close-panel-internal:hover {
-    background-color: rgba(0,0,0,0.05);
-    color: var(--color-primario-oscuro);
+    background-color: rgba(0,0,0,0.05); color: var(--color-primario-oscuro);
     transform: rotate(90deg);
 }
 
 /* Formulario */
 .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
 .form-row .input-group { flex: 1; }
-
-.styled-input {
-    width: 100%; padding: 12px;
-    border: 1px solid var(--color-borde);
-    border-radius: 8px;
-    font-family: var(--fuente-principal);
-    font-size: 0.95em;
-    background: white;
-}
-.styled-input:focus { outline: 2px solid var(--color-primario-claro); border-color: transparent; }
-
-/* Inputs bloqueados (Modo Edición) */
-.styled-input:disabled, 
-select.styled-input:disabled {
-    background-color: #e9ecef;
-    color: #6c757d;
-    cursor: not-allowed;
-    border-color: #dee2e6;
-}
-
-/* Animación Alerta Roja */
-@keyframes flashRed {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
-    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
-    100% { border-color: var(--color-borde); }
-}
-
-.highlight-alert {
-    animation: flashRed 2s infinite;
-    border: 2px solid #dc3545 !important;
-}
-
-.btn-save-inventory {
-    width: 100%; padding: 12px;
-    background: var(--color-primario-oscuro);
-    color: white; border: none; border-radius: 8px;
-    font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: background 0.2s;
-}
-.btn-save-inventory:hover { background: var(--color-primario-medio); }
-.btn-save-inventory.btn-warning { background: var(--color-acento); color: var(--color-primario-oscuro); }
-
 .panel-divider { border: 0; border-top: 1px solid var(--color-borde); margin: 10px 0; }
 
-/* --- PANEL LISTA (Bulk) --- */
+/* Panel Lista */
 .inventory-search-bar { position: relative; margin-bottom: 10px; }
 .inventory-search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
 .inventory-search-bar input {
@@ -487,17 +236,11 @@ select.styled-input:disabled {
     border: 1px solid var(--color-borde); border-radius: 8px;
     background: #f5f5f5; font-family: var(--fuente-principal);
 }
-
 .selection-helper-text {
-    font-size: 0.8rem;
-    color: var(--color-primario-claro);
-    text-align: center;
-    margin-bottom: 10px;
-    background: #f0f0f0;
-    padding: 5px;
-    border-radius: 4px;
+    font-size: 0.8rem; color: var(--color-primario-claro);
+    text-align: center; margin-bottom: 10px;
+    background: #f0f0f0; padding: 5px; border-radius: 4px;
 }
-
 .inventory-filters {
     display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px;
 }
@@ -514,12 +257,10 @@ select.styled-input:disabled {
 }
 
 .inventory-grid-compact {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 12px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
 }
 
-/* Card Compacta del Panel */
+/* Card Compacta Panel */
 .tool-card-compact {
     background: white; border: 1px solid var(--color-borde);
     border-radius: 10px; padding: 10px; cursor: pointer;
@@ -527,12 +268,7 @@ select.styled-input:disabled {
     box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 .tool-card-compact:hover { border-color: var(--color-primario-claro); transform: translateY(-2px); }
-
-/* Estado Seleccionado (Bulk Add) */
-.tool-card-compact.selected { 
-    background: #e8f5e9; 
-    border-color: #2ecc71; 
-}
+.tool-card-compact.selected { background: #e8f5e9; border-color: #2ecc71; }
 
 .check-badge {
     position: absolute; top: -6px; right: -6px;
@@ -541,11 +277,9 @@ select.styled-input:disabled {
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .card-actions {
     position: absolute; top: 5px; left: 5px; right: 5px;
-    display: flex; justify-content: space-between;
-    pointer-events: none; 
+    display: flex; justify-content: space-between; pointer-events: none; 
 }
 .btn-action {
     width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ddd;
@@ -576,97 +310,47 @@ select.styled-input:disabled {
 .badge-computo { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
 .badge-tool { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
-/* Botón Flotante Interno (Bulk Confirm) */
+/* Botón Bulk Confirm */
 .btn-bulk-confirm {
-    position: sticky;
-    bottom: 20px;
-    width: 100%;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: var(--color-primario-oscuro);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    font-weight: 700;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-    cursor: pointer;
-    z-index: 100;
-    animation: popIn 0.3s ease;
+    position: sticky; bottom: 20px; width: 100%;
+    margin-top: 20px; padding: 15px;
+    background-color: var(--color-primario-oscuro); color: white;
+    border: none; border-radius: 30px; font-weight: 700;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2); cursor: pointer;
+    z-index: 100; animation: popIn 0.3s ease;
 }
-.btn-bulk-confirm:hover {
-    background-color: var(--color-acento);
-    color: var(--color-primario-oscuro);
-}
+.btn-bulk-confirm:hover { background-color: var(--color-acento); color: var(--color-primario-oscuro); }
 
-/* ====================================================== */
-/* === 6. MODAL DE CÁMARA (Estilo Corporativo) === */
-/* ====================================================== */
-
-.modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(3px);
-    z-index: 2000;
-    display: flex; align-items: center; justify-content: center;
-}
-.hidden { display: none !important; }
-
-.modal-content.camera-content {
-    background: var(--color-superficie); 
-    color: var(--color-texto-principal);
-    width: 100%; height: 100%;
-    display: flex; flex-direction: column; padding: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-}
-
-@media screen and (min-width: 768px) {
-    .modal-content.camera-content { 
-        width: 450px; height: auto; border-radius: 16px; 
-        max-height: 90vh; 
-    }
-}
-
+/* Estilos Específicos Modal Cámara (Layout interno) */
 .modal-content.camera-content h3 {
     color: var(--color-primario-oscuro);
     text-align: center; margin-bottom: 5px;
 }
-
 .camera-viewport {
-    flex: 1; 
-    background: #000; 
-    border-radius: 12px; 
-    overflow: hidden; 
-    position: relative; 
-    margin: 15px 0;
-    border: 4px solid #f0f0f0;
-    min-height: 300px;
+    flex: 1; background: #000; border-radius: 12px; 
+    overflow: hidden; position: relative; 
+    margin: 15px 0; border: 4px solid #f0f0f0; min-height: 300px;
 }
 video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
 
 .camera-controls {
     display: flex; justify-content: center; align-items: center; gap: 20px; 
-    padding: 15px 0;
-    background: #f9f9f9; border-radius: 12px; margin-top: auto;
+    padding: 15px 0; background: #f9f9f9; border-radius: 12px; margin-top: auto;
 }
-
 .btn-camera-action {
-    width: 64px; height: 64px; border-radius: 50%; 
-    border: 4px solid white;
+    width: 64px; height: 64px; border-radius: 50%; border: 4px solid white;
     background: #ff4757; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    transition: transform 0.1s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.1s;
 }
 .btn-camera-action:active { transform: scale(0.95); }
 
 .btn-secondary-icon {
     width: 44px; height: 44px; border-radius: 50%;
     background: white; border: 1px solid var(--color-borde); 
-    color: var(--color-texto-secundario);
-    font-size: 1.1rem; cursor: pointer; 
+    color: var(--color-texto-secundario); font-size: 1.1rem; cursor: pointer; 
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-
 .btn-secondary, .btn-primary {
     padding: 10px 20px; border-radius: 25px; border: none;
     font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;
@@ -676,16 +360,16 @@ video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
 
 .btn-close-top {
     position: absolute; top: 15px; right: 15px;
-    background: rgba(0,0,0,0.05); 
-    color: var(--color-texto-secundario);
+    background: rgba(0,0,0,0.05); color: var(--color-texto-secundario);
     border: none; width: 36px; height: 36px; border-radius: 50%;
     font-size: 1.2rem; cursor: pointer; z-index: 10;
     display: flex; align-items: center; justify-content: center;
 }
 .btn-close-top:hover { background: rgba(0,0,0,0.1); color: #c62828; }
 
-/* Animaciones */
-@keyframes popIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+/* Responsive */
+@media screen and (max-width: 1024px) {
+    .floating-footer { bottom: calc(var(--altura-footer-mobile) + 15px); }
+    .fab-add { bottom: calc(var(--altura-footer-mobile) + 85px); }
+    .floating-action-wrapper { bottom: calc(var(--altura-footer-mobile) + 85px); }
 }

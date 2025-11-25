@@ -43,10 +43,11 @@
     /* --- ARQUITECTURA Z-INDEX (El Edificio) --- */
     --z-fondo: -1;
     --z-contenido: 10;      
-    --z-overlay-panel: 40;  /* Sombra detrás del panel */
-    --z-panel-lateral: 50;  /* EL PANEL GLOBAL */
-    --z-fixed-nav: 100;     /* Header/Footer siempre visibles */
-    --z-modal-alerta: 1000; /* SweetAlert */
+    --z-overlay-panel: 40;  
+    --z-panel-lateral: 50;  
+    --z-fixed-nav: 100;     
+    --z-modal-alerta: 1000; 
+    --z-modal-custom: 2000; /* Nuevo nivel para modales propios (Cámara) */
 }
 
 /* ============================================= */
@@ -64,12 +65,12 @@ body {
 /* Clases de utilidad */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hidden { display: none !important; } /* Utilidad global */
 
 /* ============================================= */
 /* === 4. INFRAESTRUCTURA DEL PANEL GLOBAL === */
 /* ============================================= */
 
-/* El Overlay (Fondo Oscuro) */
 .global-overlay {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -81,41 +82,24 @@ body {
     backdrop-filter: blur(2px);
 }
 
-/* El Panel Lateral (Contenedor) */
 .global-panel {
     position: fixed;
-    top: 0; 
-    right: 0;
-    bottom: 0;
+    top: 0; right: 0; bottom: 0;
     width: 100%;
-    max-width: 500px; /* Ancho máximo en escritorio */
+    max-width: 500px;
     background-color: var(--color-superficie);
     z-index: var(--z-panel-lateral);
     box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-    
-    /* Animación de Slide */
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    
     display: flex;
     flex-direction: column;
 }
 
-/* ESTADOS ACTIVOS */
-body.panel-is-open {
-    overflow: hidden; /* Bloquear scroll del body */
-}
+body.panel-is-open { overflow: hidden; }
+body.panel-is-open .global-overlay { opacity: 1; visibility: visible; }
+body.panel-is-open .global-panel { transform: translateX(0); }
 
-body.panel-is-open .global-overlay {
-    opacity: 1;
-    visibility: visible;
-}
-
-body.panel-is-open .global-panel {
-    transform: translateX(0);
-}
-
-/* Header del Panel */
 .global-panel-header {
     height: 60px;
     display: flex;
@@ -149,27 +133,142 @@ body.panel-is-open .global-panel {
     justify-content: center;
     transition: background 0.2s;
 }
+.global-panel-close-btn:hover { background: rgba(255,255,255,0.1); }
 
-.global-panel-close-btn:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-/* Cuerpo del Panel (Scrollable) */
 .global-panel-body {
     flex-grow: 1;
     overflow-y: auto;
     padding: 20px;
     position: relative;
-    
-    display: flex;           /* Convertir en contenedor Flex */
-    flex-direction: column;  /* Apilar verticalmente */
-
+    /* FIX PANTALLA BLANCA (Core) */
+    display: flex;
+    flex-direction: column; 
     padding-bottom: calc(var(--altura-footer-mobile) + 30px); 
 }
 
-/* AJUSTES RESPONSIVOS */
 @media screen and (min-width: 1025px) {
-    .global-panel-body {
-        padding-bottom: 20px; /* En desktop no hay footer flotante, regresamos a normal */
+    .global-panel-body { padding-bottom: 20px; }
+}
+
+/* ============================================= */
+/* === 5. COMPONENTES UI REUTILIZABLES === */
+/* ============================================= */
+
+/* --- Wrapper Flexible para Paneles (Fix Blanco) --- */
+.panel-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: relative;
+    flex: 1;       /* Ocupar espacio */
+    width: 100%;
+    height: auto;
+    background-color: white; 
+}
+
+/* --- Zona de Carga de Imagen (La versión Robusta) --- */
+.image-upload-container {
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1 / 1; /* Cuadrado perfecto */
+    margin: 0 auto 15px auto;
+    border: 2px dashed var(--color-borde);
+    border-radius: 16px;
+    background: #fafafa;
+    position: relative; 
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.image-upload-container:hover {
+    border-color: var(--color-primario-medio);
+    background: #f0f0f0;
+}
+/* Imagen absoluta para cubrir todo */
+.image-upload-container img, 
+.image-upload-container img#ref-preview {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 5; 
+    background-color: #fff; 
+}
+
+/* --- Inputs Estilizados --- */
+.styled-input {
+    width: 100%; padding: 12px;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    font-family: var(--fuente-principal);
+    font-size: 0.95em;
+    background: white;
+}
+.styled-input:focus { 
+    outline: 2px solid var(--color-primario-claro); 
+    border-color: transparent; 
+}
+/* Estado Bloqueado/Lectura */
+.styled-input:disabled, 
+select.styled-input:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+/* --- Botones Genéricos --- */
+.btn-save-inventory { /* Se puede renombrar a .btn-block-primary */
+    width: 100%; padding: 12px;
+    background: var(--color-primario-oscuro);
+    color: white; border: none; border-radius: 8px;
+    font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.2s;
+}
+.btn-save-inventory:hover { background: var(--color-primario-medio); }
+.btn-save-inventory.btn-warning { background: var(--color-acento); color: var(--color-primario-oscuro); }
+
+/* --- Animaciones y Alertas --- */
+@keyframes popIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideUp {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+@keyframes flashRed {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
+    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
+    100% { border-color: var(--color-borde); }
+}
+
+.highlight-alert {
+    animation: flashRed 2s infinite;
+    border: 2px solid #dc3545 !important;
+}
+
+/* --- Modales Corporativos (Cámara, Info) --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(3px);
+    z-index: var(--z-modal-custom);
+    display: flex; align-items: center; justify-content: center;
+}
+.modal-content.camera-content {
+    background: var(--color-superficie); 
+    color: var(--color-texto-principal);
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+@media screen and (min-width: 768px) {
+    .modal-content.camera-content { 
+        width: 450px; height: auto; border-radius: 16px; max-height: 90vh; 
     }
 }

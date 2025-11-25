@@ -1,22 +1,39 @@
-# En este archivo vamos a crear una clase que cuando le mandemos 
-class combinaciones:
+"""
+Practicar funciones recursivas
+"""
+def permutaciones_repeticion(palabra: str, k: int) -> list:
     """
-    Esta clase es la que va a contener el algoritmo de combinaciones
+    Este metodo recibe una palabra, un entero k
+    y devuelve todas las permutaciones con repeticion 
+    listadas
     """
-    def __init__(self):
-        self.contador = 0
+    lista = []
+    if len(palabra) < k and k < 0:
+        # Devolvemos la lista vacia si el tamaño de la palabra es menor que k
+        return lista
+    def permutar(n_palabra: str) -> str:
+        """
+        Este metodo genera todas las permutaciones que podemos
+        hacer con las letras de una palabra
+        """
+        if len(n_palabra) == k:
+            lista.append(n_palabra)
+            return
+        for letra in palabra:
+            permutar(n_palabra + letra)
+    permutar("")
+    return lista
     
-    @staticmethod
-    def combinar_listas(lista,cantidad):
-        """
-        Este metodo recibe una lista y nosotros retornamos todas las
-        combinaciones de sublistas de dicha lista
-        """
-        # 1. Creamos una validacion de datos y enviamos nuestros errores personalizados
-        if not lista and not cantidad:
-            raise ValueError("Ingrese la lista y la cantidad de elementos a combinar")
-        elif cantidad < 0:
-            raise ValueError("La cantidad de elementos a combinar no puede ser negativa")
-        # 2. Creamos una lista vacia que vamos a retornar mas adelante
-        lista = []
-        
+print(permutaciones_repeticion("ABCD",2))
+
+def combinaciones(palabra: str, entero: int) -> list:
+    """
+    Este metodo toma una palabra y devuelve las
+    combinaciones de esa palabra listadas tomandolas
+    de a el numero entero
+    """
+    lista = []
+    if len(palabra) < k and k < 0:
+        # Devolvemos la lista vacia si el tamaño de la palabra es menor que k
+        return lista
+    

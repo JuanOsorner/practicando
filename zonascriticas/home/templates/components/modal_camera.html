@@ -1,0 +1,28 @@
+<div id="modal-camera" class="modal-overlay hidden">
+    <div class="modal-content camera-content">
+        <h3>Evidencia de Ingreso</h3>
+        
+        <div class="camera-viewport">
+            <video id="camera-video" autoplay playsinline></video>
+            <img id="camera-preview" class="hidden">
+        </div>
+        
+        <input type="file" id="evidence-file-input" accept="image/*" style="display:none;">
+        
+        <div class="input-group">
+            <input type="text" id="entry-observaciones" placeholder="Observaciones (opcional)" class="styled-input-dark">
+        </div>
+        
+        <div class="camera-controls">
+            <button id="btn-gallery" class="btn-secondary-icon"><i class="fas fa-image"></i></button>
+            <button id="btn-capture" class="btn-camera-action"><i class="fas fa-circle"></i></button>
+            
+            <div id="post-capture-actions" class="hidden" style="display: flex; gap: 15px;">
+                <button id="btn-retry" class="btn-secondary"><i class="fas fa-redo"></i></button>
+                <button id="btn-confirm-entry" class="btn-primary"><i class="fas fa-check"></i> Guardar</button>
+            </div>
+        </div>
+        
+        <button class="btn-close-top" data-close="modal-camera"><i class="fas fa-times"></i></button>
+    </div>
+</div>

@@ -1,17 +1,18 @@
 /**
  * inventory_panel.js
- * Controlador del Panel de Gestión de Inventario.
+ * Controlador específico para el Panel de Gestión de Inventario.
  * * FUNCIONALIDADES:
- * 1. Gestión de Catálogo (CRUD).
+ * 1. Gestión de Catálogo (CRUD) usando apiService.
  * 2. Selección Múltiple para ingreso (Bulk Add).
- * 3. Manejo de UX para edición (Bloqueo de campos).
+ * 3. UX Avanzada: Bloqueo de campos en edición y manejo de imágenes.
  */
 
 import { GlobalPanel } from '/static/home/js/core/panel.js';
 import { imageUtils } from '/static/home/js/core/image.js';
-import { api } from '/static/home/js/core/api.js';
 import { ui } from '/static/home/js/core/ui.js';
 import { toolsUI } from './tools_ui.js';
+// IMPORTAMOS EL NUEVO SERVICIO CENTRALIZADO
+import * as toolsApi from './apiService.js';
 
 export class InventoryPanel {
     
@@ -43,7 +44,7 @@ export class InventoryPanel {
     /**
      * Abre el panel lateral.
      * @param {Array} inventoryList - Lista maestra.
-     * @param {Array} alreadyAddedIds - Lista de IDs que ya están ingresados (para marcarlos).
+     * @param {Array} alreadyAddedIds - Lista de IDs que ya están ingresados.
      */
     open(inventoryList, alreadyAddedIds = []) {
         try {
@@ -123,7 +124,7 @@ export class InventoryPanel {
             template.innerHTML = cardHTML.trim();
             const cardEl = template.content.firstChild;
 
-            // Si está seleccionado localmente, añadimos una clase extra para diferenciarlo (Opcional: borde azul)
+            // Feedback visual extra para selección local
             if (inLocal) cardEl.style.borderColor = 'var(--color-primario-medio)';
 
             // Eventos
@@ -134,14 +135,14 @@ export class InventoryPanel {
     }
 
     _handleGridClick(e, item, isAlreadyInDb) {
-        // A. Botón EDITAR (Lápiz)
+        // A. Botón EDITAR (Lápiz) - Abre formulario arriba
         if (e.target.closest('.btn-edit-item')) {
             e.stopPropagation();
             this._loadItemForEdit(item);
             return;
         }
 
-        // B. Botón ELIMINAR (Basura)
+        // B. Botón ELIMINAR (Basura) - Borra del catálogo
         if (e.target.closest('.btn-delete-item')) {
             e.stopPropagation();
             this._handleDelete(item.id);
@@ -189,7 +190,7 @@ export class InventoryPanel {
 
     _confirmBulkAdd() {
         if (this.onBulkAdd && this.localSelection.size > 0) {
-            // Enviamos array de IDs al controlador
+            // Enviamos array de IDs al controlador principal
             this.onBulkAdd(Array.from(this.localSelection));
             GlobalPanel.close(); // Cerramos panel para UX limpia
         }
@@ -262,7 +263,7 @@ export class InventoryPanel {
             
             if (preview) {
                 preview.src = base64;
-                // Solución Bug Visual: Forzar display block para activar z-index del CSS
+                // CRÍTICO: Forzar display block para activar z-index del CSS absoluto
                 preview.style.display = 'block'; 
             }
 
@@ -280,28 +281,21 @@ export class InventoryPanel {
             formData.set('foto_referencia', this.tempImageBlob, 'ref_item.jpg');
         }
 
-        const toolsApp = document.getElementById('tools-app');
-        let url = toolsApp.dataset.urlCrear;
-        
-        if (this.isEditing) {
-            const urlBase = toolsApp.dataset.urlInventario.replace(/\/$/, ''); 
-            url = `${urlBase}/${this.editingItemId}/actualizar/`;
-        }
-
         ui.showLoading(this.isEditing ? 'Actualizando...' : 'Guardando...');
 
         try {
-            const response = await api.post(url, formData);
+            // REFACTOR: Uso de toolsApi.saveItem (POST o PUT automático)
+            const response = await toolsApi.saveItem(formData, this.editingItemId);
             
             ui.hideLoading();
             ui.showNotification(response.mensaje, 'success');
             
             this._resetFormState();
             
-            // Actualización Optimista / Real-time
+            // Actualización Optimista / Real-time de la lista local
             if (response.item) {
                 const newItem = response.item;
-                // Parche de seguridad para datos faltantes
+                // Parches de seguridad para datos faltantes en respuesta rápida
                 if(!newItem.categoria) newItem.categoria = formData.get('categoria');
                 if(!newItem.foto && this.tempImageBlob) newItem.foto = URL.createObjectURL(this.tempImageBlob);
 
@@ -315,6 +309,7 @@ export class InventoryPanel {
                 this._renderFilteredList();
             }
 
+            // Avisar al padre para recargar si es necesario
             if (this.onItemCreated) this.onItemCreated();
 
         } catch (error) {
@@ -392,7 +387,7 @@ export class InventoryPanel {
         const preview = container.querySelector('#ref-preview');
         if (item.foto) {
             preview.src = item.foto;
-            preview.style.display = 'block'; 
+            preview.style.display = 'block'; // Activar overlay
         } else {
             preview.style.display = 'none';
         }
@@ -410,7 +405,7 @@ export class InventoryPanel {
     _applyHighlight(element) {
         if(!element) return;
         element.classList.remove('highlight-alert');
-        void element.offsetWidth; 
+        void element.offsetWidth; // Reset animation
         element.classList.add('highlight-alert');
         
         const removeFunc = () => {
@@ -442,17 +437,15 @@ export class InventoryPanel {
         ui.showLoading('Eliminando...');
 
         try {
-            const urlBase = document.getElementById('tools-app').dataset.urlInventario.replace(/\/$/, '');
-            const urlDelete = `${urlBase}/${itemId}/eliminar/`;
-
-            await api.post(urlDelete, {});
+            // REFACTOR: Uso de toolsApi.deleteItem
+            await toolsApi.deleteItem(itemId);
             
             ui.hideLoading();
             ui.showNotification('Eliminado correctamente', 'success');
             
             // Actualización Local
             this.currentInventory = this.currentInventory.filter(i => i.id !== itemId);
-            // Si estaba seleccionado, lo sacamos
+            
             if(this.localSelection.has(itemId)) this.localSelection.delete(itemId);
             
             this._renderFilteredList();
