@@ -1,7 +1,10 @@
 /**
  * inventory_panel.js
- * Controlador específico para el Panel de Gestión de Inventario.
- * Funcionalidades: Listar, Filtrar, Crear (con foto), Editar y Eliminar.
+ * Controlador del Panel de Gestión de Inventario.
+ * * FUNCIONALIDADES:
+ * 1. Gestión de Catálogo (CRUD).
+ * 2. Selección Múltiple para ingreso (Bulk Add).
+ * 3. Manejo de UX para edición (Bloqueo de campos).
  */
 
 import { GlobalPanel } from '/static/home/js/core/panel.js';
@@ -12,13 +15,18 @@ import { toolsUI } from './tools_ui.js';
 
 export class InventoryPanel {
     
-    constructor(onItemCreated, onItemSelect) {
-        this.onItemCreated = onItemCreated; // Callback para avisar al controlador padre
-        this.onItemSelect = onItemSelect;   // Callback al seleccionar ítem para ingreso
+    /**
+     * @param {Function} onItemCreated - Callback para recargar lista maestra tras crear/editar/borrar.
+     * @param {Function} onBulkAdd - Callback para enviar lista de IDs al controlador principal.
+     */
+    constructor(onItemCreated, onBulkAdd) {
+        this.onItemCreated = onItemCreated; 
+        this.onBulkAdd = onBulkAdd; 
         
         // Estado de Datos
         this.currentInventory = [];
-        this.selectedIdsCache = [];
+        this.selectedIdsCache = []; // IDs que YA están en la base de datos (Ingresados)
+        this.localSelection = new Set(); // IDs seleccionados AHORA por el usuario (Pendientes)
         
         // Estado de Formulario
         this.tempImageBlob = null;
@@ -33,35 +41,43 @@ export class InventoryPanel {
     }
 
     /**
-     * Abre el panel.
-     * @param {Array} inventoryList - Lista completa de objetos.
-     * @param {Array} selectedIds - Lista de IDs que ya están en el carrito.
+     * Abre el panel lateral.
+     * @param {Array} inventoryList - Lista maestra.
+     * @param {Array} alreadyAddedIds - Lista de IDs que ya están ingresados (para marcarlos).
      */
-    open(inventoryList, selectedIds = []) {
-        this.currentInventory = inventoryList;
-        this.selectedIdsCache = selectedIds;
+    open(inventoryList, alreadyAddedIds = []) {
+        try {
+            this.currentInventory = inventoryList;
+            this.selectedIdsCache = alreadyAddedIds;
+            this.localSelection.clear(); // Limpiamos selección temporal al abrir
 
-        // Resetear estado visual al abrir
-        this.filterState = { text: '', category: 'ALL' };
-        this.isEditing = false;
-        this.editingItemId = null;
-        this.tempImageBlob = null;
+            // Resetear estado visual
+            this.filterState = { text: '', category: 'ALL' };
+            this.isEditing = false;
+            this.editingItemId = null;
+            this.tempImageBlob = null;
 
-        // 1. Inyectar HTML Base
-        GlobalPanel.open({
-            title: 'Gestionar Equipos',
-            contentHTML: toolsUI.getPanelContent()
-        });
+            // 1. Inyectar HTML Base
+            const htmlContent = toolsUI.getPanelContent();
+            GlobalPanel.open({
+                title: 'Gestionar Equipos',
+                contentHTML: htmlContent
+            });
 
-        // 2. Renderizar lista inicial
-        this._renderFilteredList();
+            // 2. Renderizar lista inicial
+            this._renderFilteredList();
 
-        // 3. Conectar eventos (Formulario, Buscador, Grid)
-        this._attachEvents();
+            // 3. Conectar eventos
+            this._attachEvents();
+
+        } catch (error) {
+            console.error("Error abriendo panel:", error);
+            ui.showError("No se pudo cargar el panel.");
+        }
     }
 
     // =================================================
-    // === LÓGICA DE LISTADO Y FILTROS ===
+    // === LÓGICA DE LISTADO, FILTROS Y SELECCIÓN ===
     // =================================================
 
     _renderFilteredList() {
@@ -70,7 +86,7 @@ export class InventoryPanel {
         
         container.innerHTML = '';
 
-        // Filtrar
+        // 1. Filtrar Datos
         const filteredItems = this.currentInventory.filter(item => {
             const searchText = this.filterState.text.toLowerCase();
             const matchText = item.nombre.toLowerCase().includes(searchText) || 
@@ -81,7 +97,10 @@ export class InventoryPanel {
             return matchText && matchCat;
         });
 
-        // Estado Vacío
+        // 2. Actualizar Botón Flotante de "Agregar (X)"
+        this._updateFloatingButton();
+
+        // 3. Estado Vacío
         if (filteredItems.length === 0) {
             container.innerHTML = `
                 <div style="text-align:center; grid-column:1/-1; padding:30px; color:var(--color-texto-secundario);">
@@ -91,43 +110,88 @@ export class InventoryPanel {
             return;
         }
 
-        // Renderizar Cards
+        // 4. Renderizar Cards
         filteredItems.forEach(item => {
-            const isSelected = this.selectedIdsCache.includes(item.id);
-            const cardHTML = toolsUI.createCompactCard(item, isSelected);
+            // Verificamos si está en BD (Gris/Check) O si está seleccionado localmente (Azul/Check)
+            const inDb = this.selectedIdsCache.includes(item.id);
+            const inLocal = this.localSelection.has(item.id);
+            
+            // Pasamos 'true' si está en cualquiera de los dos estados para que muestre el check visual
+            const cardHTML = toolsUI.createCompactCard(item, inDb || inLocal);
             
             const template = document.createElement('template');
             template.innerHTML = cardHTML.trim();
             const cardEl = template.content.firstChild;
 
-            // Asignar Eventos a la Card
-            cardEl.addEventListener('click', (e) => this._handleGridClick(e, item, isSelected));
+            // Si está seleccionado localmente, añadimos una clase extra para diferenciarlo (Opcional: borde azul)
+            if (inLocal) cardEl.style.borderColor = 'var(--color-primario-medio)';
+
+            // Eventos
+            cardEl.addEventListener('click', (e) => this._handleGridClick(e, item, inDb));
 
             container.appendChild(cardEl);
         });
     }
 
-    _handleGridClick(e, item, isSelected) {
-        // 1. Botón EDITAR
+    _handleGridClick(e, item, isAlreadyInDb) {
+        // A. Botón EDITAR (Lápiz)
         if (e.target.closest('.btn-edit-item')) {
             e.stopPropagation();
             this._loadItemForEdit(item);
             return;
         }
 
-        // 2. Botón ELIMINAR
+        // B. Botón ELIMINAR (Basura)
         if (e.target.closest('.btn-delete-item')) {
             e.stopPropagation();
             this._handleDelete(item.id);
             return;
         }
 
-        // 3. Selección Principal (Agregar al ingreso)
-        if (!isSelected) {
-            GlobalPanel.close();
-            if (this.onItemSelect) this.onItemSelect(item);
+        // C. Selección Principal (Logica Bulk)
+        if (isAlreadyInDb) {
+            ui.showNotification('Este ítem ya fue agregado al ingreso.', 'info');
+            return;
+        }
+
+        // Toggle Selección Local
+        if (this.localSelection.has(item.id)) {
+            this.localSelection.delete(item.id);
         } else {
-            ui.showNotification('Este equipo ya está en tu lista de ingreso.', 'info');
+            this.localSelection.add(item.id);
+        }
+
+        // Re-renderizar para actualizar visualmente
+        this._renderFilteredList();
+    }
+
+    /**
+     * Inyecta o actualiza el botón flotante de confirmación masiva.
+     */
+    _updateFloatingButton() {
+        const container = GlobalPanel.getBodyElement().querySelector('.panel-section.list-section');
+        let btn = container.querySelector('#btn-bulk-add');
+        
+        if (this.localSelection.size > 0) {
+            if (!btn) {
+                btn = document.createElement('button');
+                btn.id = 'btn-bulk-add';
+                btn.className = 'btn-bulk-confirm'; // Clase definida en tools.css
+                btn.onclick = () => this._confirmBulkAdd();
+                container.appendChild(btn);
+            }
+            btn.innerHTML = `<i class="fas fa-plus"></i> Agregar (${this.localSelection.size}) ítems`;
+            btn.style.display = 'block';
+        } else {
+            if (btn) btn.style.display = 'none';
+        }
+    }
+
+    _confirmBulkAdd() {
+        if (this.onBulkAdd && this.localSelection.size > 0) {
+            // Enviamos array de IDs al controlador
+            this.onBulkAdd(Array.from(this.localSelection));
+            GlobalPanel.close(); // Cerramos panel para UX limpia
         }
     }
 
@@ -138,7 +202,7 @@ export class InventoryPanel {
     _attachEvents() {
         const container = GlobalPanel.getBodyElement();
         
-        // --- A. Buscador y Filtros ---
+        // Buscador
         const searchInput = container.querySelector('#panel-search-input');
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
@@ -147,6 +211,7 @@ export class InventoryPanel {
             });
         }
 
+        // Filtros Categoría
         const chips = container.querySelectorAll('.filter-chip');
         chips.forEach(chip => {
             chip.addEventListener('click', () => {
@@ -157,12 +222,10 @@ export class InventoryPanel {
             });
         });
 
-        // --- B. Formulario ---
-        const form = container.querySelector('#inventory-form');
+        // Formulario Foto Trigger
         const photoTrigger = container.querySelector('#trigger-ref-upload');
         const fileInput = container.querySelector('#foto_referencia');
 
-        // Click en el área de foto -> Click en input oculto
         if (photoTrigger && fileInput) {
             photoTrigger.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -176,6 +239,8 @@ export class InventoryPanel {
             });
         }
 
+        // Submit Formulario
+        const form = container.querySelector('#inventory-form');
         if (form) {
             form.addEventListener('submit', (e) => this._handleSubmit(e));
         }
@@ -197,11 +262,12 @@ export class InventoryPanel {
             
             if (preview) {
                 preview.src = base64;
-                preview.style.display = 'block'; // Esto activará el z-index: 10
+                // Solución Bug Visual: Forzar display block para activar z-index del CSS
+                preview.style.display = 'block'; 
             }
 
         } catch (error) {
-            ui.showError("Error imagen: " + error.message);
+            ui.showError("Error procesando imagen: " + error.message);
         }
     }
 
@@ -210,12 +276,10 @@ export class InventoryPanel {
         const form = e.target;
         const formData = new FormData(form);
 
-        // Inyectar imagen comprimida si existe
         if (this.tempImageBlob) {
             formData.set('foto_referencia', this.tempImageBlob, 'ref_item.jpg');
         }
 
-        // Determinar URL
         const toolsApp = document.getElementById('tools-app');
         let url = toolsApp.dataset.urlCrear;
         
@@ -232,33 +296,25 @@ export class InventoryPanel {
             ui.hideLoading();
             ui.showNotification(response.mensaje, 'success');
             
-            // Limpiar formulario
             this._resetFormState();
             
-            // ACTUALIZACIÓN EN TIEMPO REAL
-            // Si el backend devuelve el objeto creado/editado, actualizamos la lista local
-            // para que el usuario lo vea inmediatamente sin recargar.
+            // Actualización Optimista / Real-time
             if (response.item) {
-                // Aseguramos que tenga formato para la lista
                 const newItem = response.item;
-                // Parche rápido si el backend no devuelve todo:
+                // Parche de seguridad para datos faltantes
                 if(!newItem.categoria) newItem.categoria = formData.get('categoria');
                 if(!newItem.foto && this.tempImageBlob) newItem.foto = URL.createObjectURL(this.tempImageBlob);
 
                 if (this.isEditing) {
-                    // Reemplazar en lista
                     const index = this.currentInventory.findIndex(i => i.id == this.editingItemId);
                     if (index !== -1) this.currentInventory[index] = { ...this.currentInventory[index], ...newItem };
                 } else {
-                    // Agregar al inicio
                     this.currentInventory.unshift(newItem);
                 }
                 
-                // Renderizar de nuevo la lista
                 this._renderFilteredList();
             }
 
-            // Notificar al padre para sincronía completa (background refresh)
             if (this.onItemCreated) this.onItemCreated();
 
         } catch (error) {
@@ -278,28 +334,31 @@ export class InventoryPanel {
         const form = container.querySelector('#inventory-form');
         if (form) {
             form.reset();
-            
-            // DESBLOQUEAR CAMPOS
+            // 1. DESBLOQUEAR TODOS LOS CAMPOS
             form.nombre.disabled = false;
             form.marca_serial.disabled = false;
-            container.querySelector('#input-categoria').disabled = false;
-            
-            // Restaurar botón
+            const catSelect = container.querySelector('#input-categoria');
+            if(catSelect) catSelect.disabled = false;
+
+            // 2. Restaurar Botón
             const btn = form.querySelector('button[type="submit"]');
             btn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
             btn.classList.remove('btn-warning');
-            
-            // Quitar highlights residuales
-            if(form.observaciones_iniciales) form.observaciones_iniciales.classList.remove('highlight-alert');
+
+            // 3. Limpiar alertas visuales
+            if(form.observaciones_iniciales) this._removeHighlight(form.observaciones_iniciales);
             const uploadContainer = container.querySelector('.image-upload-container');
-            if(uploadContainer) uploadContainer.classList.remove('highlight-alert');
+            if(uploadContainer) this._removeHighlight(uploadContainer);
         }
         
         container.querySelector('.panel-section-title').textContent = 'Nuevo Ítem';
+        
+        // 4. Reset Imagen (Solución Bug Visual)
         const preview = container.querySelector('#ref-preview');
-        const placeholder = container.querySelector('#ref-placeholder');
-        if (preview) { preview.src = ''; preview.style.display = 'none'; }
-        if (placeholder) { placeholder.style.display = 'block'; }
+        if (preview) {
+            preview.src = '';
+            preview.style.display = 'none'; // Ocultar para ver placeholder
+        }
         
         container.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -311,25 +370,25 @@ export class InventoryPanel {
         const container = GlobalPanel.getBodyElement();
         const form = container.querySelector('#inventory-form');
         
-        // 1. Cargar datos
+        // Cargar datos
         form.nombre.value = item.nombre;
         form.marca_serial.value = item.marca || ''; 
         form.categoria.value = item.categoria || 'HERRAMIENTA';
         if(form.observaciones_iniciales) form.observaciones_iniciales.value = item.observaciones || '';
 
-        // 2. BLOQUEO QUIRÚRGICO (Solo lectura identidad)
+        // 1. BLOQUEAR CAMPOS DE IDENTIDAD
         form.nombre.disabled = true;
         form.marca_serial.disabled = true;
         const catSelect = container.querySelector('#input-categoria');
         if(catSelect) catSelect.disabled = true; 
-        
-        // 3. UI
+
+        // 2. UI Botón
         container.querySelector('.panel-section-title').textContent = 'Editar Evidencia / Obs';
         const btn = form.querySelector('button[type="submit"]');
         btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar';
-        btn.classList.add('btn-warning'); // Clase visual (asegúrate de tener CSS para btn-warning si quieres)
+        btn.classList.add('btn-warning');
 
-        // 4. Foto (Preview)
+        // 3. Cargar Foto Existente
         const preview = container.querySelector('#ref-preview');
         if (item.foto) {
             preview.src = item.foto;
@@ -338,66 +397,22 @@ export class InventoryPanel {
             preview.style.display = 'none';
         }
 
-        // 5. UX: Scroll y Alertas
+        // 4. UX Scroll y Highlight
         container.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Resaltar áreas editables
         const uploadContainer = container.querySelector('.image-upload-container');
         this._applyHighlight(uploadContainer);
-
-        const obsInput = form.observaciones_iniciales;
-        if(obsInput) this._applyHighlight(obsInput);
+        if(form.observaciones_iniciales) this._applyHighlight(form.observaciones_iniciales);
         
         ui.showNotification('Modo Edición: Solo foto y observaciones.', 'info');
     }
 
-    _resetFormState() {
-        this.isEditing = false;
-        this.editingItemId = null;
-        this.tempImageBlob = null;
-
-        const container = GlobalPanel.getBodyElement();
-        if (!container) return;
-
-        const form = container.querySelector('#inventory-form');
-        if (form) {
-            form.reset();
-            
-            // DESBLOQUEAR TODO
-            form.nombre.disabled = false;
-            form.marca_serial.disabled = false;
-            const catSelect = container.querySelector('#input-categoria');
-            if(catSelect) catSelect.disabled = false;
-            
-            const btn = form.querySelector('button[type="submit"]');
-            btn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
-            btn.classList.remove('btn-warning');
-            
-            // Limpiar alertas rojas
-            if(form.observaciones_iniciales) form.observaciones_iniciales.classList.remove('highlight-alert');
-            const uploadContainer = container.querySelector('.image-upload-container');
-            if(uploadContainer) uploadContainer.classList.remove('highlight-alert');
-        }
-        
-        container.querySelector('.panel-section-title').textContent = 'Nuevo Ítem';
-        
-        const preview = container.querySelector('#ref-preview');
-        if (preview) { 
-            preview.src = ''; 
-            preview.style.display = 'none'; 
-        }
-        
-        container.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Helper para aplicar la clase roja temporalmente
     _applyHighlight(element) {
         if(!element) return;
         element.classList.remove('highlight-alert');
-        void element.offsetWidth; // Reinicia animación CSS
+        void element.offsetWidth; 
         element.classList.add('highlight-alert');
         
-        // Quitar alerta al tocar
         const removeFunc = () => {
             element.classList.remove('highlight-alert');
             element.removeEventListener('click', removeFunc);
@@ -407,8 +422,12 @@ export class InventoryPanel {
         element.addEventListener('focus', removeFunc);
     }
 
+    _removeHighlight(element) {
+        if(element) element.classList.remove('highlight-alert');
+    }
+
     // =================================================
-    // === LÓGICA DE ELIMINACIÓN ===
+    // === LÓGICA DE ELIMINACIÓN DEL CATÁLOGO ===
     // =================================================
 
     async _handleDelete(itemId) {
@@ -431,8 +450,11 @@ export class InventoryPanel {
             ui.hideLoading();
             ui.showNotification('Eliminado correctamente', 'success');
             
-            // Eliminar localmente para feedback instantáneo
+            // Actualización Local
             this.currentInventory = this.currentInventory.filter(i => i.id !== itemId);
+            // Si estaba seleccionado, lo sacamos
+            if(this.localSelection.has(itemId)) this.localSelection.delete(itemId);
+            
             this._renderFilteredList();
             
             if (this.onItemCreated) this.onItemCreated();

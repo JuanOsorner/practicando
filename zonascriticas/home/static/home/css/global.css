@@ -161,8 +161,9 @@ body.panel-is-open .global-panel {
     padding: 20px;
     position: relative;
     
-    /* CORRECCIÓN CRÍTICA PARA MÓVIL: */
-    /* Asegura que el último elemento se pueda scrollear por encima del footer */
+    display: flex;           /* Convertir en contenedor Flex */
+    flex-direction: column;  /* Apilar verticalmente */
+
     padding-bottom: calc(var(--altura-footer-mobile) + 30px); 
 }
 

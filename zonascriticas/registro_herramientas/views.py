@@ -1,7 +1,7 @@
 """
 Esta capa es la que se encarga de la logica HTTP de nuestro servidor
 """
-
+import json
 from django.shortcuts import render, redirect
 from django.http import JsonResponse, HttpRequest, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
@@ -183,6 +183,44 @@ def api_remover_del_carrito(request: HttpRequest) -> JsonResponse:
         # Imprimir error real en consola para debugging
         print(f"🔴 ERROR REMOVER CARRITO: {str(e)}") 
         return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+
+@login_custom_required
+@require_POST
+def api_gestion_masiva(request: HttpRequest) -> JsonResponse:
+    """
+    API para Agregar o Remover múltiples ítems en una sola petición.
+    Espera JSON: { "ids": [1, 2, 3], "accion": "AGREGAR" | "REMOVER" }
+    """
+    try:
+        data = json.loads(request.body)
+        lista_ids = data.get('ids', [])
+        accion = data.get('accion', 'AGREGAR')
+
+        if not lista_ids:
+            return JsonResponse({'status': False, 'mensaje': 'No se seleccionaron ítems.'}, status=400)
+
+        ingreso_pendiente = RegistroIngreso.objects.filter(
+            visitante=request.user,
+            estado=RegistroIngreso.EstadoOpciones.PENDIENTE_HERRAMIENTAS
+        ).first()
+
+        if not ingreso_pendiente:
+            return JsonResponse({'status': False, 'mensaje': 'No hay ingreso activo.'}, status=403)
+
+        # Llamada al servicio masivo
+        resultado = HerramientasService.gestion_masiva_carrito(ingreso_pendiente, lista_ids, accion)
+
+        return JsonResponse({
+            'status': True, 
+            'mensaje': f"Procesados: {resultado['exitos']}. Errores: {resultado['errores']}",
+            'resumen': resultado
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({'status': False, 'mensaje': 'JSON inválido'}, status=400)
+    except Exception as e:
+        print(f"🔴 ERROR MASIVO: {str(e)}")
+        return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
 
 @login_custom_required
 @require_POST

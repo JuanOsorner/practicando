@@ -234,3 +234,30 @@ class HerramientasService:
                 registro.save()
 
         return registro
+
+    @staticmethod
+    def gestion_masiva_carrito(ingreso_pendiente, lista_ids, accion='AGREGAR'):
+        """
+        Procesa una lista de IDs para agregar o quitar masivamente.
+        accion: 'AGREGAR' | 'REMOVER'
+        """
+        resultados = {'exitos': 0, 'errores': 0}
+        
+        # Validamos que sea una lista
+        if not isinstance(lista_ids, list):
+            raise ValidationError("Se esperaba una lista de IDs.")
+
+        with transaction.atomic(): # Todo o nada (Opcional, pero recomendado)
+            for item_id in lista_ids:
+                try:
+                    if accion == 'AGREGAR':
+                        # Reutilizamos la lógica unitaria que ya es idempotente
+                        HerramientasService.agregar_item_al_carrito(ingreso_pendiente, item_id)
+                    elif accion == 'REMOVER':
+                        HerramientasService.remover_item_del_carrito(ingreso_pendiente, item_id)
+                    
+                    resultados['exitos'] += 1
+                except Exception:
+                    resultados['errores'] += 1
+                    
+        return resultados

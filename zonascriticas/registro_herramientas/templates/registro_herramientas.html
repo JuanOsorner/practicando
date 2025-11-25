@@ -26,14 +26,29 @@
     </div>
 
     <div class="tabs-container">
-        <button class="tab-btn active" data-category="todos">
-            <i class="fas fa-layer-group"></i> Todos
+        <div class="tabs-scroll">
+            <button class="tab-btn active" data-category="todos">
+                <i class="fas fa-layer-group"></i> Todos
+            </button>
+            <button class="tab-btn" data-category="herramientas">
+                <i class="fas fa-tools"></i> Herramientas
+            </button>
+            <button class="tab-btn" data-category="computo">
+                <i class="fas fa-laptop"></i> Cómputo
+            </button>
+        </div>
+        
+        <button id="btn-toggle-delete-mode" class="action-chip danger" title="Activar modo eliminación">
+            <i class="fas fa-trash-alt"></i> Retirar
         </button>
-        <button class="tab-btn" data-category="herramientas">
-            <i class="fas fa-tools"></i> Herramientas
+    </div>
+
+    <div id="delete-actions-wrapper" class="floating-action-wrapper hidden">
+        <button id="btn-confirm-delete" class="btn-floating-danger">
+            <i class="fas fa-check"></i> Confirmar Retiro (<span id="delete-counter">0</span>)
         </button>
-        <button class="tab-btn" data-category="computo">
-            <i class="fas fa-laptop"></i> Cómputo
+        <button id="btn-cancel-delete" class="btn-floating-secondary">
+            <i class="fas fa-times"></i>
         </button>
     </div>
 

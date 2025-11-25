@@ -1,7 +1,7 @@
 /**
  * tools_ui.js
  * Generador de plantillas HTML para el módulo de herramientas.
- * ACTUALIZADO: Incluye botones de edición/eliminación y estructura de filtros.
+ * ACTUALIZADO: Soporte para Bulk Actions y corrección visual de imagen.
  */
 
 export const toolsUI = {
@@ -24,7 +24,9 @@ export const toolsUI = {
                 <form id="inventory-form" autocomplete="off">
                     <div class="image-upload-container" id="trigger-ref-upload">
                         <input type="file" id="foto_referencia" name="foto_referencia" accept="image/jpeg, image/png" style="display:none;">
-                        <img id="ref-preview">
+                        
+                        <img id="ref-preview" style="display:none;">
+                        
                         <div id="ref-placeholder">
                             <i class="fas fa-camera"></i>
                             <span>Foto Referencia</span>
@@ -67,6 +69,10 @@ export const toolsUI = {
                     <input type="text" id="panel-search-input" placeholder="Buscar por nombre, marca...">
                 </div>
 
+                <div class="selection-helper-text">
+                    <i class="fas fa-info-circle"></i> Toca los elementos para seleccionarlos
+                </div>
+
                 <div class="inventory-filters">
                     <button class="filter-chip active" data-filter="ALL">Todos</button>
                     <button class="filter-chip" data-filter="HERRAMIENTA"><i class="fas fa-tools"></i></button>
@@ -76,14 +82,16 @@ export const toolsUI = {
                 <div id="panel-inventory-grid" class="inventory-grid-compact">
                     <div class="loading-spinner" style="text-align:center; padding:20px; color:#999;">Cargando...</div>
                 </div>
-            </div>
+                
+                </div>
         </div>
         `;
     },
 
     /**
      * Genera la tarjeta compacta para la lista del PANEL LATERAL.
-     * Incluye botones de Editar y Eliminar.
+     * @param {Object} item - Datos del ítem.
+     * @param {Boolean} isSelected - Si está seleccionado (ya sea en BD o localmente).
      */
     createCompactCard: (item, isSelected) => {
         const iconClass = item.categoria === 'COMPUTO' ? 'fa-laptop' : 'fa-tools';
@@ -101,8 +109,8 @@ export const toolsUI = {
         const badgeClass = item.categoria === 'COMPUTO' ? 'badge-computo' : 'badge-tool';
         const badgeText = item.categoria === 'COMPUTO' ? 'Cómputo' : 'Herramienta';
 
-        // Botones de Acción (NUEVO)
-        // Solo mostramos borrar si NO está seleccionado actualmente para ingreso
+        // Botones de Acción (Edición de Catálogo)
+        // El botón de eliminar solo se muestra si NO está seleccionado para evitar conflictos
         const deleteBtn = !isSelected 
             ? `<button type="button" class="btn-action btn-delete-item" data-action="delete" data-id="${item.id}" title="Eliminar"><i class="fas fa-trash"></i></button>` 
             : '';
@@ -133,12 +141,11 @@ export const toolsUI = {
     },
 
     /**
-     * Genera la tarjeta grande para la PANTALLA PRINCIPAL (Carrito).
+     * Genera la tarjeta grande para la PANTALLA PRINCIPAL (Carrito de Ingreso).
      */
     createMainCard: (item) => {
         const iconClass = item.categoria === 'COMPUTO' ? 'fa-laptop' : 'fa-tools';
         
-        // Aquí usamos item.foto que puede ser la URL del backend o un Blob local si acaba de tomar foto
         const imgHtml = item.foto 
             ? `<img src="${item.foto}" alt="${item.nombre}">` 
             : `<div class="tool-icon"><i class="fas ${iconClass}"></i></div>`;

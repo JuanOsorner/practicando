@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/inventario/<int:item_id>/eliminar/', views.api_eliminar_inventario, name='api_eliminar_inventario'),
     path('api/carrito/agregar/', views.api_agregar_carrito, name='api_agregar_carrito'),
     path('api/carrito/remover/', views.api_remover_del_carrito, name='api_remover_carrito'),
+    path('api/carrito/masivo/', views.api_gestion_masiva, name='api_gestion_masiva'),
 ]

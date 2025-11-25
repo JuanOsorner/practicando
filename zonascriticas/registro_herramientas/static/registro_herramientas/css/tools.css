@@ -32,7 +32,6 @@
 /* === 2. BUSCADOR PRINCIPAL Y PESTAÑAS === */
 /* ====================================================== */
 
-/* Buscador Principal (Pantalla Main) */
 .main-search-bar {
     position: relative;
     margin-bottom: 15px;
@@ -56,15 +55,27 @@
     border-color: var(--color-primario-claro);
 }
 
-/* Pestañas (Tabs) */
+/* --- CONTROLES DE SELECCIÓN (VISTA PRINCIPAL) --- */
 .tabs-container {
     display: flex;
-    gap: 8px;
+    justify-content: space-between; /* Separar tabs del botón de acción */
+    align-items: center;
+    gap: 10px;
     margin-bottom: 20px;
     background: #eef0f3;
     padding: 6px;
     border-radius: 12px;
+    overflow: visible;
 }
+
+.tabs-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    flex-grow: 1;
+    scrollbar-width: none; /* Ocultar scrollbar */
+}
+.tabs-scroll::-webkit-scrollbar { display: none; }
 
 .tab-btn {
     flex: 1;
@@ -79,12 +90,42 @@
     font-family: var(--fuente-principal);
     display: flex; align-items: center; justify-content: center; gap: 8px;
     font-size: 0.9em;
+    white-space: nowrap;
 }
 
 .tab-btn.active {
     background: var(--color-superficie);
     color: var(--color-primario-oscuro);
     box-shadow: var(--sombra-suave);
+}
+
+/* Botón "Retirar" (Modo Selección) */
+.action-chip {
+    padding: 8px 15px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    background: white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+}
+
+.action-chip.danger {
+    color: #c62828;
+    border-color: #ffcdd2;
+}
+
+.action-chip.danger:hover, 
+.action-chip.danger.active {
+    background-color: #c62828;
+    color: white;
+    box-shadow: 0 4px 10px rgba(198, 40, 40, 0.3);
 }
 
 /* ====================================================== */
@@ -120,7 +161,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden;
     cursor: pointer;
@@ -128,10 +169,33 @@
 
 .tool-card:active { transform: scale(0.98); }
 
-/* Estado Agregado (Borde Verde) */
+/* Estado Agregado Normal (Borde Verde) */
 .tool-card.added {
     border-color: #2ecc71;
     background-color: #f0fff4;
+}
+
+/* --- ESTADOS MODO ELIMINACIÓN (Bulk Delete) --- */
+.tool-card.selection-mode {
+    cursor: pointer;
+    transform: scale(0.98);
+    opacity: 0.7; /* Atenuado si no está seleccionado */
+    border-color: var(--color-borde);
+    background-color: white;
+}
+
+.tool-card.selection-mode.selected {
+    border: 2px solid #c62828; /* Rojo Intenso */
+    background-color: #ffebee;
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 5px 15px rgba(198, 40, 40, 0.15);
+}
+
+/* Ocultar botones internos en modo selección */
+.tool-card.selection-mode .btn-remove-item,
+.tool-card.selection-mode .btn-edit-main {
+    display: none; 
 }
 
 /* Botones de Acción en Card Principal */
@@ -189,23 +253,16 @@
     font-size: 0.65em; font-weight: 800;
     color: #2ecc71; letter-spacing: 0.5px;
     text-transform: uppercase;
-    margin-top: auto; /* Empuja al fondo */
+    margin-top: auto; 
 }
 
 /* ====================================================== */
-/* === 4. BOTONES FLOTANTES (FAB y FOOTER) === */
+/* === 4. BOTONES FLOTANTES PRINCIPALES === */
 /* ====================================================== */
 
-/* Z-INDEX STRATEGY:
-   Panel Global: 50
-   Estos Botones: 45 (Para que el panel los tape al abrirse)
-   Contenido: 10
-*/
-
-/* Botón (+) Flotante */
 .fab-add {
     position: fixed;
-    bottom: 100px; /* Altura segura por defecto */
+    bottom: 100px; 
     right: 20px;
     width: 60px; height: 60px;
     border-radius: 50%;
@@ -214,116 +271,102 @@
     border: none; font-size: 26px;
     box-shadow: 0 6px 20px rgba(53, 36, 96, 0.5);
     cursor: pointer;
-    z-index: 60; /* Z-INDEX ALTO para estar encima de todo */
+    z-index: 60; 
     display: flex; align-items: center; justify-content: center;
     transition: transform 0.2s;
 }
 .fab-add:active { transform: scale(0.9); }
 
-/* Contenedor del Botón Finalizar (AHORA TRANSPARENTE) */
 .floating-footer {
     position: fixed;
     bottom: 20px; 
     left: 0; right: 0;
     display: flex; justify-content: center;
-    pointer-events: none; /* IMPORTANTE: Deja pasar clics a lo que esté abajo */
+    pointer-events: none; 
     z-index: 55;
-    /* Eliminamos background y border para que sea invisible */
     background: transparent; 
     border: none;
     box-shadow: none;
 }
 
-/* El Botón Finalizar (Amarillo) */
 .btn-finish-floating {
-    pointer-events: auto; /* Reactivamos clics solo en el botón */
+    pointer-events: auto; 
     background: var(--color-acento);
     color: var(--color-primario-oscuro);
     border: none;
     padding: 14px 40px;
     border-radius: 30px;
     font-weight: 700; font-size: 1rem;
-    box-shadow: 0 6px 20px rgba(255, 191, 0, 0.5); /* Sombra fuerte para destacar */
+    box-shadow: 0 6px 20px rgba(255, 191, 0, 0.5); 
     cursor: pointer;
     transition: transform 0.2s;
 }
 .btn-finish-floating:active { transform: scale(0.95); }
 
+/* --- BOTONES FLOTANTES DE CONFIRMACIÓN (RETIRO) --- */
+.floating-action-wrapper {
+    position: fixed;
+    bottom: 90px; /* Encima del footer */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 100;
+    animation: slideUp 0.3s ease;
+}
+
+.btn-floating-danger {
+    background: #c62828;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 30px;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+}
+
+.btn-floating-secondary {
+    background: white;
+    color: #555;
+    border: none;
+    width: 45px; height: 45px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+
+@keyframes slideUp {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+}
+
 /* --- AJUSTES PARA MÓVIL --- */
 @media screen and (max-width: 1024px) {
-    /* En móvil, elevamos los botones para no chocar con el menú de navegación inferior */
-    
-    .floating-footer {
-        bottom: calc(var(--altura-footer-mobile) + 15px);
-    }
-
-    .fab-add {
-        /* El botón + queda arriba del botón finalizar */
-        bottom: calc(var(--altura-footer-mobile) + 85px);
-    }
+    .floating-footer { bottom: calc(var(--altura-footer-mobile) + 15px); }
+    .fab-add { bottom: calc(var(--altura-footer-mobile) + 85px); }
+    .floating-action-wrapper { bottom: calc(var(--altura-footer-mobile) + 85px); }
 }
 
 /* ====================================================== */
 /* === 5. ESTILOS INTERNOS DEL PANEL (Inyectados) === */
 /* ====================================================== */
 
-/* Asegurar que el contenido del panel siempre tenga fondo y altura */
+/* FIX PANTALLA BLANCA: Flex 1 ocupa todo el espacio disponible */
 .panel-content-wrapper {
     display: flex;
     flex-direction: column;
     gap: 20px;
     position: relative;
-    min-height: 100%; /* Ocupa todo el alto disponible */
-    background-color: white; /* Fondo sólido anti-transparencias */
+    flex: 1;       /* CRÍTICO */
+    width: 100%;   /* CRÍTICO */
+    height: auto;
+    background-color: white; 
 }
 
-/* Ajuste para la imagen de referencia en el formulario */
-#ref-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 12px;
-    display: none; /* Oculto por defecto */
-}
-
-/* Botón Cerrar Interno */
-.btn-close-panel-internal {
-    position: absolute; top: -12px; right: 0;
-    background: transparent; border: none;
-    color: var(--color-texto-secundario);
-    font-size: 1.3rem; width: 40px; height: 40px;
-    border-radius: 50%; cursor: pointer; z-index: 10;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s ease;
-}
-.btn-close-panel-internal:hover {
-    background-color: rgba(0,0,0,0.05);
-    color: var(--color-primario-oscuro);
-    transform: rotate(90deg);
-}
-
-/* --- 1. FIX IMAGEN PREVIEW (POSICIONAMIENTO ABSOLUTO) --- */
-.image-upload-container {
-    width: 100%;
-    max-width: 200px;
-    aspect-ratio: 1 / 1;
-    margin: 0 auto 15px auto;
-    
-    border: 2px dashed var(--color-borde);
-    border-radius: 16px;
-    background: #fafafa;
-    
-    position: relative; /* El padre es el contexto */
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    
-    /* Centrado del Placeholder */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
+/* --- ZONA DE CARGA DE IMAGEN (SOLUCIÓN DEFINITIVA) --- */
 .image-upload-container {
     width: 100%;
     max-width: 200px;
@@ -358,24 +401,37 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 5; /* Se pone encima del placeholder */
-    background-color: #fff; /* Fondo blanco para tapar lo de atrás */
-    /* Nota: JS controlará display: none/block */
+    z-index: 5; /* Encima del placeholder */
+    background-color: #fff; 
+    display: none; /* JS controlará esto */
 }
 
 #ref-placeholder {
     text-align: center;
     color: var(--color-primario-claro);
-    z-index: 1; /* Queda debajo de la imagen */
+    z-index: 1; /* Queda debajo */
     pointer-events: none;
 }
-#ref-placeholder i { 
-    font-size: 2.5em; /* Ícono más grande */
-    margin-bottom: 8px; 
-    display: block; 
-}
+#ref-placeholder i { font-size: 2.5em; margin-bottom: 8px; display: block; }
 #ref-placeholder span { font-size: 0.85em; font-weight: 600; }
 
+/* Botón Cerrar Interno */
+.btn-close-panel-internal {
+    position: absolute; top: -12px; right: 0;
+    background: transparent; border: none;
+    color: var(--color-texto-secundario);
+    font-size: 1.3rem; width: 40px; height: 40px;
+    border-radius: 50%; cursor: pointer; z-index: 10;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s ease;
+}
+.btn-close-panel-internal:hover {
+    background-color: rgba(0,0,0,0.05);
+    color: var(--color-primario-oscuro);
+    transform: rotate(90deg);
+}
+
+/* Formulario */
 .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
 .form-row .input-group { flex: 1; }
 
@@ -388,6 +444,27 @@
     background: white;
 }
 .styled-input:focus { outline: 2px solid var(--color-primario-claro); border-color: transparent; }
+
+/* Inputs bloqueados (Modo Edición) */
+.styled-input:disabled, 
+select.styled-input:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+/* Animación Alerta Roja */
+@keyframes flashRed {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
+    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
+    100% { border-color: var(--color-borde); }
+}
+
+.highlight-alert {
+    animation: flashRed 2s infinite;
+    border: 2px solid #dc3545 !important;
+}
 
 .btn-save-inventory {
     width: 100%; padding: 12px;
@@ -402,13 +479,23 @@
 
 .panel-divider { border: 0; border-top: 1px solid var(--color-borde); margin: 10px 0; }
 
-/* Buscador y Filtros Panel */
-.inventory-search-bar { position: relative; margin-bottom: 12px; }
+/* --- PANEL LISTA (Bulk) --- */
+.inventory-search-bar { position: relative; margin-bottom: 10px; }
 .inventory-search-bar i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #999; }
 .inventory-search-bar input {
     width: 100%; padding: 10px 10px 10px 35px;
     border: 1px solid var(--color-borde); border-radius: 8px;
     background: #f5f5f5; font-family: var(--fuente-principal);
+}
+
+.selection-helper-text {
+    font-size: 0.8rem;
+    color: var(--color-primario-claro);
+    text-align: center;
+    margin-bottom: 10px;
+    background: #f0f0f0;
+    padding: 5px;
+    border-radius: 4px;
 }
 
 .inventory-filters {
@@ -426,13 +513,13 @@
     color: white; border-color: var(--color-primario-oscuro);
 }
 
-/* Grid Compacto (Panel) */
 .inventory-grid-compact {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
     gap: 12px;
 }
 
+/* Card Compacta del Panel */
 .tool-card-compact {
     background: white; border: 1px solid var(--color-borde);
     border-radius: 10px; padding: 10px; cursor: pointer;
@@ -440,9 +527,13 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 .tool-card-compact:hover { border-color: var(--color-primario-claro); transform: translateY(-2px); }
-.tool-card-compact.selected { background: #e8f5e9; border-color: #2ecc71; }
 
-/* Check verde de selección */
+/* Estado Seleccionado (Bulk Add) */
+.tool-card-compact.selected { 
+    background: #e8f5e9; 
+    border-color: #2ecc71; 
+}
+
 .check-badge {
     position: absolute; top: -6px; right: -6px;
     background: #2ecc71; color: white;
@@ -451,16 +542,15 @@
     font-size: 10px; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Botones de acción en compact card */
 .card-actions {
     position: absolute; top: 5px; left: 5px; right: 5px;
     display: flex; justify-content: space-between;
-    pointer-events: none; /* Dejar pasar clic a la card */
+    pointer-events: none; 
 }
 .btn-action {
     width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ddd;
     background: rgba(255,255,255,0.95); color: #555;
-    font-size: 10px; cursor: pointer; pointer-events: auto; /* Reactivar clic */
+    font-size: 10px; cursor: pointer; pointer-events: auto;
     display: flex; align-items: center; justify-content: center;
     transition: all 0.2s; z-index: 5;
 }
@@ -478,7 +568,6 @@
 .card-info .name { font-weight: 600; font-size: 0.85em; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-info .serial { font-size: 0.75em; color: #777; }
 
-/* Badges Categoría */
 .category-badge {
     font-size: 0.65em; padding: 2px 6px; border-radius: 4px;
     font-weight: 700; text-transform: uppercase; margin-bottom: 4px;
@@ -487,13 +576,35 @@
 .badge-computo { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
 .badge-tool { background-color: #f5f5f5; color: #616161; border: 1px solid #e0e0e0; }
 
+/* Botón Flotante Interno (Bulk Confirm) */
+.btn-bulk-confirm {
+    position: sticky;
+    bottom: 20px;
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--color-primario-oscuro);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    cursor: pointer;
+    z-index: 100;
+    animation: popIn 0.3s ease;
+}
+.btn-bulk-confirm:hover {
+    background-color: var(--color-acento);
+    color: var(--color-primario-oscuro);
+}
+
 /* ====================================================== */
 /* === 6. MODAL DE CÁMARA (Estilo Corporativo) === */
 /* ====================================================== */
 
 .modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6); /* Fondo semitransparente */
+    background: rgba(0,0,0,0.6);
     backdrop-filter: blur(3px);
     z-index: 2000;
     display: flex; align-items: center; justify-content: center;
@@ -501,7 +612,7 @@
 .hidden { display: none !important; }
 
 .modal-content.camera-content {
-    background: var(--color-superficie); /* Blanco */
+    background: var(--color-superficie); 
     color: var(--color-texto-principal);
     width: 100%; height: 100%;
     display: flex; flex-direction: column; padding: 20px;
@@ -511,7 +622,7 @@
 @media screen and (min-width: 768px) {
     .modal-content.camera-content { 
         width: 450px; height: auto; border-radius: 16px; 
-        max-height: 90vh; /* Evita que se salga en pantallas chatas */
+        max-height: 90vh; 
     }
 }
 
@@ -522,28 +633,15 @@
 
 .camera-viewport {
     flex: 1; 
-    background: #000; /* El video necesita fondo negro */
+    background: #000; 
     border-radius: 12px; 
     overflow: hidden; 
     position: relative; 
     margin: 15px 0;
     border: 4px solid #f0f0f0;
-    min-height: 300px; /* Altura mínima en desktop */
+    min-height: 300px;
 }
 video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
-
-.input-group { margin-bottom: 10px; }
-
-.styled-input-dark {
-    width: 100%; padding: 12px; border-radius: 8px; 
-    border: 1px solid var(--color-borde);
-    background: #f9f9f9; /* Fondo claro */
-    color: var(--color-texto-principal); 
-    font-family: var(--fuente-principal);
-}
-.styled-input-dark:focus {
-    outline: none; border-color: var(--color-primario-claro); background: white;
-}
 
 .camera-controls {
     display: flex; justify-content: center; align-items: center; gap: 20px; 
@@ -590,24 +688,4 @@ video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
 @keyframes popIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
-}
-
-.styled-input:disabled, 
-select.styled-input:disabled {
-    background-color: #e9ecef; /* Gris claro */
-    color: #6c757d;
-    cursor: not-allowed;
-    border: 1px solid #dee2e6;
-}
-
-/* Animación de Alerta Roja (Observaciones y Foto) */
-@keyframes flashRed {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
-    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
-    100% { border-color: var(--color-borde); }
-}
-
-.highlight-alert {
-    animation: flashRed 2s infinite;
-    border: 2px solid #dc3545 !important;
 }
