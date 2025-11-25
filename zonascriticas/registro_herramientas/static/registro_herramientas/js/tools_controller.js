@@ -77,22 +77,38 @@ class ToolsManager {
      * Método llamado por el Panel cuando el usuario selecciona un ítem.
      * Lo añade visualmente a la lista principal.
      */
-    selectItemDirectly(item) {
-        item.ingresado = true;
-        
-        // Si no está en la lista local, lo agregamos
-        if (!this.admittedItems.find(i => i.id === item.id)) {
-            this.admittedItems.push(item);
+    async selectItemDirectly(item) {
+        ui.showLoading('Añadiendo...');
+        try {
+            const formData = new FormData();
+            formData.append('id_inventario', item.id);
+            const urlAgregar = '/herramientas/api/carrito/agregar/'; 
+            
+            // 1. Recibimos la respuesta completa
+            const response = await api.post(urlAgregar, formData);
+            
+            ui.hideLoading();
+
+            // 2. Usamos el ítem que nos devolvió el servidor (que viene con datos frescos)
+            const updatedItem = response.item || item; 
+            updatedItem.ingresado = true;
+
+            // 3. Actualizamos listas
+            if (!this.admittedItems.find(i => i.id === updatedItem.id)) {
+                this.admittedItems.push(updatedItem);
+            }
+            
+            // Renderizamos
+            this.renderMainList();
+            this.updateCounter();
+            
+            // Actualizamos visualmente el panel lateral
+            this.inventoryPanel.open(this.fullInventory, this.admittedItems.map(i => i.id));
+            
+        } catch (error) {
+            ui.hideLoading();
+            ui.showError("Error: " + error.message);
         }
-        
-        this.renderMainList();
-        this.updateCounter();
-        
-        ui.showNotification('Elemento añadido. Recuerda tomar la foto de evidencia si es necesario.', 'info');
-        
-        // Actualizamos el panel (si estuviera abierto) para mostrar el check verde
-        // Pasamos la lista completa y los IDs seleccionados
-        this.inventoryPanel.open(this.fullInventory, this.admittedItems.map(i => i.id));
     }
 
     // =================================================
@@ -317,16 +333,46 @@ class ToolsManager {
     // =================================================
 
     async removeItem(item) {
-        const confirm = await ui.confirm('¿Retirar?', `¿Sacar "${item.nombre}" del ingreso?`, 'Sí, retirar');
+        // Confirmación UX
+        const confirm = await ui.confirm(
+            '¿Retirar del ingreso?', 
+            `"${item.nombre}" seguirá en tu inventario para futuras visitas.`, 
+            'Sí, retirar'
+        );
+        
         if (!confirm) return;
 
-        // Retirar localmente
-        this.admittedItems = this.admittedItems.filter(i => i.id !== item.id);
-        item.ingresado = false; 
-        
-        this.renderMainList();
-        this.updateCounter();
-        ui.showNotification('Elemento retirado', 'info');
+        ui.showLoading('Retirando...');
+
+        try {
+            // 1. Petición al Backend (Fix Zombie)
+            const formData = new FormData();
+            formData.append('id_inventario', item.id);
+            const urlRemover = '/herramientas/api/carrito/remover/'; // Asegúrate de la ruta
+            
+            await api.post(urlRemover, formData);
+            
+            ui.hideLoading();
+
+            // 2. Actualización Local (UI)
+            this.admittedItems = this.admittedItems.filter(i => i.id !== item.id);
+            
+            // IMPORTANTE: Actualizar el flag en la lista maestra también
+            const masterItem = this.fullInventory.find(i => i.id === item.id);
+            if (masterItem) masterItem.ingresado = false;
+
+            this.renderMainList();
+            this.updateCounter();
+            
+            // Actualizar Panel Lateral (Quitar check verde)
+            this.openPanel(); 
+            
+            ui.showNotification('Elemento retirado de la lista.', 'info');
+
+        } catch (error) {
+            ui.hideLoading();
+            ui.showError("No se pudo retirar: " + error.message);
+        }
     }
 
     async handleFinish() {

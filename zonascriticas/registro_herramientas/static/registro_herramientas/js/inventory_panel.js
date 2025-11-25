@@ -190,31 +190,18 @@ export class InventoryPanel {
         if (!file) return;
 
         const preview = container.querySelector('#ref-preview');
-        const placeholder = container.querySelector('#ref-placeholder');
 
         try {
-            // Feedback visual inmediato
-            if (placeholder) placeholder.style.display = 'none';
-            if (preview) {
-                preview.style.display = 'block';
-                preview.style.opacity = 0.5;
-            }
-
-            // Compresión
             this.tempImageBlob = await imageUtils.compress(file, 600, 0.7);
-            
-            // Preview
             const base64 = await imageUtils.toBase64(this.tempImageBlob);
+            
             if (preview) {
                 preview.src = base64;
-                preview.style.opacity = 1;
+                preview.style.display = 'block'; // Esto activará el z-index: 10
             }
 
         } catch (error) {
-            ui.showError("Error procesando imagen: " + error.message);
-            // Revertir si falla
-            if (preview) preview.style.display = 'none';
-            if (placeholder) placeholder.style.display = 'block';
+            ui.showError("Error imagen: " + error.message);
         }
     }
 
@@ -291,21 +278,29 @@ export class InventoryPanel {
         const form = container.querySelector('#inventory-form');
         if (form) {
             form.reset();
-            const submitBtn = form.querySelector('button[type="submit"]');
-            submitBtn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
+            
+            // DESBLOQUEAR CAMPOS
+            form.nombre.disabled = false;
+            form.marca_serial.disabled = false;
+            container.querySelector('#input-categoria').disabled = false;
+            
+            // Restaurar botón
+            const btn = form.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
+            btn.classList.remove('btn-warning');
+            
+            // Quitar highlights residuales
+            if(form.observaciones_iniciales) form.observaciones_iniciales.classList.remove('highlight-alert');
+            const uploadContainer = container.querySelector('.image-upload-container');
+            if(uploadContainer) uploadContainer.classList.remove('highlight-alert');
         }
         
         container.querySelector('.panel-section-title').textContent = 'Nuevo Ítem';
-        
         const preview = container.querySelector('#ref-preview');
         const placeholder = container.querySelector('#ref-placeholder');
-        if (preview) {
-            preview.src = ''; // Limpiar src
-            preview.style.display = 'none';
-        }
-        if (placeholder) placeholder.style.display = 'block';
+        if (preview) { preview.src = ''; preview.style.display = 'none'; }
+        if (placeholder) { placeholder.style.display = 'block'; }
         
-        // Scroll al inicio del formulario por si estaba abajo
         container.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -316,29 +311,59 @@ export class InventoryPanel {
         const container = GlobalPanel.getBodyElement();
         const form = container.querySelector('#inventory-form');
         
+        // 1. Cargar datos
         form.nombre.value = item.nombre;
         form.marca_serial.value = item.marca || ''; 
         form.categoria.value = item.categoria || 'HERRAMIENTA';
-        
-        // Cargar observaciones si existen en el form (agregado recientemente)
         if(form.observaciones_iniciales) form.observaciones_iniciales.value = item.observaciones || '';
 
-        container.querySelector('.panel-section-title').textContent = 'Editar Ítem';
-        form.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-save"></i> Actualizar';
+        // 2. BLOQUEO DE CAMPOS (Lógica de Negocio)
+        form.nombre.disabled = true;
+        form.marca_serial.disabled = true;
+        container.querySelector('#input-categoria').disabled = true; // Bloquear Select
         
-        const preview = container.querySelector('#ref-preview');
-        const placeholder = container.querySelector('#ref-placeholder');
+        // 3. UI: Títulos y Botones
+        container.querySelector('.panel-section-title').textContent = 'Editar Evidencia / Observaciones';
+        const btn = form.querySelector('button[type="submit"]');
+        btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar';
+        btn.classList.add('btn-warning'); // Color diferente para indicar edición
 
+        // 4. Manejo de Foto (Preview con el nuevo CSS)
+        const preview = container.querySelector('#ref-preview');
         if (item.foto) {
             preview.src = item.foto;
-            preview.style.display = 'block';
-            placeholder.style.display = 'none';
+            preview.style.display = 'block'; 
         } else {
             preview.style.display = 'none';
-            placeholder.style.display = 'block';
         }
 
+        // 5. UX: Scroll y Highlight (Foto y Observaciones)
         container.scrollTo({ top: 0, behavior: 'smooth' });
+        
+        // Resaltar Foto
+        const uploadContainer = container.querySelector('.image-upload-container');
+        this._applyHighlight(uploadContainer);
+
+        // Resaltar Observaciones
+        const obsInput = form.observaciones_iniciales;
+        this._applyHighlight(obsInput);
+        
+        ui.showNotification('Solo puedes editar la foto y las observaciones.', 'info');
+    }
+
+    // Helper para la animación
+    _applyHighlight(element) {
+        element.classList.remove('highlight-alert');
+        void element.offsetWidth; // Trigger reflow
+        element.classList.add('highlight-alert');
+        // Quitar la clase cuando el usuario interactúe
+        const removeFunc = () => {
+            element.classList.remove('highlight-alert');
+            element.removeEventListener('click', removeFunc);
+            element.removeEventListener('focus', removeFunc);
+        };
+        element.addEventListener('click', removeFunc);
+        element.addEventListener('focus', removeFunc);
     }
 
     // =================================================

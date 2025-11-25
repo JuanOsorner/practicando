@@ -75,9 +75,10 @@ class HerramientaIngresada(models.Model):
     observaciones = models.TextField(blank=True, null=True)
     
     foto_evidencia = models.ImageField(
-        upload_to=path_evidencia_ingreso, # Usamos la función importada
+        upload_to=path_evidencia_ingreso,
         db_column='foto_ingreso_ruta',
-        verbose_name="Foto Evidencia del Día"
+        verbose_name="Foto Evidencia del Día",
+        blank=True, null=True  # <--- CAMBIO CRÍTICO: Permitimos nulos temporalmente
     )
 
     estado = models.CharField(

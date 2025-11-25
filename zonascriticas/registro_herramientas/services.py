@@ -170,3 +170,70 @@ class HerramientasService:
             raise ValidationError("El ítem no existe.")
         except ProtectedError:
             raise ValidationError("No se puede eliminar: Este equipo tiene historial de ingresos. Edítalo o consérvalo.")
+
+    @staticmethod
+    def remover_item_del_carrito(ingreso_pendiente, id_inventario):
+        """
+        Elimina la relación entre el ingreso y la herramienta (Hard Delete de la tabla intermedia).
+        """
+        if not id_inventario:
+            raise ValidationError("ID de inventario es requerido.")
+
+        # Usamos filter().delete() para evitar el error 'DoesNotExist' si ya fue borrado
+        count, _ = HerramientaIngresada.objects.filter(
+            registro_ingreso=ingreso_pendiente,
+            herramienta_inventario_id=id_inventario
+        ).delete()
+
+        if count == 0:
+            # Opcional: Puedes lanzar error o simplemente retornar False
+            # raise ValidationError("El ítem no estaba en la lista.")
+            return False
+            
+        return True
+
+    @staticmethod
+    def agregar_item_al_carrito(ingreso_pendiente, id_inventario):
+        """
+        Registra un ítem en la lista de ingreso (BD) de forma inmediata.
+        
+        Características:
+        1. Idempotente: Si el ítem ya existe, lo devuelve en lugar de dar error.
+        2. Reactivo: Si el ítem estaba marcado como 'SALIO' (retirado), lo vuelve a marcar como 'INGRESADO'.
+        3. Inteligente: Si existe una foto de referencia en el inventario, la usa como 
+           evidencia inicial temporal. Si no, deja el campo vacío (gracias a null=True).
+        """
+        # 1. Validar que el ítem de inventario exista y pertenezca al usuario
+        try:
+            item_inventario = InventarioHerramienta.objects.get(
+                pk=id_inventario, 
+                usuario=ingreso_pendiente.visitante
+            )
+        except InventarioHerramienta.DoesNotExist:
+            raise ValidationError("El ítem de inventario no existe o no te pertenece.")
+
+        # 2. Obtener o Crear (get_or_create)
+        # Esto soluciona el error 400 "Ya está en la lista".
+        # Busca por (registro_ingreso + herramienta). Si no lo encuentra, lo crea con 'defaults'.
+        registro, created = HerramientaIngresada.objects.get_or_create(
+            registro_ingreso=ingreso_pendiente,
+            herramienta_inventario=item_inventario,
+            defaults={
+                'estado': HerramientaIngresada.EstadoHerramienta.INGRESADO,
+                'observaciones': "Ingreso rápido desde panel.",
+                # LÓGICA DE FOTO:
+                # Si el inventario tiene foto de referencia, la copiamos como evidencia inicial.
+                # Si no, se guarda como None (ahora permitido por la BD).
+                'foto_evidencia': item_inventario.foto_referencia if item_inventario.foto_referencia else None
+            }
+        )
+
+        # 3. Lógica de Reactivación
+        # Si el registro YA existía (created=False) pero el usuario lo había sacado de la lista 
+        # (Estado SALIO o similar), lo volvemos a poner como INGRESADO para que aparezca en el carrito.
+        if not created:
+            if registro.estado != HerramientaIngresada.EstadoHerramienta.INGRESADO:
+                registro.estado = HerramientaIngresada.EstadoHerramienta.INGRESADO
+                registro.save()
+
+        return registro

@@ -302,20 +302,53 @@
     transform: rotate(90deg);
 }
 
-/* Formulario Nuevo Ítem */
+/* --- 1. FIX IMAGEN PREVIEW (POSICIONAMIENTO ABSOLUTO) --- */
 .image-upload-container {
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1 / 1;
+    margin: 0 auto 15px auto;
+    
     border: 2px dashed var(--color-borde);
-    border-radius: 12px; height: 90px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; margin-bottom: 15px; background: #fafafa;
-    overflow: hidden; position: relative;
-    transition: border-color 0.3s;
+    border-radius: 16px;
+    background: #fafafa;
+    
+    position: relative; /* El padre es el contexto */
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    
+    /* Centrado del Placeholder */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.image-upload-container:hover { border-color: var(--color-primario-medio); }
-.image-upload-container img { width: 100%; height: 100%; object-fit: cover; }
 
-#ref-placeholder { text-align: center; color: var(--color-primario-claro); }
-#ref-placeholder i { font-size: 1.5em; margin-bottom: 5px; display: block; }
+/* La imagen DEBE tener posición absoluta para cubrir todo sin importar el flex */
+.image-upload-container img#ref-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 5; /* Encima del placeholder */
+    background-color: #fff;
+    display: none; /* JS lo cambiará a block */
+}
+
+/* El placeholder queda abajo */
+#ref-placeholder {
+    text-align: center;
+    color: var(--color-primario-claro);
+    z-index: 1;
+    pointer-events: none;
+}
+#ref-placeholder i { 
+    font-size: 2.5em; /* Ícono más grande */
+    margin-bottom: 8px; 
+    display: block; 
+}
 #ref-placeholder span { font-size: 0.85em; font-weight: 600; }
 
 .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
@@ -532,4 +565,24 @@ video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
 @keyframes popIn {
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
+}
+
+.styled-input:disabled, 
+select.styled-input:disabled {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+/* --- 3. ANIMACIÓN DE ALERTA (ROJO) --- */
+@keyframes flashRed {
+    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
+    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
+    100% { border-color: var(--color-borde); }
+}
+
+.highlight-alert {
+    animation: flashRed 2s infinite; /* Parpadeo suave */
+    border: 2px solid #dc3545 !important;
 }
