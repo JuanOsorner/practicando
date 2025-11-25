@@ -324,7 +324,33 @@
     justify-content: center;
 }
 
-/* La imagen DEBE tener posición absoluta para cubrir todo sin importar el flex */
+.image-upload-container {
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1 / 1; /* Cuadrado perfecto */
+    margin: 0 auto 15px auto;
+    
+    border: 2px dashed var(--color-borde);
+    border-radius: 16px;
+    background: #fafafa;
+    
+    position: relative; /* El padre crea el contexto de posición */
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    
+    /* Centrado del Placeholder */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-upload-container:hover {
+    border-color: var(--color-primario-medio);
+    background: #f0f0f0;
+}
+
+/* La imagen flota ENCIMA del placeholder y ocupa todo el espacio */
 .image-upload-container img#ref-preview {
     position: absolute;
     top: 0;
@@ -332,16 +358,15 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    z-index: 5; /* Encima del placeholder */
-    background-color: #fff;
-    display: none; /* JS lo cambiará a block */
+    z-index: 5; /* Se pone encima del placeholder */
+    background-color: #fff; /* Fondo blanco para tapar lo de atrás */
+    /* Nota: JS controlará display: none/block */
 }
 
-/* El placeholder queda abajo */
 #ref-placeholder {
     text-align: center;
     color: var(--color-primario-claro);
-    z-index: 1;
+    z-index: 1; /* Queda debajo de la imagen */
     pointer-events: none;
 }
 #ref-placeholder i { 
@@ -569,13 +594,13 @@ video, #camera-preview { width: 100%; height: 100%; object-fit: cover; }
 
 .styled-input:disabled, 
 select.styled-input:disabled {
-    background-color: #e9ecef;
+    background-color: #e9ecef; /* Gris claro */
     color: #6c757d;
     cursor: not-allowed;
-    border-color: #dee2e6;
+    border: 1px solid #dee2e6;
 }
 
-/* --- 3. ANIMACIÓN DE ALERTA (ROJO) --- */
+/* Animación de Alerta Roja (Observaciones y Foto) */
 @keyframes flashRed {
     0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
     50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
@@ -583,6 +608,6 @@ select.styled-input:disabled {
 }
 
 .highlight-alert {
-    animation: flashRed 2s infinite; /* Parpadeo suave */
+    animation: flashRed 2s infinite;
     border: 2px solid #dc3545 !important;
 }

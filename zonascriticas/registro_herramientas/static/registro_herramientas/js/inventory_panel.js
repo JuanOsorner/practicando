@@ -317,18 +317,19 @@ export class InventoryPanel {
         form.categoria.value = item.categoria || 'HERRAMIENTA';
         if(form.observaciones_iniciales) form.observaciones_iniciales.value = item.observaciones || '';
 
-        // 2. BLOQUEO DE CAMPOS (Lógica de Negocio)
+        // 2. BLOQUEO QUIRÚRGICO (Solo lectura identidad)
         form.nombre.disabled = true;
         form.marca_serial.disabled = true;
-        container.querySelector('#input-categoria').disabled = true; // Bloquear Select
+        const catSelect = container.querySelector('#input-categoria');
+        if(catSelect) catSelect.disabled = true; 
         
-        // 3. UI: Títulos y Botones
-        container.querySelector('.panel-section-title').textContent = 'Editar Evidencia / Observaciones';
+        // 3. UI
+        container.querySelector('.panel-section-title').textContent = 'Editar Evidencia / Obs';
         const btn = form.querySelector('button[type="submit"]');
         btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar';
-        btn.classList.add('btn-warning'); // Color diferente para indicar edición
+        btn.classList.add('btn-warning'); // Clase visual (asegúrate de tener CSS para btn-warning si quieres)
 
-        // 4. Manejo de Foto (Preview con el nuevo CSS)
+        // 4. Foto (Preview)
         const preview = container.querySelector('#ref-preview');
         if (item.foto) {
             preview.src = item.foto;
@@ -337,26 +338,66 @@ export class InventoryPanel {
             preview.style.display = 'none';
         }
 
-        // 5. UX: Scroll y Highlight (Foto y Observaciones)
+        // 5. UX: Scroll y Alertas
         container.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // Resaltar Foto
+        // Resaltar áreas editables
         const uploadContainer = container.querySelector('.image-upload-container');
         this._applyHighlight(uploadContainer);
 
-        // Resaltar Observaciones
         const obsInput = form.observaciones_iniciales;
-        this._applyHighlight(obsInput);
+        if(obsInput) this._applyHighlight(obsInput);
         
-        ui.showNotification('Solo puedes editar la foto y las observaciones.', 'info');
+        ui.showNotification('Modo Edición: Solo foto y observaciones.', 'info');
     }
 
-    // Helper para la animación
+    _resetFormState() {
+        this.isEditing = false;
+        this.editingItemId = null;
+        this.tempImageBlob = null;
+
+        const container = GlobalPanel.getBodyElement();
+        if (!container) return;
+
+        const form = container.querySelector('#inventory-form');
+        if (form) {
+            form.reset();
+            
+            // DESBLOQUEAR TODO
+            form.nombre.disabled = false;
+            form.marca_serial.disabled = false;
+            const catSelect = container.querySelector('#input-categoria');
+            if(catSelect) catSelect.disabled = false;
+            
+            const btn = form.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
+            btn.classList.remove('btn-warning');
+            
+            // Limpiar alertas rojas
+            if(form.observaciones_iniciales) form.observaciones_iniciales.classList.remove('highlight-alert');
+            const uploadContainer = container.querySelector('.image-upload-container');
+            if(uploadContainer) uploadContainer.classList.remove('highlight-alert');
+        }
+        
+        container.querySelector('.panel-section-title').textContent = 'Nuevo Ítem';
+        
+        const preview = container.querySelector('#ref-preview');
+        if (preview) { 
+            preview.src = ''; 
+            preview.style.display = 'none'; 
+        }
+        
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Helper para aplicar la clase roja temporalmente
     _applyHighlight(element) {
+        if(!element) return;
         element.classList.remove('highlight-alert');
-        void element.offsetWidth; // Trigger reflow
+        void element.offsetWidth; // Reinicia animación CSS
         element.classList.add('highlight-alert');
-        // Quitar la clase cuando el usuario interactúe
+        
+        // Quitar alerta al tocar
         const removeFunc = () => {
             element.classList.remove('highlight-alert');
             element.removeEventListener('click', removeFunc);

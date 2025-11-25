@@ -154,9 +154,10 @@ def api_eliminar_inventario(request: HttpRequest, item_id: int) -> JsonResponse:
 @require_POST
 def api_remover_del_carrito(request: HttpRequest) -> JsonResponse:
     """
-    API factorizada para remover ítem del ingreso actual.
+    API factorizada para remover un ítem del ingreso actual.
     """
     try:
+        # 1. Contexto
         ingreso_pendiente = RegistroIngreso.objects.filter(
             visitante=request.user,
             estado=RegistroIngreso.EstadoOpciones.PENDIENTE_HERRAMIENTAS
@@ -165,19 +166,22 @@ def api_remover_del_carrito(request: HttpRequest) -> JsonResponse:
         if not ingreso_pendiente:
             return JsonResponse({'status': False, 'mensaje': 'No hay ingreso activo.'}, status=403)
 
+        # 2. Datos
         id_inventario = request.POST.get('id_inventario')
         
-        # Llamada al servicio factorizado
+        # 3. Acción (Delegada al Servicio)
         eliminado = HerramientasService.remover_item_del_carrito(ingreso_pendiente, id_inventario)
 
+        # 4. Respuesta
         if eliminado:
             return JsonResponse({'status': True, 'mensaje': 'Elemento retirado.'})
         else:
-            # Si no existía, igual retornamos éxito para que el frontend se limpie
+            # Si ya no estaba, retornamos éxito igual para que el frontend se actualice tranquilo
             return JsonResponse({'status': True, 'mensaje': 'El elemento ya no estaba en la lista.'})
 
     except Exception as e:
-        print(f"🔴 ERROR REMOVER: {str(e)}") # Debugging clave
+        # Imprimir error real en consola para debugging
+        print(f"🔴 ERROR REMOVER CARRITO: {str(e)}") 
         return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
 
 @login_custom_required

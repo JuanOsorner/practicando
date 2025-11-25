@@ -24,7 +24,7 @@ export const toolsUI = {
                 <form id="inventory-form" autocomplete="off">
                     <div class="image-upload-container" id="trigger-ref-upload">
                         <input type="file" id="foto_referencia" name="foto_referencia" accept="image/jpeg, image/png" style="display:none;">
-                        <img id="ref-preview" class="hidden">
+                        <img id="ref-preview">
                         <div id="ref-placeholder">
                             <i class="fas fa-camera"></i>
                             <span>Foto Referencia</span>

@@ -179,18 +179,15 @@ class HerramientasService:
         if not id_inventario:
             raise ValidationError("ID de inventario es requerido.")
 
-        # Usamos filter().delete() para evitar el error 'DoesNotExist' si ya fue borrado
+        # Usamos filter().delete() para evitar errores si el ítem ya no existe (idempotencia).
+        # Devuelve una tupla (cantidad_borrada, detalle_por_tipo)
         count, _ = HerramientaIngresada.objects.filter(
             registro_ingreso=ingreso_pendiente,
             herramienta_inventario_id=id_inventario
         ).delete()
 
-        if count == 0:
-            # Opcional: Puedes lanzar error o simplemente retornar False
-            # raise ValidationError("El ítem no estaba en la lista.")
-            return False
-            
-        return True
+        # Retornamos True si borró algo, False si no encontró nada (pero no es error)
+        return count > 0
 
     @staticmethod
     def agregar_item_al_carrito(ingreso_pendiente, id_inventario):
