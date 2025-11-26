@@ -1,7 +1,9 @@
 from django.db import models
 from login.models import Usuario
-# Importamos la lógica desacoplada
-from .utils import path_pdf_generator 
+
+# --- IMPORTACIÓN DEL NÚCLEO (Refactorización 1.1) ---
+# Reemplaza a las funciones locales de generación de rutas
+from home.utils import GeneradorRutaArchivo
 
 class Ubicacion(models.Model):
     """
@@ -37,7 +39,7 @@ class DocumentoPDF(models.Model):
     )
 
     archivo = models.FileField(
-        upload_to=path_pdf_generator, 
+        upload_to=GeneradorRutaArchivo('documentos_pdf'), 
         verbose_name="Archivo PDF",
         max_length=255
     )
@@ -59,7 +61,7 @@ class DocumentoPDF(models.Model):
         ordering = ['-fecha_creacion']
 
     def __str__(self):
-        return f"{self.tipo} - {self.usuario.nombre}"
+        return f"{self.tipo} - {self.usuario.first_name}"
 
 
 class RegistroIngreso(models.Model):
@@ -83,10 +85,10 @@ class RegistroIngreso(models.Model):
 
     ubicacion = models.ForeignKey(
         Ubicacion,
-        on_delete=models.PROTECT, # Si borran la zona, no se borra el historial (lanza error)
+        on_delete=models.PROTECT, 
         related_name='registros_historial',
         verbose_name="Zona Crítica",
-        null=True # Temporal para la migración, luego será obligatorio
+        null=True 
     )
 
     documento_asociado = models.ForeignKey(
@@ -101,9 +103,8 @@ class RegistroIngreso(models.Model):
     fecha_hora_ingreso = models.DateTimeField(auto_now_add=True)
     fecha_hora_salida = models.DateTimeField(blank=True, null=True)
 
-    # Firmas en crudo
-    firma_visitante = models.ImageField(upload_to='firmas/visitantes/%Y/%m/')
-    firma_responsable = models.ImageField(upload_to='firmas/responsables/%Y/%m/')
+    firma_visitante = models.ImageField(upload_to=GeneradorRutaArchivo('firmas/visitantes'))
+    firma_responsable = models.ImageField(upload_to=GeneradorRutaArchivo('firmas/responsables'))
 
     acepta_descargo = models.BooleanField(default=True)
     acepta_politicas = models.BooleanField(default=True)

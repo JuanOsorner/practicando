@@ -194,4 +194,4 @@ CACHES = {
 }
 
 # OBSERVACIÓN: Cuando se monte este proyecto en producción se debe ejecutar de nuevo el comando
-# python manage.py createchachetable
+# python manage.py createcachetable

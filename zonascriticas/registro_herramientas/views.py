@@ -1,15 +1,16 @@
 import json
 from django.shortcuts import render, redirect
-from django.http import JsonResponse, HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 from login.decorators import login_custom_required
 from descargo_responsabilidad.models import RegistroIngreso
 from .services import HerramientasService
-
-# Importamos nuestro nuevo decorador local
 from .decorators import requiere_ingreso_pendiente_api
 
-# --- VISTA HTML PRINCIPAL (Sin cambios mayores, usa redirección) ---
+# --- IMPORTACIÓN DEL NÚCLEO ---
+from home.utils import api_response
+
+# --- VISTA HTML PRINCIPAL (Sin cambios) ---
 @login_custom_required
 def registro_herramientas_view(request: HttpRequest) -> HttpResponse:
     user = request.user
@@ -28,24 +29,22 @@ def registro_herramientas_view(request: HttpRequest) -> HttpResponse:
     return render(request, 'registro_herramientas.html', context)
 
 
-# --- API ENDPOINTS (FACTORIZADOS) ---
+# --- API ENDPOINTS REFACTORIZADOS ---
 
 @login_custom_required
 @require_GET
-@requiere_ingreso_pendiente_api # <--- El decorador hace la magia
-def api_obtener_inventario(request: HttpRequest, ingreso) -> JsonResponse:
-    # Nota: Recibimos 'ingreso' automáticamente gracias al decorador
+@requiere_ingreso_pendiente_api
+def api_obtener_inventario(request: HttpRequest, ingreso) -> HttpResponse:
     try:
         data = HerramientasService.obtener_inventario_usuario(request.user, ingreso.id)
-        return JsonResponse({'status': True, 'data': data})
+        # Estandarización: data -> payload
+        return api_response(data=data)
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
+        return api_response(success=False, message=str(e), status_code=500)
 
 @login_custom_required
 @require_POST
-# api_crear_inventario NO usa el decorador porque crear un ítem en catálogo 
-# es independiente de si estás ingresando hoy o no.
-def api_crear_inventario(request: HttpRequest) -> JsonResponse:
+def api_crear_inventario(request: HttpRequest) -> HttpResponse:
     try:
         nuevo_item = HerramientasService.crear_item_inventario(
             request.user, 
@@ -62,86 +61,81 @@ def api_crear_inventario(request: HttpRequest) -> JsonResponse:
             'ingresado': False
         }
 
-        return JsonResponse({
-            'status': True, 
-            'mensaje': 'Ítem agregado al inventario.',
-            'item': item_data
-        })
+        # Devolvemos el objeto creado dentro del payload
+        return api_response(data={'item': item_data}, message='Ítem agregado al inventario.')
+        
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required
 @require_POST
 @requiere_ingreso_pendiente_api
-def api_registrar_ingreso_herramienta(request: HttpRequest, ingreso) -> JsonResponse:
-    """Registra foto evidencia."""
+def api_registrar_ingreso_herramienta(request: HttpRequest, ingreso) -> HttpResponse:
     try:
-        registro = HerramientasService.registrar_ingreso_herramienta(
-            ingreso, # Usamos el objeto inyectado
+        HerramientasService.registrar_ingreso_herramienta(
+            ingreso,
             request.POST,
             request.FILES.get('foto_evidencia')
         )
-        return JsonResponse({'status': True, 'mensaje': 'Herramienta registrada correctamente.'})
+        return api_response(message='Herramienta registrada correctamente.')
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required
 @require_POST
 @requiere_ingreso_pendiente_api
-def api_finalizar_registro(request: HttpRequest, ingreso) -> JsonResponse:
+def api_finalizar_registro(request: HttpRequest, ingreso) -> HttpResponse:
     try:
         HerramientasService.finalizar_proceso_registro(ingreso)
-        return JsonResponse({'status': True, 'mensaje': 'Registro finalizado. ¡Bienvenido!'})
+        return api_response(message='Registro finalizado. ¡Bienvenido!')
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
+        return api_response(success=False, message=str(e), status_code=500)
 
-# Las APIs de Actualizar/Eliminar INVENTARIO (Catálogo) no requieren ingreso activo estricto
 @login_custom_required
 @require_POST
-def api_actualizar_inventario(request: HttpRequest, item_id: int) -> JsonResponse:
+def api_actualizar_inventario(request: HttpRequest, item_id: int) -> HttpResponse:
     try:
-        HerramientasService.actualizar_item_inventario(
+        item = HerramientasService.actualizar_item_inventario(
             request.user,
             item_id,
             request.POST,
             request.FILES.get('foto_referencia')
         )
-        return JsonResponse({'status': True, 'mensaje': 'Ítem actualizado.'})
+        # Retornamos el item actualizado para refrescar UI si fuera necesario
+        return api_response(message='Ítem actualizado.')
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required
 @require_POST
-def api_eliminar_inventario(request: HttpRequest, item_id: int) -> JsonResponse:
+def api_eliminar_inventario(request: HttpRequest, item_id: int) -> HttpResponse:
     try:
         HerramientasService.eliminar_item_inventario(request.user, item_id)
-        return JsonResponse({'status': True, 'mensaje': 'Ítem eliminado.'})
+        return api_response(message='Ítem eliminado.')
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required     
 @require_POST
 @requiere_ingreso_pendiente_api
-def api_remover_del_carrito(request: HttpRequest, ingreso) -> JsonResponse:
+def api_remover_del_carrito(request: HttpRequest, ingreso) -> HttpResponse:
     try:
         id_inventario = request.POST.get('id_inventario')
         eliminado = HerramientasService.remover_item_del_carrito(ingreso, id_inventario)
 
-        if eliminado:
-            return JsonResponse({'status': True, 'mensaje': 'Elemento retirado.'})
-        else:
-            return JsonResponse({'status': True, 'mensaje': 'El elemento ya no estaba en la lista.'})
+        msg = 'Elemento retirado.' if eliminado else 'El elemento ya no estaba en la lista.'
+        return api_response(message=msg)
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required
 @require_POST
 @requiere_ingreso_pendiente_api
-def api_agregar_carrito(request: HttpRequest, ingreso) -> JsonResponse:
+def api_agregar_carrito(request: HttpRequest, ingreso) -> HttpResponse:
     try:
         id_inventario = request.POST.get('id_inventario')
         if not id_inventario:
-            return JsonResponse({'status': False, 'mensaje': 'Falta ID.'}, status=400)
+            return api_response(success=False, message='Falta ID.', status_code=400)
 
         registro = HerramientasService.agregar_item_al_carrito(ingreso, id_inventario)
         
@@ -158,34 +152,29 @@ def api_agregar_carrito(request: HttpRequest, ingreso) -> JsonResponse:
             'observaciones': registro.observaciones
         }
 
-        return JsonResponse({
-            'status': True, 
-            'mensaje': 'Añadido correctamente.',
-            'item': item_data
-        })
+        return api_response(data={'item': item_data}, message='Añadido correctamente.')
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=400) 
+        return api_response(success=False, message=str(e), status_code=400)
 
 @login_custom_required
 @require_POST
 @requiere_ingreso_pendiente_api
-def api_gestion_masiva(request: HttpRequest, ingreso) -> JsonResponse:
+def api_gestion_masiva(request: HttpRequest, ingreso) -> HttpResponse:
     try:
         data = json.loads(request.body)
         lista_ids = data.get('ids', [])
         accion = data.get('accion', 'AGREGAR')
 
         if not lista_ids:
-            return JsonResponse({'status': False, 'mensaje': 'Sin selección.'}, status=400)
+            return api_response(success=False, message='Sin selección.', status_code=400)
 
         resultado = HerramientasService.gestion_masiva_carrito(ingreso, lista_ids, accion)
 
-        return JsonResponse({
-            'status': True, 
-            'mensaje': f"Procesados: {resultado['exitos']}.",
-            'resumen': resultado
-        })
+        return api_response(
+            data={'resumen': resultado}, 
+            message=f"Procesados: {resultado['exitos']}."
+        )
     except json.JSONDecodeError:
-        return JsonResponse({'status': False, 'mensaje': 'JSON inválido'}, status=400)
+        return api_response(success=False, message='JSON inválido', status_code=400)
     except Exception as e:
-        return JsonResponse({'status': False, 'mensaje': str(e)}, status=500)
+        return api_response(success=False, message=str(e), status_code=500)

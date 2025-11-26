@@ -2,8 +2,8 @@ from django.db import models
 from login.models import Usuario
 from descargo_responsabilidad.models import RegistroIngreso
 
-# IMPORTAMOS LA LÓGICA DESACOPLADA
-from .utils import path_inventario_foto, path_evidencia_ingreso
+# --- IMPORTACIÓN DEL NÚCLEO ---
+from home.utils import GeneradorRutaArchivo
 
 # --- MODELO 1: EL CATÁLOGO (Inventario) ---
 
@@ -32,8 +32,10 @@ class InventarioHerramienta(models.Model):
     nombre = models.CharField(max_length=255, verbose_name="Nombre del Activo")
     marca_serial = models.CharField(max_length=255, verbose_name="Marca / Serial")
     
+    # --- CAMBIO: Uso de GeneradorRutaArchivo ---
+    # Estructura: herramientas/inventario/AÑO/MES/uuid.ext
     foto_referencia = models.ImageField(
-        upload_to=path_inventario_foto, # Usamos la función importada
+        upload_to=GeneradorRutaArchivo('herramientas/inventario'), 
         blank=True, null=True,
         db_column='foto_referencia_ruta',
         verbose_name="Foto de Referencia"
@@ -74,11 +76,13 @@ class HerramientaIngresada(models.Model):
 
     observaciones = models.TextField(blank=True, null=True)
     
+    # Estructura: herramientas/evidencias/AÑO/MES/uuid.ext
+    # Esto será muy similar a lo que haremos con las fotos de actividades
     foto_evidencia = models.ImageField(
-        upload_to=path_evidencia_ingreso,
+        upload_to=GeneradorRutaArchivo('herramientas/evidencias'),
         db_column='foto_ingreso_ruta',
         verbose_name="Foto Evidencia del Día",
-        blank=True, null=True  # <--- CAMBIO CRÍTICO: Permitimos nulos temporalmente
+        blank=True, null=True
     )
 
     estado = models.CharField(

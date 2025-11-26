@@ -11,7 +11,7 @@ from xhtml2pdf import pisa
 
 # Importamos modelos y utilidades
 from .models import RegistroIngreso, DocumentoPDF
-from .utils import decodificar_imagen_base64
+from home.utils import decodificar_imagen_base64
 from login.models import Usuario
 from .models import Ubicacion
 

@@ -1,22 +1,25 @@
 # zonascriticas/descargo_responsabilidad/views.py
 
 from django.shortcuts import render
-from django.http import JsonResponse, HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.views.decorators.http import require_GET, require_POST
 from django.core.exceptions import ValidationError
 from login.decorators import login_custom_required
 from login.models import Usuario
 import json
 
+# --- IMPORTACIÓN DEL NÚCLEO  ---
+from home.utils import api_response
+
 # Importamos los servicios de negocio
 from .services import UsuarioService, ZonaService, DescargoService
 
-# Importamos nuestro decorador
+# Importamos nuestro decorador local
 from .decorators import no_tener_zona_activa
 
-# --- VISTA HTML (Existente) ---
+# --- VISTA HTML ---
 @login_custom_required
-@no_tener_zona_activa # <--- Estamos protegiendo esta vista si el usuario no ha terminado acticidades
+@no_tener_zona_activa
 def responsabilidad_view(request: HttpRequest) -> HttpResponse:
     """
     Vista principal del descargo (Renderiza HTML).
@@ -37,69 +40,79 @@ def responsabilidad_view(request: HttpRequest) -> HttpResponse:
         return render(request, 'desktop_warning.html')
 
 
-# --- API Endpoint 1 (NUEVO) ---
+# --- API Endpoint 1: Buscar Usuario ---
 @login_custom_required
 @require_GET
-def buscar_usuario_api(request: HttpRequest) -> JsonResponse:
+def buscar_usuario_api(request: HttpRequest) -> HttpResponse:
     """
-    API (JSON) para buscar un responsable por su número de documento.
+    API para buscar un responsable por su número de documento.
     """
     documento = request.GET.get('documento')
     
     try:
         # Delega la lógica de negocio al servicio
         datos_usuario = UsuarioService.buscar_responsable_por_documento(documento)
-        return JsonResponse(datos_usuario, status=200)
+        
+        # RETORNO ESTANDARIZADO:
+        # El helper coloca 'datos_usuario' dentro de la clave 'payload'
+        return api_response(data=datos_usuario)
     
     except (Usuario.DoesNotExist, ValueError, ValidationError) as e:
-        # Capturamos errores de negocio (No encontrado, Inactivo, etc.)
-        return JsonResponse({'error': str(e)}, status=404)
+        # Capturamos errores de negocio
+        return api_response(success=False, message=str(e), status_code=404)
+        
     except Exception as e:
         # Errores inesperados
-        return JsonResponse({'error': 'Error interno del servidor'}, status=500)
+        return api_response(success=False, message='Error interno del servidor', status_code=500)
 
 
-# --- API Endpoint 2 (NUEVO) ---
+# --- API Endpoint 2: Buscar Zona (QR) ---
 @login_custom_required
 @require_GET
-def buscar_zona_api(request: HttpRequest) -> JsonResponse:
+def buscar_zona_api(request: HttpRequest) -> HttpResponse:
     """
-    API (JSON) para validar un código QR de zona.
+    API para validar un código QR de zona.
     """
     codigo = request.GET.get('codigo')
+    
     if not codigo:
-        return JsonResponse({'error': 'Código no proporcionado'}, status=400)
+        return api_response(success=False, message='Código no proporcionado', status_code=400)
 
     try:
         # Delega la lógica de negocio al servicio
         info_zona = ZonaService.obtener_info_zona(codigo)
-        return JsonResponse(info_zona, status=200)
-    except ValueError as e: # El service lanza ValueError si no encuentra
-        return JsonResponse({'error': str(e)}, status=404)
+        return api_response(data=info_zona)
+        
+    except ValueError as e: 
+        # El service lanza ValueError si no encuentra la zona o está inactiva
+        return api_response(success=False, message=str(e), status_code=404)
 
 
-# --- API Endpoint 3 (NUEVO) ---
+# --- API Endpoint 3: Procesar Ingreso ---
 @login_custom_required
 @require_POST
-def procesar_ingreso_api(request: HttpRequest) -> JsonResponse:
+def procesar_ingreso_api(request: HttpRequest) -> HttpResponse:
     """
-    API (JSON) para recibir el formulario de descargo firmado.
+    API para recibir el formulario de descargo firmado.
     """
     try:
-        # El frontend debe enviar Content-Type: application/json
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Datos JSON mal formados'}, status=400)
+        return api_response(success=False, message='Datos JSON mal formados', status_code=400)
 
     try:
         # Delega la orquestación completa al servicio
-        # request.user es el visitante (logueado)
         DescargoService.procesar_ingreso(data, request.user)
-        return JsonResponse({'mensaje': 'Ingreso registrado exitosamente'}, status=201)
+        
+        return api_response(
+            message='Ingreso registrado exitosamente', 
+            status_code=201
+        )
     
     except (ValueError, ValidationError) as e:
-        # Captura errores de negocio (ej: "No puedes ser tu propio responsable")
-        return JsonResponse({'error': str(e)}, status=400)
+        # Captura errores de negocio (ej: firmas faltantes, usuario inválido)
+        return api_response(success=False, message=str(e), status_code=400)
+        
     except Exception as e:
-        # Captura errores de generación de PDF, envío de correo, etc.
-        return JsonResponse({'error': f'Error interno: {str(e)}'}, status=500)
+        # Captura errores de infraestructura (PDF, Email, DB)
+        return api_response(success=False, message=f'Error interno: {str(e)}', status_code=500)

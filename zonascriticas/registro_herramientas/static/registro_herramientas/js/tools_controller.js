@@ -49,9 +49,15 @@ class ToolsManager {
         try {
             // REFACTOR: Uso de servicio
             const response = await toolsApi.fetchInventario();
-            const data = response.data;
+            
+            // la data (payload) gracias a api.js
+            const data = response; 
 
-            this.fullInventory = [...data.herramientas, ...data.computo];
+            // Validamos que existan los arrays para evitar errores si el backend falla silenciosamente
+            const herramientas = data.herramientas || [];
+            const computo = data.computo || [];
+
+            this.fullInventory = [...herramientas, ...computo];
             this.admittedItems = this.fullInventory.filter(item => item.ingresado);
 
             this.renderMainList();
@@ -69,11 +75,13 @@ class ToolsManager {
         ui.showLoading(`Agregando ${ids.length} ítems...`);
 
         try {
-            // REFACTOR: Uso de servicio
             const response = await toolsApi.gestionMasiva(ids, 'AGREGAR');
             
             ui.hideLoading();
-            ui.showNotification(response.mensaje, 'success');
+            // Nota: Como api.js devuelve el payload, el mensaje puede perderse si no venía en 'data'.
+            // Mensaje genérico de éxito o el que venga en el payload 'resumen'
+            ui.showNotification('Ítems agregados correctamente', 'success'); 
+            
             await this.loadInventory();
 
         } catch (error) {
@@ -223,6 +231,7 @@ class ToolsManager {
     }
 
     async saveEvidence({ blob, observaciones }) {
+        
         const formData = new FormData();
         formData.append('id_inventario', this.selectedItem.id);
         formData.append('observaciones', observaciones);
@@ -231,13 +240,13 @@ class ToolsManager {
         ui.showLoading('Guardando...');
 
         try {
-            // REFACTOR: Uso de servicio
-            await toolsApi.registrarEvidencia(formData);
+            await toolsApi.registrarEvidencia(formData); // api.js lanza error si falla
             
             ui.hideLoading();
             this.cameraModal.close();
-            ui.showNotification('Guardado', 'success');
+            ui.showNotification('Evidencia guardada', 'success');
 
+            // Actualización optimista local
             this.selectedItem.ingresado = true;
             this.selectedItem.observaciones = observaciones;
             if (blob) this.selectedItem.foto = URL.createObjectURL(blob);
