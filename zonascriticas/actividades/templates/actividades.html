@@ -1,0 +1,103 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Tablero de Actividades{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'actividades/css/actividades.css' %}">
+{% endblock %}
+
+{% block content_user %}
+<div class="activities-container" id="activities-app"
+     data-url-listar="{% url 'api_listar_actividades' %}"
+     data-url-iniciar="{% url 'api_iniciar_actividad' %}"
+     data-url-finalizar-actividad="{% url 'api_finalizar_actividad' 0 %}" 
+     data-url-salir-zona="{% url 'api_salida_zona' %}"
+     data-modalidad="{{ modalidad }}"
+     data-segundos-restantes="{{ segundos_restantes }}" 
+     data-usuario-nombre="{{ user.first_name }}">
+
+    <header class="activities-header-modern">
+        <div class="header-info">
+            <h2>Bitácora</h2>
+            <p class="zone-badge">En Zona Segura</p>
+        </div>
+        
+        <div class="timer-wrapper">
+            <svg class="timer-svg" viewBox="0 0 100 100">
+                <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                <circle class="timer-progress" cx="50" cy="50" r="45" id="timer-circle"></circle>
+            </svg>
+            <div class="timer-text">
+                <span id="timer-countdown">--:--</span>
+                <small>Restante</small>
+            </div>
+        </div>
+    </header>
+
+    <div class="controls-bar">
+        <div class="search-wrapper input-group no-icon" style="margin-bottom: 0; flex-grow: 1;">
+            <input type="search" id="search-activity" placeholder="Buscar actividad...">
+            <i class="input-icon fas fa-search" style="left: auto; right: 15px;"></i>
+        </div>
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all">Todas</button>
+            <button class="filter-tab" data-filter="pending">Pendientes</button>
+        </div>
+    </div>
+
+    <div id="activities-grid" class="activities-grid">
+        <div class="loading-state">Cargando bitácora...</div>
+    </div>
+
+    <div class="fab-container">
+        {% if modalidad == 'CON_EQUIPOS' %}
+        <button id="fab-tools" class="fab-mini" title="Ver mis herramientas">
+            <i class="fas fa-tools"></i>
+        </button>
+        {% endif %}
+        
+        <button id="fab-add-activity" class="fab-main" title="Nueva Actividad">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <div class="floating-footer-zone">
+        <button id="btn-close-zone" class="btn-danger btn-block">
+            <i class="fas fa-sign-out-alt"></i> Finalizar Jornada
+        </button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extras %}
+    {% include 'components/modal_camera.html' %}
+    
+    <div id="modal-new-activity" class="modal-overlay hidden">
+        <div class="modal-content card-base">
+            <h3 class="text-center" style="color:var(--color-primario-oscuro); margin-bottom: 20px;">Nueva Actividad</h3>
+            
+            <div class="input-group">
+                <input type="text" id="new-act-title" placeholder=" " required>
+                <label>Nombre de la actividad</label>
+            </div>
+            
+            <div class="input-group">
+                <textarea id="new-act-obs" placeholder=" " rows="3"></textarea>
+                <label>Observaciones iniciales</label>
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="btn-cancel-new" class="btn-secondary" style="flex:1;">Cancelar</button>
+                <button id="btn-continue-new" class="btn-primary" style="flex:1;">
+                    <i class="fas fa-camera"></i> Tomar Foto
+                </button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="module" src="{% static 'actividades/js/activities_controller.js' %}"></script>
+{% endblock %}

@@ -238,7 +238,6 @@ class PDFService:
         """
         Genera el PDF en memoria usando un template HTML.
         """
-        # 1. Definimos el contexto (datos) para el template del PDF
         context = {
             'registro': registro_ingreso,
             'visitante': registro_ingreso.visitante,
@@ -247,44 +246,32 @@ class PDFService:
             'STATIC_URL': settings.STATIC_URL, 
             'nombre_zona': registro_ingreso.ubicacion.nombre,
             'ciudad_zona': registro_ingreso.ubicacion.ciudad,
+            'modalidad': registro_ingreso.modalidad, # Pasamos la modalidad al template
         }
 
-        # 2. Renderizamos el HTML a string
-        # Necesitamos crear este template: 'descargo_responsabilidad/pdf/template_pdf.html'
         html_string = render_to_string('template_pdf.html', context)
-
-        # 3. Convertimos HTML a PDF (bytes)
         pdf_file = BytesIO()
         pisa_status = pisa.CreatePDF(html_string, dest=pdf_file)
 
         if pisa_status.err:
             raise Exception("Error al generar el PDF con xhtml2pdf")
 
-        # Retornamos el contenido del archivo (bytes)
         return pdf_file.getvalue()
 
     @staticmethod
     def enviar_correo_con_adjunto(usuario, archivo_bytes, nombre_archivo):
-        """
-        Envía el correo electrónico con el PDF adjunto.
-        """
         asunto = "Copia de Descargo de Responsabilidad - JoliFoods"
-        mensaje = f"Hola {usuario.first_name},\n\nAdjunto encontrarás la copia de tu descargo de responsabilidad firmado digitalmente para el ingreso a zona crítica.\n\nGracias."
+        mensaje = f"Hola {usuario.first_name},\n\nAdjunto encontrarás la copia de tu descargo de responsabilidad firmado digitalmente.\n\nGracias."
         
         email = EmailMessage(
-            asunto,
-            mensaje,
-            settings.DEFAULT_FROM_EMAIL, # Remitente
-            [usuario.email], # Destinatario
+            asunto, mensaje, settings.DEFAULT_FROM_EMAIL, [usuario.email]
         )
-        
-        # Adjuntar PDF (nombre, contenido, tipo mime)
         email.attach(nombre_archivo, archivo_bytes, 'application/pdf')
         email.send(fail_silently=False)
 
 class DescargoService:
     """
-    Orquestador principal.
+    Orquestador principal del Ingreso.
     """
     @staticmethod
     def procesar_ingreso(data, usuario_visitante):
@@ -294,23 +281,28 @@ class DescargoService:
             if not id_responsable: raise ValueError("No se recibió el ID del responsable.")
             responsable = Usuario.objects.get(pk=id_responsable)
         except Usuario.DoesNotExist:
-            raise ValueError("El responsable indicado no existe en el sistema.")
+            raise ValueError("El responsable indicado no existe.")
 
-        # 2. Validar Ubicación (Zona)
+        # 2. Validar Ubicación
         try:
             id_zona = data.get('idZona') 
             ubicacion = Ubicacion.objects.get(pk=id_zona)
         except Ubicacion.DoesNotExist:
             raise ValueError("La zona indicada no es válida.")
 
-        # --- 3. DETERMINAR EL ESTADO INICIAL (Lógica de Negocio) ---
-        ingresa_equipos_valor = data.get('ingresaEquipos', 'NO')
+        # --- 3. DETERMINAR ESTADO BASADO EN MODALIDAD (Lógica Nueva) ---
+        modalidad_valor = data.get('modalidad', RegistroIngreso.ModalidadOpciones.VISITA)
         
-        # Si trae equipos, lo ponemos en PENDIENTE para que el Aiguilleur lo desvíe.
-        # Si NO trae equipos, pasa directo a EN ZONA.
-        if ingresa_equipos_valor == 'SI':
+        # Validar que la modalidad enviada exista en las opciones
+        if modalidad_valor not in RegistroIngreso.ModalidadOpciones.values:
+             # Fallback por seguridad
+             modalidad_valor = RegistroIngreso.ModalidadOpciones.VISITA
+
+        if modalidad_valor == RegistroIngreso.ModalidadOpciones.CON_EQUIPOS:
             estado_inicial = RegistroIngreso.EstadoOpciones.PENDIENTE_HERRAMIENTAS
         else:
+            # Tanto VISITA como SOLO_ACTIVIDADES pasan directo a EN_ZONA.
+            # (El router del frontend decidirá qué pantalla mostrar según la modalidad)
             estado_inicial = RegistroIngreso.EstadoOpciones.EN_ZONA
 
         # 4. Crear el Registro
@@ -320,31 +312,92 @@ class DescargoService:
             ubicacion=ubicacion,
             acepta_descargo=data.get('aceptaDescargo'),
             acepta_politicas=data.get('aceptaPoliticas'),
-            ingresa_equipos=ingresa_equipos_valor,
-            estado=estado_inicial, # <--- USAMOS EL ESTADO CALCULADO
+            modalidad=modalidad_valor, # <--- CAMBIO CRÍTICO
+            estado=estado_inicial,
             firma_visitante=decodificar_imagen_base64(data.get('firmaVisitante'), f"vis_{usuario_visitante.id}.png"),
             firma_responsable=decodificar_imagen_base64(data.get('firmaResponsable'), f"resp_{responsable.id}.png"),
         )
         registro.save()
         
-        # 5. Generar PDF y Documento
-        pdf_bytes = PDFService.generar_pdf_descargo(registro)
-        nombre_pdf = f"descargo_zona_{registro.id}.pdf"
-        
-        documento = DocumentoPDF(
-            usuario=usuario_visitante,
-            tipo=DocumentoPDF.TipoDocumento.DESCARGO,
-            descripcion=f"Ingreso a {ubicacion.nombre}"
-        )
-        documento.archivo.save(nombre_pdf, ContentFile(pdf_bytes))
-        documento.save()
-
-        registro.documento_asociado = documento
-        registro.save()
-
+        # 5. Generar PDF de Entrada (Descargo)
         try:
+            pdf_bytes = PDFService.generar_pdf_descargo(registro)
+            nombre_pdf = f"descargo_entrada_{registro.id}.pdf"
+            
+            # Crear registro en DocumentoPDF
+            documento = DocumentoPDF(
+                usuario=usuario_visitante,
+                tipo=DocumentoPDF.TipoDocumento.DESCARGO,
+                descripcion=f"Ingreso a {ubicacion.nombre} ({modalidad_valor})"
+            )
+            documento.archivo.save(nombre_pdf, ContentFile(pdf_bytes))
+            documento.save()
+
+            # Vincular al RegistroIngreso (Campo nuevo)
+            registro.pdf_descargo = documento
+            registro.save()
+
+            # Enviar correo
             PDFService.enviar_correo_con_adjunto(usuario_visitante, pdf_bytes, nombre_pdf)
+            
         except Exception as e:
-            logger.error(f"Error enviando correo de descargo: {e}")
+            logger.error(f"Error generando PDF de entrada: {e}")
+            # No detenemos el flujo si falla el PDF, pero queda logueado.
 
         return registro
+
+class SalidaService:
+    """
+    Gestiona el Check-out de la zona.
+    """
+    @staticmethod
+    def cerrar_zona(usuario):
+        # 1. Buscar el ingreso activo
+        ingreso = RegistroIngreso.objects.filter(
+            visitante=usuario,
+            estado=RegistroIngreso.EstadoOpciones.EN_ZONA
+        ).first()
+
+        if not ingreso:
+            raise ValidationError("No tienes un ingreso activo para cerrar.")
+
+        # 2. VALIDACIÓN DE NEGOCIO: Actividades Pendientes
+        # Usamos la relación inversa 'actividades_registradas' definida en el modelo Actividad
+        actividades_pendientes = ingreso.actividades_registradas.filter(estado='EN_PROCESO').count()
+        
+        if actividades_pendientes > 0:
+            raise ValidationError(f"No puedes salir. Tienes {actividades_pendientes} actividades sin finalizar (Rojas).")
+
+        # 3. Cierre Lógico
+        ingreso.fecha_hora_salida = timezone.now()
+        ingreso.estado = RegistroIngreso.EstadoOpciones.FINALIZADO
+        ingreso.save() # Guardamos primero para asegurar la hora de salida
+
+        # 4. Generación de Evidencia (PDF Salida)
+        try:
+            pdf_bytes = PDFService.generar_reporte_salida(ingreso)
+            nombre_pdf = f"reporte_salida_{ingreso.id}.pdf"
+
+            # Crear DocumentoPDF
+            documento = DocumentoPDF(
+                usuario=usuario,
+                tipo=DocumentoPDF.TipoDocumento.REPORTE_SALIDA, # Usamos el nuevo tipo
+                descripcion=f"Reporte Salida {ingreso.ubicacion.nombre}"
+            )
+            documento.archivo.save(nombre_pdf, ContentFile(pdf_bytes))
+            documento.save()
+
+            # Vincular al ingreso
+            ingreso.pdf_reporte_salida = documento
+            ingreso.save()
+
+            # Enviar correo
+            PDFService.enviar_reporte_final(usuario, pdf_bytes, nombre_pdf)
+
+        except Exception as e:
+            # Loguear error pero no revertir la salida (el usuario ya salió)
+            print(f"Error generando reporte salida: {e}")
+            # Si quieres ser estricto, podrías hacer rollback aquí, 
+            # pero mejor dejar salir al usuario y arreglar el PDF luego.
+
+        return ingreso

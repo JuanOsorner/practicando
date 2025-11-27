@@ -1,0 +1,170 @@
+/* Layout Principal */
+.activities-container {
+    padding: 20px 20px 100px 20px; /* Padding bottom extra para el footer */
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* --- HEADER MODERNO CON RELOJ --- */
+.activities-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 16px;
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--color-borde);
+}
+
+.header-info h2 { margin: 0; font-size: 1.4rem; color: var(--color-primario-oscuro); }
+.zone-badge { 
+    display: inline-block; background: #e8f5e9; color: #2ecc71; 
+    padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 5px;
+}
+
+/* RELOJ CIRCULAR SVG */
+.timer-wrapper {
+    position: relative; width: 60px; height: 60px;
+}
+.timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.timer-bg { fill: none; stroke: #f0f0f0; stroke-width: 6; }
+.timer-progress {
+    fill: none; stroke: var(--color-acento); stroke-width: 6;
+    stroke-dasharray: 283; /* Circunferencia = 2 * PI * 45 */
+    stroke-dashoffset: 0; /* JS lo modificará */
+    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    stroke-linecap: round;
+}
+.timer-text {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.timer-text span { font-size: 0.85rem; font-weight: 700; color: var(--color-primario-oscuro); line-height: 1; }
+.timer-text small { font-size: 0.5rem; color: #999; text-transform: uppercase; }
+
+/* Estado Crítico del Reloj (Últimos minutos) */
+.timer-critical .timer-progress { stroke: #e74c3c; }
+.timer-critical .timer-text span { color: #e74c3c; }
+
+/* --- CONTROLES Y FILTROS --- */
+.controls-bar {
+    display: flex; gap: 10px; margin-bottom: 20px; align-items: center;
+}
+.filter-tabs {
+    display: flex; background: #e0e0e0; border-radius: 20px; padding: 4px;
+}
+.filter-tab {
+    border: none; background: transparent; padding: 8px 16px;
+    border-radius: 16px; font-weight: 600; color: #666; cursor: pointer;
+    font-size: 0.85em; transition: all 0.2s;
+}
+.filter-tab.active {
+    background: var(--color-superficie); color: var(--color-primario-oscuro);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* --- GRID DE ACTIVIDADES --- */
+.activities-grid {
+    display: grid; grid-template-columns: 1fr; gap: 15px;
+}
+
+/* --- CARD DE ACTIVIDAD --- */
+.activity-card {
+    background: var(--color-superficie);
+    border-radius: 12px;
+    padding: 15px;
+    position: relative;
+    border-left: 6px solid #ccc; 
+    box-shadow: var(--sombra-suave);
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.activity-card:active { transform: scale(0.98); }
+
+/* ESTADO: EN PROCESO (ROJO) */
+.activity-card.status-EN_PROCESO {
+    border-left-color: #e74c3c;
+    background: linear-gradient(to right, #fff5f5, #fff);
+}
+.activity-card.status-EN_PROCESO .status-icon {
+    color: #e74c3c; border: 2px solid #e74c3c;
+}
+
+/* ESTADO: FINALIZADA (VERDE) */
+.activity-card.status-FINALIZADA {
+    border-left-color: #2ecc71;
+    background: linear-gradient(to right, #f0fff4, #fff);
+    opacity: 0.85;
+}
+.activity-card.status-FINALIZADA .status-icon {
+    background: #2ecc71; color: white; border: 2px solid #2ecc71;
+}
+
+/* Contenido Interno Card */
+.card-header {
+    display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;
+}
+.card-title {
+    font-weight: 700; font-size: 1.1em; color: var(--color-texto-principal);
+    margin-right: 10px; line-height: 1.2;
+}
+.status-icon {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8em; flex-shrink: 0;
+}
+.card-times {
+    font-size: 0.75em; color: var(--color-texto-secundario);
+    display: flex; gap: 12px; margin-bottom: 10px;
+}
+.card-times span { display: flex; align-items: center; gap: 4px; }
+.card-obs {
+    font-size: 0.9em; color: #555;
+    background: rgba(240, 242, 245, 0.7);
+    padding: 10px; border-radius: 8px;
+    border: 1px dashed var(--color-borde);
+}
+
+/* --- BOTONES FLOTANTES (STACK) --- */
+.fab-container {
+    position: fixed; bottom: 100px; right: 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 15px;
+    z-index: 100;
+}
+
+/* Botón Principal (Actividad) */
+.fab-main {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: var(--color-primario-oscuro); color: white;
+    border: none; font-size: 1.6rem;
+    box-shadow: 0 4px 15px rgba(53, 36, 96, 0.4);
+    cursor: pointer; transition: transform 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.fab-main:active { transform: scale(0.95); }
+
+/* Botón Secundario (Herramientas) */
+.fab-mini {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: white; color: var(--color-primario-oscuro);
+    border: 2px solid var(--color-primario-oscuro);
+    font-size: 1.1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    cursor: pointer; transition: transform 0.2s;
+    display: flex; align-items: center; justify-content: center;
+}
+.fab-mini:hover { background: var(--color-fondo-app); }
+
+/* Footer Salida */
+.floating-footer-zone {
+    position: fixed; bottom: 20px; left: 20px; right: 20px;
+    z-index: 90;
+}
+.btn-block { width: 100%; justify-content: center; }
+
+/* Responsive */
+@media (min-width: 768px) {
+    .activities-grid { grid-template-columns: repeat(2, 1fr); }
+}

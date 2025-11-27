@@ -86,8 +86,15 @@ def api_registrar_ingreso_herramienta(request: HttpRequest, ingreso) -> HttpResp
 @requiere_ingreso_pendiente_api
 def api_finalizar_registro(request: HttpRequest, ingreso) -> HttpResponse:
     try:
-        HerramientasService.finalizar_proceso_registro(ingreso)
-        return api_response(message='Registro finalizado. ¡Bienvenido!')
+        # El servicio nos devuelve la URL (ej: '/actividades/')
+        next_url = HerramientasService.finalizar_proceso_registro(ingreso)
+        
+        return api_response(
+            message='Registro finalizado. Redirigiendo...',
+            data={'redirect_url': next_url} # <--- IMPORTANTE
+        )
+    except ValidationError as e:
+        return api_response(success=False, message=e.message, status_code=400)
     except Exception as e:
         return api_response(success=False, message=str(e), status_code=500)
 

@@ -116,3 +116,20 @@ def procesar_ingreso_api(request: HttpRequest) -> HttpResponse:
     except Exception as e:
         # Captura errores de infraestructura (PDF, Email, DB)
         return api_response(success=False, message=f'Error interno: {str(e)}', status_code=500)
+
+@login_custom_required
+@require_POST
+def salida_zona_api(request: HttpRequest) -> HttpResponse:
+    """
+    API para cerrar la zona, generar reporte y liberar al usuario.
+    """
+    try:
+        SalidaService.cerrar_zona(request.user)
+        return api_response(message='Salida registrada y reporte enviado.')
+        
+    except (ValidationError, ValueError) as e:
+        # Errores de negocio (ej: actividades pendientes)
+        return api_response(success=False, message=str(e), status_code=400)
+        
+    except Exception as e:
+        return api_response(success=False, message=f'Error interno: {str(e)}', status_code=500)

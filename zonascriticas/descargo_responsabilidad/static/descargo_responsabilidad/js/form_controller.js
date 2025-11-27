@@ -232,52 +232,54 @@ class DescargoFormController {
             return ui.showError('La firma del responsable es obligatoria.', 'Dato Faltante');
         }
 
-        // B. Preguntar Propósito (Equipos / Actividades / Visita)
-        const decision = await this.preguntarIngreso();
+        // B. Preguntar Propósito
+        const decision = await this.preguntarIngreso(); // Retorna: 'equipos', 'actividades', 'visita' o 'cancel'
         
-        if (decision === 'cancel') {
-            return; // Usuario canceló en el modal
-        }
+        if (decision === 'cancel') return;
 
-        // Convertimos decisión en valor para la BD
-        const ingresaEquiposValor = (decision === 'equipos') ? 'SI' : 'NO';
+        // --- CORRECCIÓN CRÍTICA: Mapeo a Modalidad ---
+        let modalidadEnvio = 'VISITA';
+        if (decision === 'equipos') modalidadEnvio = 'CON_EQUIPOS';
+        else if (decision === 'actividades') modalidadEnvio = 'SOLO_ACTIVIDADES';
 
-        // C. Construcción del Payload
-        // AQUÍ ESTÁ EL CAMBIO CLAVE: Enviamos IDs, no textos.
+        // C. Construcción del Payload Actualizado
         const payload = {
             idResponsable: this.estado.responsable.id,
-            
-            // ID RELACIONAL: Enviamos el PK de la tabla Ubicaciones
-            idZona: this.estado.zona.id, 
-            
+            idZona: this.estado.zona.id,
             aceptaDescargo: this.elementos.checkDescargo.checked,
             aceptaPoliticas: this.elementos.checkPoliticas.checked,
-            ingresaEquipos: ingresaEquiposValor,
             
-            // Firmas en formato Base64
+            // Enviamos el campo nuevo que espera el backend
+            modalidad: modalidadEnvio, 
+            
             firmaVisitante: this.canvasVisitante.toDataURL(),
             firmaResponsable: this.canvasResponsable.toDataURL()
         };
 
-        // D. Envío al Backend
+        // D. Envío
         this.mostrarSpinner(true);
-        
         try {
             await api.post(this.urls.procesarIngreso, payload);
             
             await Swal.fire({
                 title: '¡Registro Exitoso!',
-                text: 'Tu descargo de responsabilidad ha sido guardado y enviado a tu correo.',
+                text: 'Descargo guardado. Procediendo...',
                 icon: 'success',
-                confirmButtonText: 'Entendido',
                 confirmButtonColor: '#352460'
             });
 
-            this.redirigir(decision);
+            // Redirección directa controlada por el frontend
+            if (decision === 'equipos') {
+                window.location.href = '/herramientas/'; // Va a registrar equipos
+            } else if (decision === 'actividades') {
+                window.location.href = '/actividades/';  // Va directo a bitácora
+            } else {
+                window.location.href = this.urls.dashboard; // Visita simple
+            }
 
         } catch (error) {
-            ui.showError(error.message || 'No se pudo guardar el registro.', 'Error del Servidor');
-            this.mostrarSpinner(false); // Solo ocultamos spinner si falló, si fue éxito redirigimos
+            ui.showError(error.message);
+            this.mostrarSpinner(false);
         }
     }
 

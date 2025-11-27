@@ -28,6 +28,7 @@ class Ubicacion(models.Model):
 class DocumentoPDF(models.Model):
     class TipoDocumento(models.TextChoices):
         DESCARGO = 'DESCARGO', 'Descargo de Responsabilidad'
+        REPORTE_SALIDA = 'REPORTE_SALIDA', 'Reporte de Salida y Actividades' # Nuevo tipo
         DIAGNOSTICO = 'DIAGNOSTICO', 'Diagnóstico Técnico'
         OTRO = 'OTRO', 'Otro Documento'
 
@@ -70,34 +71,33 @@ class RegistroIngreso(models.Model):
         EN_ZONA = 'En Zona', 'En Zona'
         FINALIZADO = 'Finalizado', 'Finalizado'
 
-    class EquiposOpciones(models.TextChoices):
-        SI = 'SI', 'Sí'
-        NO = 'NO', 'No'
+    class ModalidadOpciones(models.TextChoices):
+        CON_EQUIPOS = 'CON_EQUIPOS', 'Ingreso con Equipos'
+        SOLO_ACTIVIDADES = 'SOLO_ACTIVIDADES', 'Solo Actividades'
+        VISITA = 'VISITA', 'Solo Visita'
 
     visitante = models.ForeignKey(
-        Usuario, on_delete=models.PROTECT, db_column='id_visitante', 
-        related_name='ingresos_visitante'
+        Usuario, on_delete=models.PROTECT, db_column='id_visitante', related_name='ingresos_visitante'
     )
     responsable = models.ForeignKey(
-        Usuario, on_delete=models.PROTECT, db_column='id_responsable', 
-        related_name='autorizaciones_responsable'
+        Usuario, on_delete=models.PROTECT, db_column='id_responsable', related_name='autorizaciones_responsable'
     )
-
     ubicacion = models.ForeignKey(
-        Ubicacion,
-        on_delete=models.PROTECT, 
-        related_name='registros_historial',
-        verbose_name="Zona Crítica",
-        null=True 
+        Ubicacion, on_delete=models.PROTECT, related_name='registros_historial', verbose_name="Zona Crítica", null=True
     )
 
-    documento_asociado = models.ForeignKey(
+    pdf_descargo = models.ForeignKey(
         DocumentoPDF,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        db_column='id_documento_pdf',
-        related_name='ingreso_origen',
-        verbose_name="PDF Firmado"
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='registro_origen_entrada',
+        verbose_name="PDF Descargo (Entrada)"
+    )
+
+    pdf_reporte_salida = models.ForeignKey(
+        DocumentoPDF,
+        on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='registro_origen_salida',
+        verbose_name="PDF Reporte (Salida)"
     )
     
     fecha_hora_ingreso = models.DateTimeField(auto_now_add=True)
@@ -109,9 +109,12 @@ class RegistroIngreso(models.Model):
     acepta_descargo = models.BooleanField(default=True)
     acepta_politicas = models.BooleanField(default=True)
 
-    ingresa_equipos = models.CharField(
-        max_length=5, choices=EquiposOpciones.choices, default=EquiposOpciones.NO
+    modalidad = models.CharField(
+        max_length=20, 
+        choices=ModalidadOpciones.choices, 
+        default=ModalidadOpciones.VISITA
     )
+    
     estado = models.CharField(
         max_length=20, choices=EstadoOpciones.choices, default=EstadoOpciones.EN_ZONA
     )

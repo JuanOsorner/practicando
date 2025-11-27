@@ -262,21 +262,28 @@ class ToolsManager {
     // --- FINALIZAR ---
 
     async handleFinish() {
-        if (this.admittedItems.length === 0) {
-            const s = await ui.confirm('¿Finalizar sin equipos?', 'No has registrado nada.', 'Sí, finalizar');
-            if (!s) return;
-        }
-        ui.showLoading('Finalizando...');
+        ui.showLoading('Finalizando ingreso...');
+        
         try {
-            // REFACTOR: Uso de servicio
-            await toolsApi.finalizarIngreso();
-            window.location.href = this.dashboardUrl;
+            // api.js devuelve el payload. El payload trae { redirect_url: "..." }
+            const payload = await toolsApi.finalizarIngreso();
+            
+            ui.showNotification('Ingreso Exitoso', 'success');
+            
+            // Redirección Dinámica
+            if (payload.redirect_url) {
+                // Si el backend dice "/actividades/", vamos allá.
+                window.location.href = payload.redirect_url;
+            } else {
+                window.location.href = this.dashboardUrl;
+            }
+
         } catch (e) {
             ui.hideLoading();
             ui.showError(e.message);
         }
     }
-
+    
     setupEventListeners() {
         // ... (Toda la configuración de eventos igual que antes, tabs, search, etc.) ...
         // Reutiliza tu setupEventListeners anterior, es compatible.

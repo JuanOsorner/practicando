@@ -117,20 +117,33 @@ class HerramientasService:
     @staticmethod
     def finalizar_proceso_registro(registro_ingreso):
         """
-        Cierra la etapa de registro y pasa al usuario a 'EN_ZONA'.
+        Cierra la etapa de registro de herramientas.
+        Retorna: La URL a la que debe redirigir el frontend.
         """
-        conteo = HerramientaIngresada.objects.filter(registro_ingreso=registro_ingreso).count()
+        # 1. Contar cuántas herramientas metió
+        conteo = HerramientaIngresada.objects.filter(
+            registro_ingreso=registro_ingreso,
+            estado=HerramientaIngresada.EstadoHerramienta.INGRESADO
+        ).count()
         
-        if conteo == 0:
-            pass 
+        # 2. VALIDACIÓN ESTRICTA: 
+        # Si la modalidad es CON_EQUIPOS, DEBE haber al menos 1 herramienta.
+        if registro_ingreso.modalidad == RegistroIngreso.ModalidadOpciones.CON_EQUIPOS:
+            if conteo == 0:
+                raise ValidationError("Tu modalidad 'Con Equipos' requiere registrar al menos una herramienta antes de continuar.")
 
-        # CAMBIO DE ESTADO -> El usuario ya puede entrar al Dashboard
+        # 3. Cambio de Estado
+        # El usuario pasa a estar oficialmente "En Zona"
         registro_ingreso.estado = RegistroIngreso.EstadoOpciones.EN_ZONA
         registro_ingreso.save()
-        return True
 
-    # --- MÉTODOS NUEVOS DE GESTIÓN (CRUD) ---
-    # OJO: La indentación aquí es crucial. Deben estar DENTRO de la clase.
+        # 4. DECISIÓN DE RUTA (El Aiguilleur Local)
+        # Si vino a trabajar (Equipos o Actividades), su siguiente pantalla lógica es Actividades.
+        if registro_ingreso.modalidad == RegistroIngreso.ModalidadOpciones.CON_EQUIPOS:
+            return '/actividades/'  # <--- REDIRECCIÓN DIRECTA A LA NUEVA APP
+        
+        # Si por alguna razón extraña llegó aquí siendo solo visita (no debería), al dashboard.
+        return '/dashboard/'
 
     @staticmethod
     def actualizar_item_inventario(usuario, item_id, data, archivo_foto=None):

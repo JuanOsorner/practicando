@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'empresas',
     'descargo_responsabilidad',
     'registro_herramientas',
+    'actividades',
 ]
 
 #➡️ Este es nuestro scanner de seguridad: este es el filtro que deben pasar las peticiones y las respuestas
