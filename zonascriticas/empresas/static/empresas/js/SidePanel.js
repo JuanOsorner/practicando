@@ -328,11 +328,15 @@ export class SidePanel {
         ui.showLoading('Guardando Empresa...');
         try {
             const result = await api.saveEmpresa(formData);
-            ui.hideLoading(); ui.showNotification(result.message, 'success');
+            ui.hideLoading();
+            
+            ui.showNotification('Empresa guardada correctamente', 'success');
+            
             this.openForCompany(result.empresa);
             this.onCompanySaved();
         } catch (error) {
-            ui.hideLoading(); ui.showNotification(error.message, 'error');
+            ui.hideLoading();
+            ui.showNotification(error.message, 'error');
         }
     }
 
@@ -351,20 +355,26 @@ export class SidePanel {
         }
         ui.showLoading('Guardando Empleado...');
         try {
-            const result = await api.saveEmployee(formData);
-            ui.hideLoading(); ui.showNotification(result.message, 'success');
+            await api.saveEmployee(formData);
+            ui.hideLoading();
+            
+            ui.showNotification('Empleado guardado correctamente', 'success');
+            
             this.#tempImageBlob = null;
             this.openForCompany(this.#currentCompany);
         } catch (error) {
-            ui.hideLoading(); ui.showNotification(error.message, 'error');
+            ui.hideLoading();
+            ui.showNotification(error.message, 'error');
         }
     }
 
     async #handleUpdateEstadoEmpleado(empId, nuevoEstado, card) {
         const toggle = card.querySelector('.toggle-estado-empleado');
         try {
-            const response = await api.updateEmpleadoEstado(empId, nuevoEstado);
-            ui.showNotification(response.message, 'success');
+            await api.updateEmpleadoEstado(empId, nuevoEstado);
+            
+            ui.showNotification('Estado de empleado actualizado', 'success');
+            
             const emp = this.#empleados.find(e => e.id == empId);
             if (emp) emp.estado = nuevoEstado;
             this.#filterEmpleados();

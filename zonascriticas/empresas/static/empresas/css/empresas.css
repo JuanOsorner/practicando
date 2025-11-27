@@ -1,8 +1,10 @@
-/* --- 2. Estilos de Base (Hereda :root de global.css) --- */
-body.panel-is-open {
-    overflow: hidden;
-}
+/* zonascriticas/empresas/static/empresas/css/empresas.css */
 
+/* ============================================= */
+/* === 1. LAYOUT ESPECÍFICO DE LA VISTA === */
+/* ============================================= */
+
+/* Ajuste del contenedor principal para esta vista */
 .main-card {
     background: var(--color-superficie);
     border-radius: 16px;
@@ -14,45 +16,8 @@ body.panel-is-open {
     transition: max-width 0.4s ease, width 0.4s ease;
 }
 
-/* --- 3. Componentes Generales --- */
-.btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: var(--color-primario-oscuro);
-    color: var(--color-texto-sobre-primario);
-    border: none;
-    border-radius: var(--radio-borde);
-    padding: 10px 20px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all 0.2s ease-out;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    white-space: nowrap;
-}
-.btn-primary:hover {
-    background-color: var(--color-primario-medio-hover); /* Usamos el hover de perfil */
-    transform: translateY(-2px);
-    box-shadow: var(--sombra-suave);
-}
-.btn-primary.btn-secondary {
-    background-color: var(--color-superficie);
-    color: var(--color-texto-principal);
-    border: 1px solid var(--color-borde);
-}
-.btn-primary.btn-secondary:hover {
-    background-color: var(--color-fondo-app);
-    border-color: #ced4da;
-}
-.btn-primary i {
-    display: inline-flex;
-    margin-right: 8px;
-}
-.btn-primary i svg {
-    width: 20px;
-    height: 20px;
+body.panel-is-open {
+    overflow: hidden;
 }
 
 .grid {
@@ -61,7 +26,23 @@ body.panel-is-open {
     gap: 24px;
 }
 
-/* --- 4. Cabecera y Filtros --- */
+/* ============================================= */
+/* === 2. HEADER Y FILTROS === */
+/* ============================================= */
+.detalle-empresa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.detalle-empresa-header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-texto-principal);
+}
+
 .header {
     display: flex;
     justify-content: space-between;
@@ -70,13 +51,12 @@ body.panel-is-open {
     margin-bottom: 24px;
     flex-wrap: wrap; 
 }
+
+/* Buscador específico con icono (hereda input global pero ajusta posición) */
 .search-container { 
     position: relative; 
     flex-grow: 1;
     min-width: 250px;
-}
-.search-container:focus-within .input-icon {
-    color: var(--color-primario-oscuro);
 }
 .search-container .input-icon { 
     position: absolute; 
@@ -87,27 +67,24 @@ body.panel-is-open {
     pointer-events: none;
     transition: color 0.2s ease;
 }
-.search-container .input-icon svg {
-    width: 20px;
-    height: 20px;
-}
-.search-container input[type="search"] { 
+.search-container .input-icon svg { width: 20px; height: 20px; }
+
+.search-container input[type="search"] {
+    /* Hereda estilos base de input global, solo forzamos padding específico */
     width: 100%; 
     padding: 12px 16px 12px 50px; 
-    border: 1px solid var(--color-borde); 
-    border-radius: var(--radio-borde); 
-    font-size: 16px; 
-    box-sizing: border-box; 
-    transition: all 0.2s ease;
+    border-radius: var(--radio-borde);
     background-color: var(--color-fondo-app);
+    border: 1px solid var(--color-borde);
+    font-size: 16px;
 }
-.search-container input[type="search"]:focus { 
-    outline: none; 
-    border-color: var(--color-primario-oscuro); 
-    box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
+.search-container input[type="search"]:focus {
     background-color: var(--color-superficie);
+    border-color: var(--color-primario-oscuro);
+    outline: none;
 }
 
+/* Grupo de Botones de Filtro (Pill shape) */
 .filter-group {
     display: flex;
     background-color: var(--color-fondo-app);
@@ -133,21 +110,9 @@ body.panel-is-open {
     box-shadow: 0 2px 8px rgba(53, 36, 96, 0.2);
 }
 
-/* --- 5. Tarjetas Principales (Diseño Fino) --- */
-.detalle-empresa-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-.detalle-empresa-header h2 {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--color-texto-principal);
-}
-
+/* ============================================= */
+/* === 3. TARJETAS DE EMPRESA (Grid Principal) === */
+/* ============================================= */
 .empleado-card {
     background: var(--color-superficie);
     border-radius: var(--radio-borde);
@@ -161,11 +126,9 @@ body.panel-is-open {
 }
 .empleado-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(53, 36, 96, 0.1); /* Sombra más pronunciada */
+    box-shadow: var(--sombra-hover);
 }
-.empleado-card.inactivo {
-    opacity: 0.6;
-}
+.empleado-card.inactivo { opacity: 0.6; }
 
 .empleado-header {
     display: flex;
@@ -175,43 +138,31 @@ body.panel-is-open {
 
 .empleado-avatar {
     flex-shrink: 0;
-    width: 45px;
-    height: 45px;
+    width: 45px; height: 45px;
     border-radius: 50%;
     background-color: var(--color-fondo-app);
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: center; justify-content: center;
     color: var(--color-primario-oscuro);
     overflow: hidden;
 }
-.empleado-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.empleado-avatar svg {
-    width: 24px;
-    height: 24px;
-}
+.empleado-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.empleado-avatar svg { width: 24px; height: 24px; }
 
 .empleado-info h3 {
-    font-size: 17px;
-    margin: 0;
+    font-size: 17px; margin: 0;
     color: var(--color-texto-principal);
     font-weight: 600;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    overflow-wrap: break-word; word-break: break-word;
 }
 .empleado-info p {
-    font-size: 13px;
-    margin: 2px 0 0;
+    font-size: 13px; margin: 2px 0 0;
     color: var(--color-texto-secundario);
 }
 
+/* Detalles internos de la tarjeta */
 .card-details {
-    margin: 16px 0;
-    padding: 0;
+    margin: 16px 0; padding: 0;
     flex-grow: 1;
     display: grid;
     grid-template-columns: auto 1fr;
@@ -220,20 +171,12 @@ body.panel-is-open {
     font-size: 14px;
     color: var(--color-texto-secundario);
 }
-.card-details dt {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.card-details dt svg {
-    width: 16px;
-    height: 16px;
-}
+.card-details dt { display: flex; align-items: center; justify-content: center; }
+.card-details dt svg { width: 16px; height: 16px; }
 .card-details dd {
     margin: 0;
     color: var(--color-texto-principal);
-    overflow-wrap: break-word;
-    word-break: break-word;
+    overflow-wrap: break-word; word-break: break-word;
 }
 
 .empleado-footer {
@@ -245,491 +188,153 @@ body.panel-is-open {
     border-top: 1px solid var(--color-borde);
 }
 .status-label {
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 14px; font-weight: 500;
     color: var(--color-texto-secundario);
 }
 
-/* --- 6. Formularios y Componentes Generales --- */
-.status-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 28px;
-}
-.status-switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 28px;
-}
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-input:checked + .slider { background-color: var(--color-primario-oscuro); }
-input:checked + .slider:before { transform: translateX(22px); }
+/* ============================================= */
+/* === 4. COMPONENTES INTERNOS DEL PANEL === */
+/* ============================================= */
 
-.image-upload-container {
-    border: 2px dashed var(--color-borde);
-    border-radius: var(--radio-borde);
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    background-color: var(--color-fondo-app);
-    transition: all 0.2s ease-out;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    min-height: 160px;
-}
-.image-upload-container:hover {
-    border-color: var(--color-primario-oscuro);
-    background-color: #f1eef6;
-}
-#image-preview {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid var(--color-superficie);
-    box-shadow: var(--sombra-suave);
-}
-#placeholder-text {
-    color: var(--color-texto-secundario);
-    font-weight: 500;
-}
-#placeholder-text i svg {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 8px;
-    color: var(--color-primario-oscuro);
-}
-
-.input-group {
-    position: relative;
-    margin-bottom: 16px;
-}
-.input-group .input-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-    pointer-events: none;
-}
-.input-group .input-icon svg {
-    width: 20px;
-    height: 20px;
-}
-.input-group input[type="text"],
-.input-group input[type="email"],
-.input-group input[type="time"] {
-    width: 100%;
-    padding: 12px 16px 12px 50px;
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-borde);
-    font-size: 16px;
-    color: var(--color-texto-principal);
-    background-color: var(--color-superficie);
-    transition: all 0.2s ease-out;
-    box-sizing: border-box;
-}
-.input-group input[type="time"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    cursor: pointer;
-}
-.input-group input:focus {
-    outline: none;
-    border-color: var(--color-primario-oscuro);
-    box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
-}
-.input-group label {
-    position: absolute;
-    left: 50px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-    font-size: 16px;
-    pointer-events: none;
-    transition: all 0.2s ease-out;
-    background-color: var(--color-superficie);
-    padding: 0 5px;
-}
-/* Corrección para etiquetas flotantes */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label,
-.input-group input[type="time"]:not([value=""]) + label {
-    top: 0;
-    left: 45px;
-    font-size: 12px;
-    color: var(--color-primario-oscuro);
-}
-.input-group input[type="time"]::-webkit-calendar-picker-indicator {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-    opacity: 0.6;
-    cursor: pointer;
-    width: 20px;
-    height: 20px;
-}
-
-.input-group select {
-    /* 1. Matar el estilo por defecto del navegador (iOS/Android/Web) */
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-
-    /* 2. Heredar dimensiones y bordes de tus inputs normales */
-    width: 100%;
-    padding: 12px 40px 12px 16px; /* Más padding a la derecha para la flecha */
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-borde);
-    font-size: 16px;
-    font-family: var(--fuente-principal);
-    color: var(--color-texto-principal);
-    background-color: var(--color-superficie);
-    
-    /* 3. Transiciones suaves */
-    transition: all 0.2s ease-out;
-    cursor: pointer;
-
-    /* 4. FLECHA PERSONALIZADA (SVG en Base64 color Púrpura) */
-    /* Esto dibuja una flechita del color de tu marca sin necesitar una imagen externa */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23632778' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 15px center;
-    background-size: 16px;
-}
-
-/* Estado Focus (Cuando tocas el select) */
-.input-group select:focus {
-    outline: none;
-    border-color: var(--color-primario-oscuro);
-    box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
-}
-
-/* Corrección para el placeholder simulado (opción disabled) */
-.input-group select:invalid,
-.input-group select option[value=""][disabled] {
-    color: var(--color-texto-secundario);
-}
-
-/* --- 7. Panel Lateral --- */
-.side-panel-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-.side-panel {
-    position: fixed;
-    top: 0;
-    right: -100%;
-    width: 100%;
-    max-width: 500px;
-    height: 100%;
-    background-color: var(--color-superficie);
-    z-index: 1001;
-    box-shadow: -4px 0 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-body.panel-is-open .side-panel-overlay {
-    opacity: 1;
-    visibility: visible;
-}
-body.panel-is-open .side-panel {
-    right: 0;
-}
-.panel-header {
-    display: flex;
-    align-items: center;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--color-borde);
-    flex-shrink: 0;
-}
-.panel-header h2 {
-    margin: 0 0 0 16px;
-    font-size: 20px;
-    color: var(--color-texto-principal);
-    flex-grow: 1;
-    overflow-wrap: break-word;
-    word-break: break-word;
-}
-.panel-close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease;
-}
-.panel-close-btn svg {
-    width: 24px;
-    height: 24px;
-    color: var(--color-texto-secundario);
-}
-.panel-close-btn:hover {
-    background-color: var(--color-fondo-app);
-}
-.panel-body {
-    padding: 24px;
-    overflow-y: auto;
-    flex-grow: 1;
-}
+/* Lista de Empleados dentro del Panel */
 .panel-sub-list-container {
-    margin-top: 24px;
-    padding-top: 16px;
+    margin-top: 24px; padding-top: 16px;
     border-top: 1px solid var(--color-borde);
 }
 .panel-sub-list-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 16px;
+    flex-wrap: wrap; gap: 10px;
 }
 .panel-sub-list-header h4 {
-    margin: 0;
-    font-size: 16px;
+    margin: 0; font-size: 16px;
     color: var(--color-texto-principal);
 }
+
+/* Tarjeta Compacta de Empleado */
 .employee-card-compact {
     border: 1px solid var(--color-borde);
     border-radius: var(--radio-borde);
-    padding: 12px;
-    margin-bottom: 12px;
+    padding: 12px; margin-bottom: 12px;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 .employee-card-compact[data-action="edit-employee"]:hover {
     background-color: var(--color-fondo-app);
     box-shadow: var(--sombra-suave);
 }
-.employee-card-compact.inactivo {
-    opacity: 0.6;
-}
-.employee-card-compact .empleado-header {
-    cursor: pointer;
-}
-.employee-card-compact .empleado-avatar {
-    width: 40px;
-    height: 40px;
-}
-.employee-card-compact .empleado-info h5 {
-    font-size: 15px;
-    margin: 0;
-}
+.employee-card-compact.inactivo { opacity: 0.6; }
+.employee-card-compact .empleado-header { cursor: pointer; }
+.employee-card-compact .empleado-avatar { width: 40px; height: 40px; }
+.employee-card-compact .empleado-info h5 { font-size: 15px; margin: 0; }
 .employee-card-compact .card-details {
     grid-template-columns: 80px 1fr;
     cursor: pointer;
-    gap: 4px 12px; /* Más compacto */
-    font-size: 13px;
-    margin: 12px 0;
+    gap: 4px 12px;
+    font-size: 13px; margin: 12px 0;
 }
 .employee-card-compact .card-details dt {
-    width: 80px;
-    flex-shrink: 0;
+    width: 80px; flex-shrink: 0;
     color: var(--color-texto-secundario);
 }
 .employee-card-compact .empleado-footer {
     border-top: 1px solid var(--color-borde);
-    padding-top: 10px;
-    margin-top: 12px;
+    padding-top: 10px; margin-top: 12px;
 }
 
-/* --- 8. Tarjeta de Información Editable (Panel) --- */
+/* Tarjeta de Información Editable (Info Empresa) */
 .info-card {
     border: 1px solid var(--color-borde);
     border-radius: var(--radio-borde);
     position: relative;
     transition: background-color 0.3s ease;
 }
-.info-card.is-editing {
-    background-color: var(--color-fondo-app);
-}
+.info-card.is-editing { background-color: var(--color-fondo-app); }
+
 .info-card .edit-btn {
-    position: absolute;
-    top: 12px;
-    right: 12px;
+    position: absolute; top: 12px; right: 12px;
     background: var(--color-fondo-app);
     border: 1px solid var(--color-borde);
     border-radius: 50%;
-    width: 36px;
-    height: 36px;
+    width: 36px; height: 36px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     color: var(--color-texto-secundario);
     transition: all 0.2s ease;
-    opacity: 1;
-    transform: scale(1);
+    opacity: 1; transform: scale(1);
 }
 .info-card .edit-btn:hover {
     color: var(--color-primario-oscuro);
     border-color: var(--color-primario-oscuro);
 }
-.info-card .edit-btn svg {
-    width: 18px;
-    height: 18px;
-}
-.info-card.is-editing .edit-btn {
-    opacity: 0;
-    transform: scale(0.5);
-    pointer-events: none;
-}
-.info-card .view-mode,
-.info-card .edit-mode {
-    padding: 20px;
-}
-.info-card .view-mode {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-}
-.info-card.is-editing .view-mode {
-    display: none;
-    opacity: 0;
-}
-.info-card .edit-mode {
-    display: none;
-}
-.info-card.is-editing .edit-mode {
-    display: block;
-}
-.info-card-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-.info-card-actions .btn-primary {
-    flex-grow: 1;
-}
+.info-card .edit-btn svg { width: 18px; height: 18px; }
+.info-card.is-editing .edit-btn { opacity: 0; transform: scale(0.5); pointer-events: none; }
 
-/* --- 9. Estilos para Syncfusion MultiSelect --- */
-.input-group-full {
-    margin-bottom: 16px;
+.info-card .view-mode, .info-card .edit-mode { padding: 20px; }
+.info-card .view-mode { opacity: 1; transition: opacity 0.3s ease; }
+.info-card.is-editing .view-mode { display: none; opacity: 0; }
+.info-card .edit-mode { display: none; }
+.info-card.is-editing .edit-mode { display: block; }
+
+.info-card-actions {
+    display: flex; gap: 10px; margin-top: 20px;
 }
+.info-card-actions .btn-primary { flex-grow: 1; }
+
+/* ============================================= */
+/* === 5. OVERRIDES LIBRERÍAS EXTERNAS === */
+/* ============================================= */
+
+/* Syncfusion MultiSelect Overrides */
+.input-group-full { margin-bottom: 20px; }
 .input-group-full label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: var(--color-texto-secundario);
+    display: block; margin-bottom: 8px;
+    font-size: 14px; color: var(--color-texto-secundario);
     font-weight: 600;
 }
-.e-multi-select-wrapper .e-chips {
-    background-color: var(--color-primario-oscuro) !important;
-    border-radius: 6px !important;
-    color: var(--color-texto-sobre-primario) !important;
-}
-.e-multi-select-wrapper .e-chips .e-chipcontent {
-    color: var(--color-texto-sobre-primario) !important;
-}
-.e-chips .e-chips-close::before {
-    color: var(--color-texto-sobre-primario) !important;
-    font-weight: bold !important;
-    margin-top: 2px !important;
-}
+/* Re-estilizar para que coincida con el tema global */
 .e-multi-select-wrapper {
     padding-left: 8px !important;
     border-color: var(--color-borde) !important;
     background-color: var(--color-superficie) !important;
-}
-.e-multi-select-wrapper .e-clear-icon {
-    display: none !important;
+    border-radius: var(--radio-borde) !important;
+    min-height: 48px; /* Altura estándar de nuestros inputs */
 }
 .e-multi-select-wrapper.e-input-focus,
 .e-multi-select-wrapper:focus-within {
     border-color: var(--color-primario-oscuro) !important;
     box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1) !important;
 }
+.e-multi-select-wrapper .e-chips {
+    background-color: var(--color-primario-oscuro) !important;
+    border-radius: 6px !important;
+    color: var(--color-texto-sobre-primario) !important;
+}
+.e-multi-select-wrapper .e-chips .e-chipcontent { color: var(--color-texto-sobre-primario) !important; }
+.e-chips .e-chips-close::before {
+    color: var(--color-texto-sobre-primario) !important;
+    font-weight: bold !important;
+    margin-top: 2px !important;
+}
+.e-multi-select-wrapper .e-clear-icon { display: none !important; }
 
+/* ============================================= */
+/* === 6. MEDIA QUERIES (Mobile) === */
+/* ============================================= */
 @media (max-width: 1024px) {
-    
-    /* * Reinicia el .main-card para que encaje 
-     * perfectamente en el layout móvil de home.html.
-    */
     .main-card {
-        width: 100%;
-        padding: 16px; /* Añade padding interno para móvil */
-        margin: 0;
-        border: none;
-        border-radius: 0;
-        box-shadow: none;
-        background-color: var(--color-fondo-app); /* Fondo uniforme */
+        width: 100%; padding: 16px; margin: 0;
+        border: none; border-radius: 0; box-shadow: none;
+        background-color: var(--color-fondo-app);
     }
-
-    .detalle-empresa-header h2 {
-        font-size: 1.5rem; /* Título más grande */
-        font-weight: 700;
-        color: var(--color-texto-principal);
-    }
-
-    /* * Asegura que los elementos del header (búsqueda, filtros, botón) 
-     * se apilen verticalmente y ocupen todo el ancho.
-    */
-    .header {
-        flex-direction: column;
-        align-items: stretch; /* Hace que los hijos ocupen 100% de ancho */
-        gap: 16px;
-    }
-
-    /* * Hace que los botones de filtro (Todos, Activos, Inactivos) 
-     * se repartan el espacio equitativamente.
-    */
-    .filter-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr; /* Divide en 3 columnas iguales */
-        width: 100%;
-    }
-
-    .btn-filter {
-        text-align: center; /* Centra el texto de los filtros */
-    }
-
-    /* * Hace que el botón "+ Registrar Empresa" 
-     * ocupe todo el ancho.
-    */
-    .btn-primary#btn-registrar-empresa {
-        width: 100%;
-        padding: 14px; /* Un poco más alto */
-    }
-
-    /* * Asegura que las tarjetas se apilen 
-     * en una sola columna en móvil.
-    */
-    .grid {
-        grid-template-columns: 1fr;
-    }
+    .detalle-empresa-header h2 { font-size: 1.5rem; }
+    
+    /* Layout vertical en móvil */
+    .header { flex-direction: column; align-items: stretch; gap: 16px; }
+    .filter-group { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; }
+    .btn-filter { text-align: center; }
+    
+    /* Botón Registrar full width */
+    .btn-primary#btn-registrar-empresa { width: 100%; padding: 14px; }
+    
+    .grid { grid-template-columns: 1fr; }
 }

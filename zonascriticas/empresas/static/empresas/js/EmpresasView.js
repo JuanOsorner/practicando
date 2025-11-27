@@ -206,14 +206,16 @@ export class EmpresasView {
      */
     async #performEstadoUpdate(empresaId, nuevoEstado) {
         try {
-            const response = await api.updateEmpresaEstado(empresaId, nuevoEstado);
-            ui.showNotification(response.message, 'success');
+            // El adaptador ya valida éxito. Si pasa, es true.
+            await api.updateEmpresaEstado(empresaId, nuevoEstado);
             
-            // Recargamos todo para reflejar cambios en el backend (ej: empleados desactivados)
+            // CAMBIO: Mensaje fijo en el UI, ya que api.js se traga el mensaje del backend
+            const msg = nuevoEstado ? 'Empresa activada correctamente' : 'Empresa desactivada';
+            ui.showNotification(msg, 'success');
+            
             await this.loadEmpresas(); 
         } catch (error) {
             ui.showNotification(error.message, 'error');
-            // Recargar para revertir estado visual en caso de error
             await this.loadEmpresas(); 
         }
     }

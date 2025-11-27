@@ -1,13 +1,10 @@
 /* ============================================= */
-/* === 1. IMPORTS GLOBALES === */
+/* === 1. CONFIGURACIÓN BASE (Variables) === */
 /* ============================================= */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* ============================================= */
-/* === 2. DESIGN TOKENS (VARIABLES) === */
-/* ============================================= */
 :root {
-    /* --- Paleta de Colores --- */
+    /* --- Paleta de Colores Corporativa --- */
     --color-primario-oscuro: #352460;
     --color-primario-medio: #632778;
     --color-primario-medio-hover: #4a1d5c;
@@ -20,38 +17,33 @@
     --color-superficie: #ffffff;
     --color-borde: #e0e0e0;
 
-    --color-texto-sobre-primario: #ffffff;
     --color-texto-principal: #333333;
     --color-texto-secundario: #6c757d;
+    --color-texto-sobre-primario: #ffffff;
     --color-texto-inverso: #ffffff;
-    --color-texto-inverso-secundario: rgba(255, 255, 255, 0.7);
 
-    /* --- Tipografía --- */
+    /* --- Sistema de Diseño --- */
     --fuente-principal: 'Inter', sans-serif;
-
-    /* --- Tamaños y Espacios --- */
-    --altura-header-admin: 45px;
+    --radio-borde: 12px; /* Unificado a 12px para look moderno */
+    --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --sombra-hover: 0 8px 20px rgba(53, 36, 96, 0.15);
+    
+    /* --- Layout --- */
     --altura-header-mobile: 60px;
     --altura-footer-mobile: 70px;
     --ancho-sidebar: 280px;
     --ancho-sidebar-cerrado: 58px;
 
-    /* --- Efectos --- */
-    --radio-borde: 8px;
-    --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.08);
-    
-    /* --- ARQUITECTURA Z-INDEX (El Edificio) --- */
+    /* --- Z-Index Layers --- */
     --z-fondo: -1;
-    --z-contenido: 10;      
-    --z-overlay-panel: 40;  
-    --z-panel-lateral: 50;  
-    --z-fixed-nav: 100;     
-    --z-modal-alerta: 1000; 
-    --z-modal-custom: 2000; /* Nuevo nivel para modales propios (Cámara) */
+    --z-contenido: 10;
+    --z-overlay-panel: 1040;  
+    --z-panel-lateral: 1050;  
+    --z-modal: 2000; 
 }
 
 /* ============================================= */
-/* === 3. RESET GLOBALES === */
+/* === 2. RESET Y UTILIDADES === */
 /* ============================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -60,215 +52,265 @@ body {
     background-color: var(--color-fondo-app);
     color: var(--color-texto-principal);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Clases de utilidad */
+/* Scrollbars Invisibles pero funcionales */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.hidden { display: none !important; } /* Utilidad global */
+
+.hidden { display: none !important; }
+.text-center { text-align: center; }
 
 /* ============================================= */
-/* === 4. INFRAESTRUCTURA DEL PANEL GLOBAL === */
+/* === 3. SISTEMA DE BOTONES (Global) === */
+/* ============================================= */
+.btn-base {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: var(--radio-borde);
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease-out;
+    white-space: nowrap;
+    gap: 8px;
+}
+
+/* Botón Principal (Púrpura) */
+.btn-primary {
+    composes: btn-base;
+    background-color: var(--color-primario-oscuro);
+    color: var(--color-texto-sobre-primario);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.btn-primary:hover {
+    background-color: var(--color-primario-medio-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-suave);
+}
+.btn-primary:disabled {
+    background-color: var(--color-texto-secundario);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Botón Secundario (Borde Gris) */
+.btn-secondary {
+    composes: btn-base;
+    background-color: var(--color-superficie);
+    color: var(--color-texto-secundario);
+    border: 1px solid var(--color-borde);
+}
+.btn-secondary:hover {
+    background-color: var(--color-fondo-app);
+    border-color: #ced4da;
+    color: var(--color-texto-principal);
+}
+
+/* Botón Peligro (Rojo) */
+.btn-danger {
+    composes: btn-base;
+    background-color: #dc3545;
+    color: white;
+}
+.btn-danger:hover { background-color: #c82333; }
+
+/* ============================================= */
+/* === 4. SISTEMA DE INPUTS (Input Groups) === */
+/* ============================================= */
+/* Este estilo soporta iconos y etiquetas flotantes */
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px; /* Espacio estándar entre inputs */
+}
+
+/* Icono dentro del input (Izquierda) */
+.input-group .input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-texto-secundario);
+    pointer-events: none;
+    display: flex;
+}
+.input-group .input-icon svg, 
+.input-group .input-icon i { 
+    width: 20px; height: 20px; font-size: 1.1rem; 
+}
+
+/* Estilo base del campo */
+.input-group input,
+.input-group select,
+.input-group textarea,
+.styled-input { /* Alias para compatibilidad */
+    width: 100%;
+    padding: 14px 16px 14px 45px; /* Padding izquierdo para icono */
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    font-size: 16px;
+    font-family: var(--fuente-principal);
+    color: var(--color-texto-principal);
+    background-color: var(--color-superficie);
+    transition: all 0.2s ease-out;
+    appearance: none; /* Elimina estilos nativos de SO */
+}
+
+/* Ajuste si NO hay icono */
+.input-group.no-icon input,
+.input-group.no-icon select { padding-left: 16px; }
+
+/* Estados Focus */
+.input-group input:focus,
+.input-group select:focus,
+.input-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primario-oscuro);
+    box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
+}
+
+/* Etiquetas Flotantes (Label Animations) */
+.input-group label {
+    position: absolute;
+    left: 45px; /* Alineado con el texto del input */
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-texto-secundario);
+    font-size: 16px;
+    pointer-events: none;
+    transition: all 0.2s ease-out;
+    background-color: transparent; 
+    padding: 0 4px;
+}
+
+/* Cuando el input tiene foco o valor */
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label,
+.input-group select:focus + label,
+.input-group select:not([value=""]):valid + label {
+    top: 0;
+    left: 40px;
+    font-size: 12px;
+    color: var(--color-primario-oscuro);
+    background-color: var(--color-superficie); /* Tapa el borde superior */
+    height: auto;
+}
+
+/* ============================================= */
+/* === 5. COMPONENTES COMUNES === */
 /* ============================================= */
 
-.global-overlay {
-    position: fixed;
+/* --- Card Base (Contenedor blanco con sombra) --- */
+.card-base {
+    background: var(--color-superficie);
+    border-radius: var(--radio-borde);
+    padding: 20px;
+    border: 1px solid var(--color-borde);
+    box-shadow: var(--sombra-suave);
+}
+
+/* --- Image Upload Container (Area de Carga) --- */
+.image-upload-container {
+    border: 2px dashed var(--color-borde);
+    border-radius: var(--radio-borde);
+    background-color: #fafafa;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s ease-out;
+    min-height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+.image-upload-container:hover {
+    border-color: var(--color-primario-oscuro);
+    background-color: #f4f6f9;
+}
+.image-upload-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    z-index: 5;
+}
+.image-upload-placeholder {
+    color: var(--color-texto-secundario);
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.image-upload-placeholder i { font-size: 2rem; color: var(--color-primario-claro); }
+
+/* --- Switch de Estado (Toggle) --- */
+.status-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 26px;
+}
+.status-switch input { opacity: 0; width: 0; height: 0; }
+.status-slider {
+    position: absolute;
+    cursor: pointer;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: var(--z-overlay-panel);
-    opacity: 0;
-    visibility: hidden;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+.status-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .status-slider { background-color: var(--color-primario-oscuro); }
+input:checked + .status-slider:before { transform: translateX(22px); }
+
+/* ============================================= */
+/* === 6. INFRAESTRUCTURA DEL PANEL GLOBAL === */
+/* ============================================= */
+/* (Mantenemos tu CSS de panel existente aquí abajo) */
+.global-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5); z-index: var(--z-overlay-panel);
+    opacity: 0; visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
     backdrop-filter: blur(2px);
 }
-
 .global-panel {
-    position: fixed;
-    top: 0; right: 0; bottom: 0;
-    width: 100%;
-    max-width: 500px;
-    background-color: var(--color-superficie);
-    z-index: var(--z-panel-lateral);
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 100%; max-width: 500px;
+    background-color: var(--color-superficie); z-index: var(--z-panel-lateral);
     box-shadow: -5px 0 15px rgba(0,0,0,0.1);
     transform: translateX(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    display: flex;
-    flex-direction: column;
+    display: flex; flex-direction: column;
 }
-
 body.panel-is-open { overflow: hidden; }
 body.panel-is-open .global-overlay { opacity: 1; visibility: visible; }
 body.panel-is-open .global-panel { transform: translateX(0); }
 
 .global-panel-header {
-    height: 60px;
-    display: flex;
-    align-items: center;
-    padding: 0 15px;
+    height: 60px; display: flex; align-items: center; padding: 0 15px;
     border-bottom: 1px solid var(--color-borde);
-    background-color: var(--color-primario-oscuro);
-    color: var(--color-texto-sobre-primario);
-    flex-shrink: 0;
+    background-color: var(--color-primario-oscuro); color: white; flex-shrink: 0;
 }
-
-.global-panel-title {
-    flex-grow: 1;
-    font-size: 1.1rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-left: 10px;
-}
-
-.global-panel-close-btn {
-    background: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-}
-.global-panel-close-btn:hover { background: rgba(255,255,255,0.1); }
-
-.global-panel-body {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 20px;
-    position: relative;
-    /* FIX PANTALLA BLANCA (Core) */
-    display: flex;
-    flex-direction: column; 
-    padding-bottom: calc(var(--altura-footer-mobile) + 30px); 
-}
-
-@media screen and (min-width: 1025px) {
-    .global-panel-body { padding-bottom: 20px; }
-}
-
-/* ============================================= */
-/* === 5. COMPONENTES UI REUTILIZABLES === */
-/* ============================================= */
-
-/* --- Wrapper Flexible para Paneles (Fix Blanco) --- */
-.panel-content-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    position: relative;
-    flex: 1;       /* Ocupar espacio */
-    width: 100%;
-    height: auto;
-    background-color: white; 
-}
-
-/* --- Zona de Carga de Imagen (La versión Robusta) --- */
-.image-upload-container {
-    width: 100%;
-    max-width: 200px;
-    aspect-ratio: 1 / 1; /* Cuadrado perfecto */
-    margin: 0 auto 15px auto;
-    border: 2px dashed var(--color-borde);
-    border-radius: 16px;
-    background: #fafafa;
-    position: relative; 
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.image-upload-container:hover {
-    border-color: var(--color-primario-medio);
-    background: #f0f0f0;
-}
-/* Imagen absoluta para cubrir todo */
-.image-upload-container img, 
-.image-upload-container img#ref-preview {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 5; 
-    background-color: #fff; 
-}
-
-/* --- Inputs Estilizados --- */
-.styled-input {
-    width: 100%; padding: 12px;
-    border: 1px solid var(--color-borde);
-    border-radius: 8px;
-    font-family: var(--fuente-principal);
-    font-size: 0.95em;
-    background: white;
-}
-.styled-input:focus { 
-    outline: 2px solid var(--color-primario-claro); 
-    border-color: transparent; 
-}
-/* Estado Bloqueado/Lectura */
-.styled-input:disabled, 
-select.styled-input:disabled {
-    background-color: #e9ecef;
-    color: #6c757d;
-    cursor: not-allowed;
-    border-color: #dee2e6;
-}
-
-/* --- Botones Genéricos --- */
-.btn-save-inventory { /* Se puede renombrar a .btn-block-primary */
-    width: 100%; padding: 12px;
-    background: var(--color-primario-oscuro);
-    color: white; border: none; border-radius: 8px;
-    font-weight: 600; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: background 0.2s;
-}
-.btn-save-inventory:hover { background: var(--color-primario-medio); }
-.btn-save-inventory.btn-warning { background: var(--color-acento); color: var(--color-primario-oscuro); }
-
-/* --- Animaciones y Alertas --- */
-@keyframes popIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-@keyframes slideUp {
-    from { transform: translate(-50%, 20px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
-}
-@keyframes flashRed {
-    0% { box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4); border-color: #dc3545; }
-    50% { box-shadow: 0 0 0 6px rgba(220, 53, 69, 0); border-color: #dc3545; }
-    100% { border-color: var(--color-borde); }
-}
-
-.highlight-alert {
-    animation: flashRed 2s infinite;
-    border: 2px solid #dc3545 !important;
-}
-
-/* --- Modales Corporativos (Cámara, Info) --- */
-.modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(3px);
-    z-index: var(--z-modal-custom);
-    display: flex; align-items: center; justify-content: center;
-}
-.modal-content.camera-content {
-    background: var(--color-superficie); 
-    color: var(--color-texto-principal);
-    width: 100%; height: 100%;
-    display: flex; flex-direction: column; padding: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-}
-@media screen and (min-width: 768px) {
-    .modal-content.camera-content { 
-        width: 450px; height: auto; border-radius: 16px; max-height: 90vh; 
-    }
-}
+.global-panel-title { font-weight: 600; font-size: 1.1rem; margin-left: 10px; flex-grow: 1; }
+.global-panel-close-btn { background: none; border: none; color: white; cursor: pointer; }
+.global-panel-body { flex-grow: 1; overflow-y: auto; padding: 20px; }
