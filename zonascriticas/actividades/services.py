@@ -1,11 +1,8 @@
-# zonascriticas/actividades/services.py
-
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta  
 from .models import Actividad
 from descargo_responsabilidad.models import RegistroIngreso
-
-# No necesitamos importar GeneradorRutaArchivo aquí, el modelo lo maneja.
 
 class ActividadesService:
     
@@ -15,7 +12,6 @@ class ActividadesService:
         Crea una actividad en estado EN_PROCESO (Card Roja).
         """
         # 1. Validar que el usuario tenga un ingreso activo
-        # Buscamos el ingreso activo (EN_ZONA)
         ingreso = RegistroIngreso.objects.filter(
             visitante=usuario,
             estado=RegistroIngreso.EstadoOpciones.EN_ZONA
@@ -64,8 +60,6 @@ class ActividadesService:
             raise ValidationError("La foto final es obligatoria para cerrar la actividad.")
 
         # 3. Actualizar
-        from django.utils import timezone
-        
         actividad.observacion_final = data.get('observacion_final', "")
         actividad.foto_final = foto_final
         actividad.hora_fin = timezone.now()
@@ -88,3 +82,29 @@ class ActividadesService:
             return []
 
         return Actividad.objects.filter(registro_ingreso=ingreso).order_by('-hora_inicio')
+
+    @staticmethod
+    def calcular_tiempo_restante(usuario, ingreso) -> int:
+        """
+        Calcula los segundos restantes de la jornada del usuario basado en la HORA DE INGRESO.
+        Jornada estándar = 8 horas.
+        """
+        DURACION_JORNADA_HORAS = 8
+        
+        if not ingreso:
+            return 0
+
+        # Usamos la hora actual con zona horaria
+        ahora = timezone.localtime(timezone.now())
+        
+        # La hora de entrada ya viene con zona horaria desde la BD si USE_TZ=True
+        hora_entrada = ingreso.fecha_hora_ingreso
+        
+        # Calcular Hora Límite
+        hora_limite = hora_entrada + timedelta(hours=DURACION_JORNADA_HORAS)
+        
+        # Calcular diferencia en segundos
+        diferencia = hora_limite - ahora
+        segundos = int(diferencia.total_seconds())
+        
+        return max(0, segundos)

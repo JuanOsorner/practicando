@@ -7,20 +7,16 @@ from django.core.exceptions import ValidationError
 from login.decorators import login_custom_required
 from home.utils import api_response
 from descargo_responsabilidad.models import RegistroIngreso
-from datetime import datetime, date, timedelta
-from django.utils import timezone
 
-# Importamos el cerebro de la app
+# Importamos el cerebro de la app (Donde movimos la lógica)
 from .services import ActividadesService
 
 # --- VISTA HTML PRINCIPAL ---
 @login_custom_required
-@login_custom_required
 def actividades_view(request: HttpRequest) -> HttpResponse:
     user = request.user
     
-    # 1. Validar Ingreso Activo
-    ingreso_activo = RegistroIngreso.objects.filter(
+    ingreso_activo = RegistroIngreso.objects.select_related('ubicacion').filter(
         visitante=user,
         estado=RegistroIngreso.EstadoOpciones.EN_ZONA
     ).first()
@@ -28,43 +24,21 @@ def actividades_view(request: HttpRequest) -> HttpResponse:
     if not ingreso_activo:
         return redirect('dashboard')
 
-    # 2. CÁLCULO DE TIEMPO RESTANTE (CRÍTICO)
-    segundos_restantes = 0
-    
-    if user.tiempo_limite_jornada:
-        # Obtenemos la hora actual con zona horaria (aware) si usas USE_TZ=True
-        ahora = timezone.localtime(timezone.now())
-        
-        # Construimos la fecha-hora límite combinando HOY con la HORA del usuario
-        limite_hoy = datetime.combine(ahora.date(), user.tiempo_limite_jornada)
-        
-        # Hacemos el limite "aware" (con zona horaria) para poder restar
-        if timezone.is_naive(limite_hoy):
-            limite_hoy = timezone.make_aware(limite_hoy)
-            
-        # Calculamos diferencia
-        diferencia = limite_hoy - ahora
-        segundos_restantes = int(diferencia.total_seconds())
-        
-        # Si ya son las 18:01, la diferencia es negativa. Forzamos 0.
-        if segundos_restantes < 0:
-            segundos_restantes = 0
-    else:
-        # Si el usuario NO tiene hora límite, definimos 8 horas (28800 seg) por defecto
-        # o un valor muy alto para que no moleste.
-        segundos_restantes = 28800 
+    # Usamos la V2 del cálculo pasando el objeto ingreso
+    segundos_restantes = ActividadesService.calcular_tiempo_restante(user, ingreso_activo)
 
     context = {
         'usuario': user,
         'ingreso_id': ingreso_activo.id,
         'modalidad': ingreso_activo.modalidad,
-        # Pasamos el dato al template
-        'segundos_restantes': segundos_restantes, 
+        'segundos_restantes': segundos_restantes,
+        # INYECCIÓN DEL NOMBRE DE ZONA
+        'nombre_zona': ingreso_activo.ubicacion.nombre, 
     }
     return render(request, 'actividades.html', context)
 
 
-# --- API ENDPOINTS ---
+# --- API ENDPOINTS (CONTROLADORES JSON) ---
 
 @login_custom_required
 @require_GET
@@ -75,7 +49,7 @@ def listar_actividades_api(request: HttpRequest) -> HttpResponse:
     try:
         actividades = ActividadesService.listar_actividades(request.user)
         
-        # Serializamos manualmente para controlar el formato exacto
+        # Serializamos manualmente para controlar el formato exacto que espera el JS
         data = []
         for act in actividades:
             data.append({

@@ -1,54 +1,36 @@
 import os
 import uuid
 import base64
+import logging
 from datetime import datetime
 from django.http import JsonResponse
 from django.utils.deconstruct import deconstructible
-from typing import Any, Optional, Union
+from typing import Any, Optional
 from django.core.files.base import ContentFile
-"""
-🚨EXPLICACION TECNICQA🚨
+from fpdf import FPDF
 
-Se realiza este modulo aparte de Django para poder manejar logica compartida por muchas apps
-vamos a heredar esta logica a las demas apps para que podamos depurar mejor los errores a futuro
-si se realiza cualquier cambio
+# Configurar logger
+logger = logging.getLogger(__name__)
+
 """
+🚨 MODULO DE UTILIDADES CENTRALIZADO 🚨
+Incluye:
+1. Gestión de Archivos (Rutas)
+2. Respuestas API Estandarizadas
+3. Motor de Generación de PDF (PDFEngine)
+"""
+
+# --- 1. GESTIÓN DE ARCHIVOS ---
 
 @deconstructible
 class GeneradorRutaArchivo:
-    """
-    Clase utilitaria para generar rutas de archivo dinámicas y seguras.
-    
-    Uso:
-        foto = models.ImageField(upload_to=GeneradorRutaArchivo('usuarios/fotos'))
-    
-    Ventajas:
-        1. Decorador @deconstructible: Permite que Django serialice esta clase 
-           en las migraciones sin errores (vital para buenas prácticas).
-        2. Estructura Temporal: Organiza archivos por Año/Mes automáticamente para 
-           evitar directorios con millones de archivos (problema de inodo en Linux).
-        3. Seguridad: Renombra el archivo con UUID4 para evitar colisiones y 
-           predecibilidad de URLs.
-    """
-    
     def __init__(self, sub_carpeta: str):
         self.sub_carpeta = sub_carpeta
 
     def __call__(self, instance: Any, filename: str) -> str:
-        """
-        Método mágico que Django invoca al subir el archivo.
-        """
-        # 1. Extraer extensión original (y limpiarla)
         ext = filename.split('.')[-1].lower()
-        
-        # 2. Generar nombre único seguro
         nuevo_nombre = f"{uuid.uuid4()}.{ext}"
-        
-        # 3. Obtener fecha actual para particionamiento
         ahora = datetime.now()
-        
-        # 4. Construir ruta: prefijo/año/mes/uuid.ext
-        # Ejemplo: herramientas/inventario/2023/10/a1b2-c3d4.jpg
         return os.path.join(
             self.sub_carpeta,
             str(ahora.year),
@@ -56,22 +38,9 @@ class GeneradorRutaArchivo:
             nuevo_nombre
         )
 
-# AQUI VAN LAS FUNCIONES QUE VAMOS A REUSAR EN MUCHAS APPS
+# --- 2. HELPERS API ---
 
-def api_response(data: Any = None, success: bool = True, message: str = "Operación exitosa", 
-    status_code: int = 200
-) -> JsonResponse:
-    """
-    Helper global para estandarizar TODAS las respuestas JSON del sistema.
-    
-    Estructura garantizada:
-    {
-        "success": bool,
-        "message": str,
-        "payload": data,  <-- Siempre 'payload', nunca 'data' o 'items' al azar
-        "timestamp": iso_str
-    }
-    """
+def api_response(data: Any = None, success: bool = True, message: str = "Operación exitosa", status_code: int = 200) -> JsonResponse:
     response_data = {
         "success": success,
         "message": message,
@@ -81,19 +50,14 @@ def api_response(data: Any = None, success: bool = True, message: str = "Operaci
     return JsonResponse(response_data, status=status_code)
 
 def decodificar_imagen_base64(data_uri: str, nombre_archivo: str = "archivo.png") -> Optional[ContentFile]:
-    """
-    Convierte un string Base64 (data:image/png;base64,...) en un ContentFile de Django.
-    Retorna None si el string está vacío o inválido.
-    """
     if not data_uri or not isinstance(data_uri, str):
         return None
-
-    # Separar el encabezado 'data:image/png;base64,' del contenido real
+    
     if 'base64,' in data_uri:
         try:
             _, imgstr = data_uri.split(';base64,')
         except ValueError:
-            return None # Formato incorrecto
+            return None
     else:
         imgstr = data_uri
 
@@ -103,3 +67,203 @@ def decodificar_imagen_base64(data_uri: str, nombre_archivo: str = "archivo.png"
         return None
 
     return ContentFile(decoded_file, name=nombre_archivo)
+
+
+# --- 3. MOTOR PDF (NUEVO) ---
+
+class BrandPDF(FPDF):
+    """
+    Clase base con la identidad visual de Joli Foods.
+    Maneja Header y Footer automáticamente.
+    """
+    def header(self):
+        # Título Principal
+        self.set_font("Helvetica", "B", 14)
+        self.set_text_color(53, 36, 96) # Color Corporativo #352460
+        self.cell(0, 10, "JOLI FOODS S.A.S.", align="C", new_x="LMARGIN", new_y="NEXT")
+        
+        # Subtítulo
+        self.set_font("Helvetica", "", 10)
+        self.set_text_color(85, 85, 85) # Gris oscuro
+        self.cell(0, 6, "CONTROL DE ZONAS CRÍTICAS", align="C", new_x="LMARGIN", new_y="NEXT")
+        
+        # Línea separadora
+        self.set_draw_color(53, 36, 96)
+        self.set_line_width(0.5)
+        self.line(self.l_margin, self.get_y() + 2, 215.9 - self.r_margin, self.get_y() + 2)
+        self.ln(8)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(128)
+        self.cell(0, 10, f"Página {self.page_no()}/{{nb}} - Generado por ZonasCriticasApp", align="C")
+
+
+class PDFGenerator:
+    """
+    Fachada estática para generar los distintos tipos de reportes.
+    Aísla la lógica de 'dibujado' de la lógica de negocio.
+    """
+
+    @staticmethod
+    def _crear_lienzo():
+        pdf = BrandPDF(orientation="P", unit="mm", format="Letter")
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
+        return pdf
+
+    @staticmethod
+    def crear_acta_ingreso(registro) -> bytes:
+        """
+        Dibuja el Acta de Descargo de Responsabilidad.
+        """
+        pdf = PDFGenerator._crear_lienzo()
+        
+        # Datos
+        visitante = registro.visitante
+        responsable = registro.responsable
+        ubicacion = registro.ubicacion
+        fecha_str = registro.fecha_hora_ingreso.strftime("%d/%m/%Y %H:%M")
+
+        # Título
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.set_text_color(0)
+        pdf.cell(0, 10, "ACTA DE DESCARGO DE RESPONSABILIDAD E INGRESO", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(5)
+
+        # Texto Legal
+        pdf.set_font("Helvetica", "", 10)
+        
+        texto_1 = (
+            f"En la ciudad de {ubicacion.ciudad or '(No definida)'}, y con el fin de ingresar a la zona crítica "
+            f"denominada '{ubicacion.nombre}', a fecha de {fecha_str}, yo, "
+            f"{visitante.first_name}, identificado(a) con documento número {visitante.numero_documento}, "
+            f"actuando en mi calidad de {visitante.cargo.nombre if visitante.cargo else 'Usuario'} "
+            f"para la empresa {visitante.empresa.nombre_empresa if visitante.empresa else 'Joli Foods'}, "
+            "declaro que he leído, comprendido y aceptado los términos y condiciones de seguridad."
+        )
+        pdf.multi_cell(0, 5, texto_1)
+        pdf.ln(5)
+
+        texto_2 = (
+            f"Comprendo que mi ingreso se realiza bajo la autorización de {responsable.first_name}, "
+            f"con documento {responsable.numero_documento}. Exonero a JOLI FOODS S.A.S. de toda responsabilidad "
+            "civil o penal por cualquier incidente derivado del incumplimiento de normas."
+        )
+        pdf.multi_cell(0, 5, texto_2)
+        pdf.ln(8)
+
+        # Modalidad
+        if registro.modalidad == 'CON_EQUIPOS':
+            pdf.set_fill_color(240, 240, 240)
+            pdf.set_font("Helvetica", "B", 9)
+            pdf.multi_cell(0, 8, "DECLARACIÓN DE EQUIPOS: El visitante ingresa con equipos sujetos a verificación.", border=1, fill=True, align='C')
+        else:
+            pdf.set_font("Helvetica", "I", 9)
+            pdf.cell(0, 8, "* El visitante declara NO ingresar equipos adicionales.", ln=True)
+        
+        pdf.ln(15)
+
+        # Firmas
+        PDFGenerator._dibujar_firmas(pdf, registro)
+
+        return bytes(pdf.output())
+
+    @staticmethod
+    def crear_reporte_salida(registro) -> bytes:
+        """
+        Dibuja el Reporte de Salida y Actividades.
+        """
+        pdf = PDFGenerator._crear_lienzo()
+        
+        # Título
+        pdf.set_font("Helvetica", "B", 12)
+        pdf.cell(0, 10, "REPORTE DE SALIDA Y ACTIVIDADES", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(5)
+
+        # Resumen General
+        pdf.set_font("Helvetica", "", 10)
+        # Usamos timezone.now() o la fecha del registro si ya se cerró
+        hora_salida = datetime.now().strftime("%d/%m/%Y %H:%M") 
+        if registro.fecha_hora_salida:
+            hora_salida = registro.fecha_hora_salida.strftime("%d/%m/%Y %H:%M")
+            
+        hora_entrada = registro.fecha_hora_ingreso.strftime("%d/%m/%Y %H:%M")
+        
+        pdf.cell(0, 6, f"Visitante: {registro.visitante.first_name}", ln=True)
+        pdf.cell(0, 6, f"Zona: {registro.ubicacion.nombre}", ln=True)
+        pdf.cell(0, 6, f"Entrada: {hora_entrada}  |  Salida: {hora_salida}", ln=True)
+        pdf.ln(5)
+
+        # Tabla de Actividades
+        pdf.set_font("Helvetica", "B", 10)
+        pdf.cell(0, 8, "Resumen de Actividades Realizadas:", ln=True)
+        
+        pdf.set_fill_color(220, 220, 220)
+        pdf.cell(10, 8, "#", border=1, fill=True)
+        pdf.cell(120, 8, "Descripción", border=1, fill=True)
+        pdf.cell(60, 8, "Estado", border=1, fill=True, ln=True)
+        
+        pdf.set_font("Helvetica", "", 9)
+        # Accedemos a las actividades usando el related_name del modelo
+        actividades = registro.actividades_registradas.all()
+        
+        if actividades:
+            for i, act in enumerate(actividades, 1):
+                estado_texto = act.get_estado_display() # Método mágico de Django para choices
+                pdf.cell(10, 8, str(i), border=1)
+                desc = str(act.titulo)[:65] # Usamos título en vez de descripción larga
+                pdf.cell(120, 8, desc, border=1)
+                pdf.cell(60, 8, estado_texto, border=1, ln=True)
+        else:
+            pdf.cell(0, 8, "No se registraron actividades específicas.", border=1, ln=True)
+
+        pdf.ln(10)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.cell(0, 6, "Este documento certifica el cierre del ingreso y la salida del personal.", align="C")
+
+        return bytes(pdf.output())
+
+    @staticmethod
+    def _dibujar_firmas(pdf, registro):
+        """
+        Helper privado para dibujar el bloque de firmas.
+        """
+        y_inicio = pdf.get_y()
+        
+        if y_inicio > 220:
+            pdf.add_page()
+            y_inicio = pdf.get_y()
+
+        # Firma Visitante
+        pdf.set_xy(25, y_inicio)
+        if registro.firma_visitante:
+            try:
+                if hasattr(registro.firma_visitante, 'path'):
+                    pdf.image(registro.firma_visitante.path, w=50)
+            except Exception as e:
+                logger.error(f"Error firma visitante: {e}")
+                pdf.cell(50, 20, "[Error Imagen]", border=1)
+
+        # Firma Responsable
+        pdf.set_xy(140, y_inicio)
+        if registro.firma_responsable:
+            try:
+                if hasattr(registro.firma_responsable, 'path'):
+                    pdf.image(registro.firma_responsable.path, w=50)
+            except Exception as e:
+                logger.error(f"Error firma responsable: {e}")
+                pdf.cell(50, 20, "[Error Imagen]", border=1)
+
+        # Textos
+        y_texto = y_inicio + 25
+        pdf.set_font("Helvetica", "B", 8)
+        
+        pdf.set_xy(25, y_texto)
+        pdf.multi_cell(50, 4, f"Firma del Declarante\n{registro.visitante.first_name}\nCC: {registro.visitante.numero_documento}", align="C")
+        pdf.line(25, y_texto, 75, y_texto)
+
+        pdf.set_xy(140, y_texto)
+        pdf.multi_cell(50, 4, f"Firma del Autorizador\n{registro.responsable.first_name}\nCC: {registro.responsable.numero_documento}", align="C")
+        pdf.line(140, y_texto, 190, y_texto)

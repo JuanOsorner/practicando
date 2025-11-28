@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modo Visita - JoliFoods</title>
+    <link rel="stylesheet" href="{% static 'home/css/global.css' %}">
+    <style>
+        body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            background-color: var(--color-fondo-app);
+            padding: 20px;
+        }
+        .card-visita { 
+            background: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            text-align: center; 
+            max-width: 400px; 
+            width: 100%; 
+            box-shadow: var(--sombra-suave); 
+            border: 1px solid var(--color-borde);
+        }
+        .icon-header {
+            font-size: 4rem; 
+            color: var(--color-primario-claro); 
+            margin-bottom: 20px;
+        }
+        h1 { 
+            color: var(--color-primario-oscuro); 
+            margin-bottom: 15px; 
+            font-size: 1.5rem; 
+        }
+        .info-text { 
+            color: var(--color-texto-secundario); 
+            margin-bottom: 30px; 
+            line-height: 1.6; 
+        }
+        .zone-highlight { 
+            color: var(--color-primario-medio); 
+            font-weight: 700; 
+            font-size: 1.2em; 
+            display: block; 
+            margin: 10px 0; 
+        }
+    </style>
+    <script src="{% static 'home/js/core/api.js' %}" type="module"></script>
+    <script src="{% static 'home/js/core/ui.js' %}" type="module"></script>
+</head>
+<body>
+    <div class="card-visita">
+        <div class="icon-header">
+            <i class="fas fa-id-badge"></i>
+        </div>
+        <h1>Modo Visita Activo</h1>
+        
+        <div class="info-text">
+            Estás registrado actualmente en:
+            <span class="zone-highlight">{{ ingreso.ubicacion.nombre }}</span>
+            <small>Tu modalidad es solo visita. No tienes actividades pendientes.</small>
+        </div>
+
+        <button id="btn-salir-visita" class="btn-danger" style="width: 100%; justify-content: center;">
+            <i class="fas fa-sign-out-alt"></i> Finalizar Visita
+        </button>
+    </div>
+
+    <script type="module">
+        import { api } from "{% static 'home/js/core/api.js' %}";
+        import { ui } from "{% static 'home/js/core/ui.js' %}";
+
+        document.getElementById('btn-salir-visita').addEventListener('click', async () => {
+            const confirmar = await ui.confirm(
+                '¿Salir de la zona?', 
+                'Se registrará tu hora de salida y se cerrará el ingreso.', 
+                'Sí, salir'
+            );
+
+            if(confirmar) {
+                ui.showLoading('Procesando salida...');
+                try {
+                    // Llamamos a la API de salida existente
+                    await api.post('/responsabilidad/api/salida/', {});
+                    // Recargamos la página para que el Router (home_view) nos redirija al inicio
+                    window.location.reload(); 
+                } catch(e) {
+                    ui.hideLoading();
+                    ui.showError(e.message);
+                }
+            }
+        });
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</body>
+</html>

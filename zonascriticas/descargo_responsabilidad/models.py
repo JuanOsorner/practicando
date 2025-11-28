@@ -28,7 +28,7 @@ class Ubicacion(models.Model):
 class DocumentoPDF(models.Model):
     class TipoDocumento(models.TextChoices):
         DESCARGO = 'DESCARGO', 'Descargo de Responsabilidad'
-        REPORTE_SALIDA = 'REPORTE_SALIDA', 'Reporte de Salida y Actividades' # Nuevo tipo
+        REPORTE_SALIDA = 'REPORTE_SALIDA', 'Reporte de Salida y Actividades'
         DIAGNOSTICO = 'DIAGNOSTICO', 'Diagnóstico Técnico'
         OTRO = 'OTRO', 'Otro Documento'
 
@@ -39,8 +39,9 @@ class DocumentoPDF(models.Model):
         verbose_name="Usuario Propietario"
     )
 
+    # 🚨 CAMBIO APLICADO: Ruta centralizada en 'pdfs'
     archivo = models.FileField(
-        upload_to=GeneradorRutaArchivo('documentos_pdf'), 
+        upload_to=GeneradorRutaArchivo('pdfs'), 
         verbose_name="Archivo PDF",
         max_length=255
     )

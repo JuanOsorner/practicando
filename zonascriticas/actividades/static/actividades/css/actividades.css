@@ -1,170 +1,561 @@
-/* Layout Principal */
+/* zonascriticas/actividades/static/actividades/css/actividades.css */
+
+/* ====================================================== */
+/* === 1. LAYOUT PRINCIPAL === */
+/* ====================================================== */
+
 .activities-container {
-    padding: 20px 20px 100px 20px; /* Padding bottom extra para el footer */
+    padding: 20px;
+    padding-bottom: 120px; /* Espacio extra para footer y FABs */
     max-width: 800px;
     margin: 0 auto;
+    font-family: var(--fuente-principal);
+    position: relative;
+    min-height: 80vh;
 }
 
-/* --- HEADER MODERNO CON RELOJ --- */
+/* ====================================================== */
+/* === 2. HEADER MODERNO CON RELOJ === */
+/* ====================================================== */
+
 .activities-header-modern {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     background: white;
-    padding: 15px 20px;
-    border-radius: 16px;
-    box-shadow: var(--sombra-suave);
-    border: 1px solid var(--color-borde);
+    padding: 20px;
+    border-radius: 20px; /* Bordes más redondeados */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    border: 1px solid rgba(0,0,0,0.03);
 }
 
-.header-info h2 { margin: 0; font-size: 1.4rem; color: var(--color-primario-oscuro); }
-.zone-badge { 
-    display: inline-block; background: #e8f5e9; color: #2ecc71; 
-    padding: 4px 8px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; margin-top: 5px;
+.header-info h2 {
+    margin: 0 0 8px 0;
+    font-size: 1.6rem;
+    color: var(--color-primario-oscuro);
+    font-weight: 800;
 }
+
+/* Badge de Zona (Dinámico) */
+.zone-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #f3e5f5; /* Fondo lila muy suave */
+    color: var(--color-primario-medio);
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.zone-badge i { font-size: 1rem; }
 
 /* RELOJ CIRCULAR SVG */
 .timer-wrapper {
-    position: relative; width: 60px; height: 60px;
+    position: relative;
+    width: 70px; /* Un poco más grande */
+    height: 70px;
 }
-.timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-.timer-bg { fill: none; stroke: #f0f0f0; stroke-width: 6; }
+.timer-svg {
+    transform: rotate(-90deg);
+    width: 100%;
+    height: 100%;
+}
+.timer-bg {
+    fill: none;
+    stroke: #eee;
+    stroke-width: 5;
+}
 .timer-progress {
-    fill: none; stroke: var(--color-acento); stroke-width: 6;
-    stroke-dasharray: 283; /* Circunferencia = 2 * PI * 45 */
-    stroke-dashoffset: 0; /* JS lo modificará */
-    transition: stroke-dashoffset 1s linear, stroke 0.3s;
+    fill: none;
+    stroke: var(--color-acento); /* Amarillo/Dorado */
+    stroke-width: 5;
+    stroke-dasharray: 283; /* 2 * PI * 45 */
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
     stroke-linecap: round;
 }
 .timer-text {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
-.timer-text span { font-size: 0.85rem; font-weight: 700; color: var(--color-primario-oscuro); line-height: 1; }
-.timer-text small { font-size: 0.5rem; color: #999; text-transform: uppercase; }
+.timer-text span {
+    font-size: 1rem;
+    font-weight: 800;
+    color: var(--color-primario-oscuro);
+    line-height: 1;
+}
+.timer-text small {
+    font-size: 0.55rem;
+    color: #999;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-top: 2px;
+}
 
-/* Estado Crítico del Reloj (Últimos minutos) */
-.timer-critical .timer-progress { stroke: #e74c3c; }
-.timer-critical .timer-text span { color: #e74c3c; }
+/* Estado Crítico del Reloj (< 15 min) */
+.timer-critical .timer-progress { stroke: #ff4757; }
+.timer-critical .timer-text span { color: #ff4757; }
 
-/* --- CONTROLES Y FILTROS --- */
+/* ====================================================== */
+/* === 3. CONTROLES Y FILTROS === */
+/* ====================================================== */
+
 .controls-bar {
-    display: flex; gap: 10px; margin-bottom: 20px; align-items: center;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 25px;
+    align-items: center;
 }
+
+/* Wrapper del buscador para quitar margin default */
+.controls-bar .input-group {
+    margin-bottom: 0;
+    flex-grow: 1;
+}
+
+/* Tabs de Filtro (Píldoras) */
 .filter-tabs {
-    display: flex; background: #e0e0e0; border-radius: 20px; padding: 4px;
+    display: flex;
+    background: #f1f2f6;
+    border-radius: 25px;
+    padding: 4px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
 }
 .filter-tab {
-    border: none; background: transparent; padding: 8px 16px;
-    border-radius: 16px; font-weight: 600; color: #666; cursor: pointer;
-    font-size: 0.85em; transition: all 0.2s;
+    border: none;
+    background: transparent;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .filter-tab.active {
-    background: var(--color-superficie); color: var(--color-primario-oscuro);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    background: white;
+    color: var(--color-primario-oscuro);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* --- GRID DE ACTIVIDADES --- */
+/* ====================================================== */
+/* === 4. GRID DE TARJETAS (ACTIVIDADES) === */
+/* ====================================================== */
+
 .activities-grid {
-    display: grid; grid-template-columns: 1fr; gap: 15px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding-bottom: 20px;
 }
 
-/* --- CARD DE ACTIVIDAD --- */
+/* --- TARJETA BASE --- */
 .activity-card {
-    background: var(--color-superficie);
-    border-radius: 12px;
-    padding: 15px;
+    background: white;
+    border-radius: 16px;
+    padding: 16px;
     position: relative;
-    border-left: 6px solid #ccc; 
-    box-shadow: var(--sombra-suave);
-    transition: transform 0.2s;
+    border-left: 6px solid #ccc; /* Color por defecto */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
     cursor: pointer;
+    overflow: hidden;
+    animation: slideInUp 0.4s ease-out forwards;
 }
 .activity-card:active { transform: scale(0.98); }
 
-/* ESTADO: EN PROCESO (ROJO) */
+/* --- ESTADOS DE LA TARJETA --- */
+
+/* 🔴 EN PROCESO (Pendiente) */
 .activity-card.status-EN_PROCESO {
-    border-left-color: #e74c3c;
-    background: linear-gradient(to right, #fff5f5, #fff);
+    border-left-color: #ff6b6b; /* Rojo suave */
+    background: linear-gradient(to right, #fff5f5 0%, #ffffff 100%);
 }
 .activity-card.status-EN_PROCESO .status-icon {
-    color: #e74c3c; border: 2px solid #e74c3c;
+    color: #ff6b6b;
+    border: 2px solid #ff6b6b;
+    background: rgba(255, 107, 107, 0.1);
+}
+.activity-card.status-EN_PROCESO .card-title {
+    color: #c0392b;
 }
 
-/* ESTADO: FINALIZADA (VERDE) */
+/* 🟢 FINALIZADA (Completada) */
 .activity-card.status-FINALIZADA {
-    border-left-color: #2ecc71;
-    background: linear-gradient(to right, #f0fff4, #fff);
-    opacity: 0.85;
+    border-left-color: #2ecc71; /* Verde */
+    background: #f8fff9; /* Verde muy pálido */
+    opacity: 0.85; /* Visualmente menos relevante */
 }
 .activity-card.status-FINALIZADA .status-icon {
-    background: #2ecc71; color: white; border: 2px solid #2ecc71;
+    background: #2ecc71;
+    color: white;
+    border: 2px solid #2ecc71;
+}
+.activity-card.status-FINALIZADA .card-title {
+    color: #27ae60;
+    text-decoration: line-through; /* Opcional: tachar título */
+    text-decoration-color: rgba(39, 174, 96, 0.3);
 }
 
-/* Contenido Interno Card */
+/* --- CONTENIDO INTERNO TARJETA --- */
+
 .card-header {
-    display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
 }
+
+/* Thumbnail Foto */
+.card-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-size: cover;
+    background-position: center;
+    background-color: #eee;
+    border: 1px solid rgba(0,0,0,0.1);
+    flex-shrink: 0;
+}
+
 .card-title {
-    font-weight: 700; font-size: 1.1em; color: var(--color-texto-principal);
-    margin-right: 10px; line-height: 1.2;
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-left: 10px;
+    line-height: 1.3;
+    flex-grow: 1;
 }
+
 .status-icon {
-    width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.8em; flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85em;
+    flex-shrink: 0;
+    transition: all 0.3s;
 }
+
 .card-times {
-    font-size: 0.75em; color: var(--color-texto-secundario);
-    display: flex; gap: 12px; margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: #888;
+    display: flex;
+    gap: 15px;
+    margin-bottom: 12px;
+    font-weight: 500;
 }
-.card-times span { display: flex; align-items: center; gap: 4px; }
+.card-times span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.card-times i { font-size: 0.9em; }
+
 .card-obs {
-    font-size: 0.9em; color: #555;
-    background: rgba(240, 242, 245, 0.7);
-    padding: 10px; border-radius: 8px;
-    border: 1px dashed var(--color-borde);
+    font-size: 0.9rem;
+    color: #555;
+    background: rgba(0,0,0,0.03);
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-style: italic;
+    border: 1px dashed rgba(0,0,0,0.1);
 }
 
-/* --- BOTONES FLOTANTES (STACK) --- */
+/* ====================================================== */
+/* === 5. BOTONES FLOTANTES (FABs) === */
+/* ====================================================== */
+
 .fab-container {
-    position: fixed; bottom: 100px; right: 20px;
-    display: flex; flex-direction: column; align-items: center; gap: 15px;
-    z-index: 100;
+    position: fixed;
+    bottom: 90px; /* Arriba del botón de finalizar */
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 80;
 }
 
-/* Botón Principal (Actividad) */
+/* Botón Principal: Nueva Actividad (MORADO) */
 .fab-main {
-    width: 60px; height: 60px; border-radius: 50%;
-    background: var(--color-primario-oscuro); color: white;
-    border: none; font-size: 1.6rem;
-    box-shadow: 0 4px 15px rgba(53, 36, 96, 0.4);
-    cursor: pointer; transition: transform 0.2s;
-    display: flex; align-items: center; justify-content: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--color-primario-oscuro);
+    color: white;
+    border: none;
+    font-size: 1.8rem;
+    box-shadow: 0 6px 20px rgba(53, 36, 96, 0.4);
+    cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.fab-main:active { transform: scale(0.95); }
+.fab-main:active { transform: scale(0.9); }
+.fab-main:hover { background: var(--color-primario-medio); }
 
-/* Botón Secundario (Herramientas) */
+/* Botón Secundario: Herramientas (BLANCO) */
 .fab-mini {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: white; color: var(--color-primario-oscuro);
-    border: 2px solid var(--color-primario-oscuro);
-    font-size: 1.1rem;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    color: var(--color-texto-secundario);
+    border: 1px solid var(--color-borde);
+    font-size: 1.2rem;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    cursor: pointer; transition: transform 0.2s;
-    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.fab-mini:hover { background: var(--color-fondo-app); }
+.fab-mini:hover {
+    color: var(--color-primario-oscuro);
+    transform: translateY(-2px);
+}
 
-/* Footer Salida */
+/* ====================================================== */
+/* === 6. FOOTER FLOTANTE (SALIDA) === */
+/* ====================================================== */
+
 .floating-footer-zone {
-    position: fixed; bottom: 20px; left: 20px; right: 20px;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
     z-index: 90;
 }
-.btn-block { width: 100%; justify-content: center; }
+.btn-block {
+    width: 100%;
+    padding: 16px;
+    border-radius: 30px; /* Píldora */
+    font-size: 1rem;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); /* Sombra roja sutil */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-/* Responsive */
+/* ====================================================== */
+/* === 7. ANIMACIONES CLAVE === */
+/* ====================================================== */
+
+@keyframes slideInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pulso verde para cuando finalizas */
+@keyframes pulse-green {
+    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6); }
+    70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+}
+
+.activity-card.just-finished {
+    animation: pulse-green 0.8s ease-out;
+}
+
+.activity-card.transitioning {
+    transform: scale(0.98);
+    opacity: 0.6;
+    filter: grayscale(100%);
+}
+
+/* ====================================================== */
+/* === 8. RESPONSIVE === */
+/* ====================================================== */
+
 @media (min-width: 768px) {
-    .activities-grid { grid-template-columns: repeat(2, 1fr); }
+    .activities-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .fab-container {
+        right: 50%;
+        margin-right: -400px; /* Centrado relativo al contenedor max-width */
+    }
+}
+
+/* Contenedor interno del panel */
+.panel-content-wrapper, .activity-detail-wrapper {
+    padding: 10px 5px;
+}
+
+.panel-section {
+    margin-bottom: 25px;
+}
+
+.panel-description, .panel-hint {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    color: var(--color-primario-oscuro);
+    margin-bottom: 15px;
+    font-weight: 700;
+}
+
+.panel-divider {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* Header de Imagen en Detalle */
+.detail-header-img {
+    width: 100%;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.detail-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.4));
+}
+
+.status-badge {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+.status-badge.status-red { background: #ff6b6b; }
+.status-badge.status-green { background: #2ecc71; }
+
+.detail-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-texto-principal);
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+.meta-row {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Campos de Solo Lectura */
+.read-only-field {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #eee;
+}
+.read-only-field label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #aaa;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.read-only-field p {
+    margin: 0;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+/* Sección de Cierre */
+.closure-section {
+    background: #fff5f5;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px dashed #ff6b6b;
+}
+
+.finished-section {
+    background: #f0fff4;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #2ecc71;
+}
+.finished-section .success-text { color: #27ae60; }
+
+/* Preview de Evidencia Final */
+.evidence-preview label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #555;
+}
+.img-preview-box {
+    width: 100%;
+    height: 160px;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+.img-preview-box:hover { transform: scale(1.02); }
+
+/* --- Ajustes Grid Card (Refinamiento) --- */
+.card-main-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-grow: 1;
+}
+.empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 40px;
+    color: #999;
+    font-style: italic;
+}
+.trunc-obs {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 8px;
+}
+.time-badge {
+    display: inline-block;
+    background: #eee;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #555;
 }

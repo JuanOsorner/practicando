@@ -20,7 +20,7 @@
     <header class="activities-header-modern">
         <div class="header-info">
             <h2>Bitácora</h2>
-            <p class="zone-badge">En Zona Segura</p>
+            <p class="zone-badge"><i class="fas fa-map-marker-alt"></i> {{ nombre_zona }}</p>
         </div>
         
         <div class="timer-wrapper">
@@ -73,29 +73,6 @@
 
 {% block extras %}
     {% include 'components/modal_camera.html' %}
-    
-    <div id="modal-new-activity" class="modal-overlay hidden">
-        <div class="modal-content card-base">
-            <h3 class="text-center" style="color:var(--color-primario-oscuro); margin-bottom: 20px;">Nueva Actividad</h3>
-            
-            <div class="input-group">
-                <input type="text" id="new-act-title" placeholder=" " required>
-                <label>Nombre de la actividad</label>
-            </div>
-            
-            <div class="input-group">
-                <textarea id="new-act-obs" placeholder=" " rows="3"></textarea>
-                <label>Observaciones iniciales</label>
-            </div>
-
-            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="btn-cancel-new" class="btn-secondary" style="flex:1;">Cancelar</button>
-                <button id="btn-continue-new" class="btn-primary" style="flex:1;">
-                    <i class="fas fa-camera"></i> Tomar Foto
-                </button>
-            </div>
-        </div>
-    </div>
 {% endblock %}
 
 {% block scripts %}
