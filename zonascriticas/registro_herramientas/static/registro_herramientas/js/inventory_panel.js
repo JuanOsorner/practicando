@@ -1,33 +1,25 @@
 /**
  * inventory_panel.js
  * Controlador específico para el Panel de Gestión de Inventario.
- * * FUNCIONALIDADES:
- * 1. Gestión de Catálogo (CRUD) usando apiService.
- * 2. Selección Múltiple para ingreso (Bulk Add).
- * 3. UX Avanzada: Bloqueo de campos en edición y manejo de imágenes.
+ * CORREGIDO: Compatible con el nuevo tools_ui.js y global.css
  */
 
 import { GlobalPanel } from '/static/home/js/core/panel.js';
 import { imageUtils } from '/static/home/js/core/image.js';
 import { ui } from '/static/home/js/core/ui.js';
 import { toolsUI } from './tools_ui.js';
-// IMPORTAMOS EL NUEVO SERVICIO CENTRALIZADO
 import * as toolsApi from './apiService.js';
 
 export class InventoryPanel {
     
-    /**
-     * @param {Function} onItemCreated - Callback para recargar lista maestra tras crear/editar/borrar.
-     * @param {Function} onBulkAdd - Callback para enviar lista de IDs al controlador principal.
-     */
     constructor(onItemCreated, onBulkAdd) {
         this.onItemCreated = onItemCreated; 
         this.onBulkAdd = onBulkAdd; 
         
         // Estado de Datos
         this.currentInventory = [];
-        this.selectedIdsCache = []; // IDs que YA están en la base de datos (Ingresados)
-        this.localSelection = new Set(); // IDs seleccionados AHORA por el usuario (Pendientes)
+        this.selectedIdsCache = []; 
+        this.localSelection = new Set(); 
         
         // Estado de Formulario
         this.tempImageBlob = null;
@@ -41,16 +33,11 @@ export class InventoryPanel {
         };
     }
 
-    /**
-     * Abre el panel lateral.
-     * @param {Array} inventoryList - Lista maestra.
-     * @param {Array} alreadyAddedIds - Lista de IDs que ya están ingresados.
-     */
     open(inventoryList, alreadyAddedIds = []) {
         try {
             this.currentInventory = inventoryList;
             this.selectedIdsCache = alreadyAddedIds;
-            this.localSelection.clear(); // Limpiamos selección temporal al abrir
+            this.localSelection.clear(); 
 
             // Resetear estado visual
             this.filterState = { text: '', category: 'ALL' };
@@ -98,13 +85,13 @@ export class InventoryPanel {
             return matchText && matchCat;
         });
 
-        // 2. Actualizar Botón Flotante de "Agregar (X)"
+        // 2. Actualizar Botón Flotante
         this._updateFloatingButton();
 
         // 3. Estado Vacío
         if (filteredItems.length === 0) {
             container.innerHTML = `
-                <div style="text-align:center; grid-column:1/-1; padding:30px; color:var(--color-texto-secundario);">
+                <div style="text-align:center; grid-column:1/-1; padding:30px; color:#9ca3af;">
                     <i class="fas fa-search" style="font-size: 1.5em; margin-bottom: 10px; opacity: 0.5;"></i>
                     <p>No se encontraron equipos.</p>
                 </div>`;
@@ -113,19 +100,14 @@ export class InventoryPanel {
 
         // 4. Renderizar Cards
         filteredItems.forEach(item => {
-            // Verificamos si está en BD (Gris/Check) O si está seleccionado localmente (Azul/Check)
             const inDb = this.selectedIdsCache.includes(item.id);
             const inLocal = this.localSelection.has(item.id);
             
-            // Pasamos 'true' si está en cualquiera de los dos estados para que muestre el check visual
             const cardHTML = toolsUI.createCompactCard(item, inDb || inLocal);
             
             const template = document.createElement('template');
             template.innerHTML = cardHTML.trim();
             const cardEl = template.content.firstChild;
-
-            // Feedback visual extra para selección local
-            if (inLocal) cardEl.style.borderColor = 'var(--color-primario-medio)';
 
             // Eventos
             cardEl.addEventListener('click', (e) => this._handleGridClick(e, item, inDb));
@@ -135,14 +117,14 @@ export class InventoryPanel {
     }
 
     _handleGridClick(e, item, isAlreadyInDb) {
-        // A. Botón EDITAR (Lápiz) - Abre formulario arriba
+        // A. Botón EDITAR 
         if (e.target.closest('.btn-edit-item')) {
             e.stopPropagation();
             this._loadItemForEdit(item);
             return;
         }
 
-        // B. Botón ELIMINAR (Basura) - Borra del catálogo
+        // B. Botón ELIMINAR 
         if (e.target.closest('.btn-delete-item')) {
             e.stopPropagation();
             this._handleDelete(item.id);
@@ -151,37 +133,40 @@ export class InventoryPanel {
 
         // C. Selección Principal (Logica Bulk)
         if (isAlreadyInDb) {
-            ui.showNotification('Este ítem ya fue agregado al ingreso.', 'info');
+            ui.showNotification('Este ítem ya está en la lista.', 'info');
             return;
         }
 
-        // Toggle Selección Local
         if (this.localSelection.has(item.id)) {
             this.localSelection.delete(item.id);
         } else {
             this.localSelection.add(item.id);
         }
 
-        // Re-renderizar para actualizar visualmente
         this._renderFilteredList();
     }
 
     /**
-     * Inyecta o actualiza el botón flotante de confirmación masiva.
+     * CORRECCIÓN: Apuntamos al nuevo contenedor .panel-inventory-list-header
      */
     _updateFloatingButton() {
-        const container = GlobalPanel.getBodyElement().querySelector('.panel-section.list-section');
+        // CORRECCIÓN: Selector actualizado para coincidir con tools_ui.js
+        const container = GlobalPanel.getBodyElement().querySelector('.panel-inventory-list-header');
+        
+        // Si por alguna razón el HTML no cargó bien, salimos para evitar el crash
+        if (!container) return; 
+
         let btn = container.querySelector('#btn-bulk-add');
         
         if (this.localSelection.size > 0) {
             if (!btn) {
                 btn = document.createElement('button');
                 btn.id = 'btn-bulk-add';
-                btn.className = 'btn-bulk-confirm'; // Clase definida en tools.css
+                btn.className = 'btn-bulk-confirm'; // Clase CSS global
                 btn.onclick = () => this._confirmBulkAdd();
                 container.appendChild(btn);
             }
-            btn.innerHTML = `<i class="fas fa-plus"></i> Agregar (${this.localSelection.size}) ítems`;
+            btn.innerHTML = `<i class="fas fa-plus"></i> Agregar (${this.localSelection.size})`;
             btn.style.display = 'block';
         } else {
             if (btn) btn.style.display = 'none';
@@ -190,9 +175,8 @@ export class InventoryPanel {
 
     _confirmBulkAdd() {
         if (this.onBulkAdd && this.localSelection.size > 0) {
-            // Enviamos array de IDs al controlador principal
             this.onBulkAdd(Array.from(this.localSelection));
-            GlobalPanel.close(); // Cerramos panel para UX limpia
+            GlobalPanel.close();
         }
     }
 
@@ -212,8 +196,8 @@ export class InventoryPanel {
             });
         }
 
-        // Filtros Categoría
-        const chips = container.querySelectorAll('.filter-chip');
+        // CORRECCIÓN: Filtros Categoría (Clase nueva .filter-chip-sm)
+        const chips = container.querySelectorAll('.filter-chip-sm');
         chips.forEach(chip => {
             chip.addEventListener('click', () => {
                 chips.forEach(c => c.classList.remove('active'));
@@ -222,6 +206,20 @@ export class InventoryPanel {
                 this._renderFilteredList();
             });
         });
+
+        // NUEVO: Botones de Categoría en Formulario (Nuevo diseño)
+        const catBtns = container.querySelectorAll('.cat-option-btn');
+        const hiddenInput = container.querySelector('#hidden-categoria');
+
+        if (catBtns.length > 0 && hiddenInput) {
+            catBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    catBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    hiddenInput.value = btn.dataset.value;
+                });
+            });
+        }
 
         // Formulario Foto Trigger
         const photoTrigger = container.querySelector('#trigger-ref-upload');
@@ -256,6 +254,7 @@ export class InventoryPanel {
         if (!file) return;
 
         const preview = container.querySelector('#ref-preview');
+        const placeholder = container.querySelector('#ref-placeholder'); // Nuevo
 
         try {
             this.tempImageBlob = await imageUtils.compress(file, 600, 0.7);
@@ -263,12 +262,13 @@ export class InventoryPanel {
             
             if (preview) {
                 preview.src = base64;
-                // CRÍTICO: Forzar display block para activar z-index del CSS absoluto
                 preview.style.display = 'block'; 
+                // Ocultar placeholder para limpieza visual
+                if(placeholder) placeholder.style.opacity = '0';
             }
 
         } catch (error) {
-            ui.showError("Error procesando imagen: " + error.message);
+            ui.showError("Error imagen: " + error.message);
         }
     }
 
@@ -284,7 +284,6 @@ export class InventoryPanel {
         ui.showLoading(this.isEditing ? 'Actualizando...' : 'Guardando...');
 
         try {
-            // REFACTOR: Uso de toolsApi.saveItem (POST o PUT automático)
             const response = await toolsApi.saveItem(formData, this.editingItemId);
             
             ui.hideLoading();
@@ -292,10 +291,9 @@ export class InventoryPanel {
             
             this._resetFormState();
             
-            // Actualización Optimista / Real-time de la lista local
+            // Actualización Local
             if (response.item) {
                 const newItem = response.item;
-                // Parches de seguridad para datos faltantes en respuesta rápida
                 if(!newItem.categoria) newItem.categoria = formData.get('categoria');
                 if(!newItem.foto && this.tempImageBlob) newItem.foto = URL.createObjectURL(this.tempImageBlob);
 
@@ -309,7 +307,6 @@ export class InventoryPanel {
                 this._renderFilteredList();
             }
 
-            // Avisar al padre para recargar si es necesario
             if (this.onItemCreated) this.onItemCreated();
 
         } catch (error) {
@@ -329,33 +326,32 @@ export class InventoryPanel {
         const form = container.querySelector('#inventory-form');
         if (form) {
             form.reset();
-            // 1. DESBLOQUEAR TODOS LOS CAMPOS
             form.nombre.disabled = false;
             form.marca_serial.disabled = false;
-            const catSelect = container.querySelector('#input-categoria');
-            if(catSelect) catSelect.disabled = false;
+            
+            // Reset Categoría Visual
+            const catBtns = container.querySelectorAll('.cat-option-btn');
+            if(catBtns.length) {
+                catBtns.forEach(b => b.classList.remove('active'));
+                catBtns[0].classList.add('active'); // Default Herramienta
+                container.querySelector('#hidden-categoria').value = 'HERRAMIENTA';
+            }
 
-            // 2. Restaurar Botón
+            // Restaurar Botón
             const btn = form.querySelector('button[type="submit"]');
-            btn.innerHTML = '<i class="fas fa-plus"></i> Guardar';
-            btn.classList.remove('btn-warning');
-
-            // 3. Limpiar alertas visuales
-            if(form.observaciones_iniciales) this._removeHighlight(form.observaciones_iniciales);
-            const uploadContainer = container.querySelector('.image-upload-container');
-            if(uploadContainer) this._removeHighlight(uploadContainer);
+            btn.innerHTML = '<i class="fas fa-plus"></i> Guardar Ítem';
         }
         
-        container.querySelector('.panel-section-title').textContent = 'Nuevo Ítem';
-        
-        // 4. Reset Imagen (Solución Bug Visual)
+        // Reset Imagen
         const preview = container.querySelector('#ref-preview');
+        const placeholder = container.querySelector('#ref-placeholder');
         if (preview) {
             preview.src = '';
-            preview.style.display = 'none'; // Ocultar para ver placeholder
+            preview.style.display = 'none';
+            if(placeholder) placeholder.style.opacity = '1';
         }
         
-        container.scrollTo({ top: 0, behavior: 'smooth' });
+        container.querySelector('.panel-content-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     _loadItemForEdit(item) {
@@ -368,61 +364,44 @@ export class InventoryPanel {
         // Cargar datos
         form.nombre.value = item.nombre;
         form.marca_serial.value = item.marca || ''; 
-        form.categoria.value = item.categoria || 'HERRAMIENTA';
+        
+        // Cargar Categoría Visual
+        const catValue = item.categoria || 'HERRAMIENTA';
+        container.querySelector('#hidden-categoria').value = catValue;
+        const catBtns = container.querySelectorAll('.cat-option-btn');
+        catBtns.forEach(b => {
+            if(b.dataset.value === catValue) b.classList.add('active');
+            else b.classList.remove('active');
+        });
+
         if(form.observaciones_iniciales) form.observaciones_iniciales.value = item.observaciones || '';
 
-        // 1. BLOQUEAR CAMPOS DE IDENTIDAD
+        // Bloquear Identidad
         form.nombre.disabled = true;
         form.marca_serial.disabled = true;
-        const catSelect = container.querySelector('#input-categoria');
-        if(catSelect) catSelect.disabled = true; 
 
-        // 2. UI Botón
-        container.querySelector('.panel-section-title').textContent = 'Editar Evidencia / Obs';
+        // UI Botón
         const btn = form.querySelector('button[type="submit"]');
         btn.innerHTML = '<i class="fas fa-sync"></i> Actualizar';
-        btn.classList.add('btn-warning');
 
-        // 3. Cargar Foto Existente
+        // Cargar Foto
         const preview = container.querySelector('#ref-preview');
+        const placeholder = container.querySelector('#ref-placeholder');
         if (item.foto) {
             preview.src = item.foto;
-            preview.style.display = 'block'; // Activar overlay
+            preview.style.display = 'block';
+            if(placeholder) placeholder.style.opacity = '0';
         } else {
             preview.style.display = 'none';
+            if(placeholder) placeholder.style.opacity = '1';
         }
 
-        // 4. UX Scroll y Highlight
-        container.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        const uploadContainer = container.querySelector('.image-upload-container');
-        this._applyHighlight(uploadContainer);
-        if(form.observaciones_iniciales) this._applyHighlight(form.observaciones_iniciales);
-        
-        ui.showNotification('Modo Edición: Solo foto y observaciones.', 'info');
-    }
-
-    _applyHighlight(element) {
-        if(!element) return;
-        element.classList.remove('highlight-alert');
-        void element.offsetWidth; // Reset animation
-        element.classList.add('highlight-alert');
-        
-        const removeFunc = () => {
-            element.classList.remove('highlight-alert');
-            element.removeEventListener('click', removeFunc);
-            element.removeEventListener('focus', removeFunc);
-        };
-        element.addEventListener('click', removeFunc);
-        element.addEventListener('focus', removeFunc);
-    }
-
-    _removeHighlight(element) {
-        if(element) element.classList.remove('highlight-alert');
+        container.querySelector('.panel-content-wrapper').scrollTo({ top: 0, behavior: 'smooth' });
+        ui.showNotification('Editando ítem...', 'info');
     }
 
     // =================================================
-    // === LÓGICA DE ELIMINACIÓN DEL CATÁLOGO ===
+    // === LÓGICA DE ELIMINACIÓN ===
     // =================================================
 
     async _handleDelete(itemId) {
@@ -437,7 +416,6 @@ export class InventoryPanel {
         ui.showLoading('Eliminando...');
 
         try {
-            // REFACTOR: Uso de toolsApi.deleteItem
             await toolsApi.deleteItem(itemId);
             
             ui.hideLoading();
@@ -445,7 +423,6 @@ export class InventoryPanel {
             
             // Actualización Local
             this.currentInventory = this.currentInventory.filter(i => i.id !== itemId);
-            
             if(this.localSelection.has(itemId)) this.localSelection.delete(itemId);
             
             this._renderFilteredList();

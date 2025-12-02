@@ -12,6 +12,9 @@
     --color-primario-hover-fondo: #1d1b31;
     
     --color-acento: #ffbf00;
+
+    --color-afirmativo: #32aa32;
+    --color-afirmativo-claro: #91ff986c;
     
     --color-fondo-app: #f0f2f5;
     --color-superficie: #ffffff;
@@ -24,9 +27,11 @@
 
     /* --- Sistema de Diseño --- */
     --fuente-principal: 'Inter', sans-serif;
-    --radio-borde: 12px; /* Unificado a 12px para look moderno */
+    --radio-borde: 12px;
+    --radio-modal: 24px;
     --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.08);
     --sombra-hover: 0 8px 20px rgba(53, 36, 96, 0.15);
+    --sombra-modal: 0 40px 80px rgba(0, 0, 0, 0.5); /* Sombra fuerte para el modal flotante */
     
     /* --- Layout --- */
     --altura-header-mobile: 60px;
@@ -37,6 +42,7 @@
     /* --- Z-Index Layers --- */
     --z-fondo: -1;
     --z-contenido: 10;
+    --z-fab: 100;
     --z-overlay-panel: 1040;  
     --z-panel-lateral: 1050;  
     --z-modal: 2000; 
@@ -55,7 +61,7 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbars Invisibles pero funcionales */
+/* Scrollbars Invisibles */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -63,9 +69,15 @@ body {
 .text-center { text-align: center; }
 
 /* ============================================= */
-/* === 3. SISTEMA DE BOTONES (Global) === */
+/* === 3. SISTEMA DE BOTONES (Refactorizado) === */
 /* ============================================= */
-.btn-base {
+
+/* Estilos Base Compartidos */
+.btn-base,
+.btn-primary,
+.btn-secondary,
+.btn-secondary-icon,
+.btn-danger {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -76,14 +88,13 @@ body {
     font-weight: 600;
     cursor: pointer;
     text-decoration: none;
-    transition: all 0.2s ease-out;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     white-space: nowrap;
     gap: 8px;
 }
 
-/* Botón Principal (Púrpura) */
+/* Botón Principal */
 .btn-primary {
-    composes: btn-base;
     background-color: var(--color-primario-oscuro);
     color: var(--color-texto-sobre-primario);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -100,9 +111,8 @@ body {
     box-shadow: none;
 }
 
-/* Botón Secundario (Borde Gris) */
+/* Botón Secundario */
 .btn-secondary {
-    composes: btn-base;
     background-color: var(--color-superficie);
     color: var(--color-texto-secundario);
     border: 1px solid var(--color-borde);
@@ -113,179 +123,313 @@ body {
     color: var(--color-texto-principal);
 }
 
-/* Botón Peligro (Rojo) */
+/* Botón Icono (Circular pequeño) */
+.btn-secondary-icon {
+    width: 44px; height: 44px; padding: 0; border-radius: 50%;
+    background: white; border: 1px solid var(--color-borde);
+    color: var(--color-texto-principal);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.btn-secondary-icon:hover { transform: scale(1.1); }
+
+/* Botón Peligro */
 .btn-danger {
-    composes: btn-base;
     background-color: #dc3545;
     color: white;
 }
 .btn-danger:hover { background-color: #c82333; }
 
 /* ============================================= */
-/* === 4. SISTEMA DE INPUTS (Input Groups) === */
+/* === 4. SISTEMA DE INPUTS Y BÚSQUEDA === */
 /* ============================================= */
-/* Este estilo soporta iconos y etiquetas flotantes */
 
-.input-group {
-    position: relative;
-    margin-bottom: 20px; /* Espacio estándar entre inputs */
-}
+.input-group { position: relative; margin-bottom: 20px; width: 100%; }
 
-/* Icono dentro del input (Izquierda) */
+/* Icono Input */
 .input-group .input-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-    pointer-events: none;
-    display: flex;
-}
-.input-group .input-icon svg, 
-.input-group .input-icon i { 
-    width: 20px; height: 20px; font-size: 1.1rem; 
+    position: absolute; left: 15px; top: 50%;
+    transform: translateY(-50%); color: var(--color-texto-secundario);
+    pointer-events: none; display: flex; z-index: 2;
 }
 
-/* Estilo base del campo */
+/* Inputs Base */
 .input-group input,
 .input-group select,
 .input-group textarea,
-.styled-input { /* Alias para compatibilidad */
-    width: 100%;
-    padding: 14px 16px 14px 45px; /* Padding izquierdo para icono */
-    border: 1px solid var(--color-borde);
-    border-radius: var(--radio-borde);
-    font-size: 16px;
-    font-family: var(--fuente-principal);
-    color: var(--color-texto-principal);
-    background-color: var(--color-superficie);
-    transition: all 0.2s ease-out;
-    appearance: none; /* Elimina estilos nativos de SO */
+.styled-input {
+    width: 100%; padding: 14px 16px 14px 45px;
+    border: 1px solid var(--color-borde); border-radius: var(--radio-borde);
+    font-size: 16px; font-family: var(--fuente-principal);
+    color: var(--color-texto-principal); background-color: var(--color-superficie);
+    transition: all 0.2s ease-out; appearance: none;
 }
+.input-group.no-icon input { padding-left: 16px; }
 
-/* Ajuste si NO hay icono */
-.input-group.no-icon input,
-.input-group.no-icon select { padding-left: 16px; }
-
-/* Estados Focus */
-.input-group input:focus,
-.input-group select:focus,
-.input-group textarea:focus {
-    outline: none;
-    border-color: var(--color-primario-oscuro);
+.input-group input:focus, .input-group select:focus {
+    outline: none; border-color: var(--color-primario-oscuro);
     box-shadow: 0 0 0 3px rgba(53, 36, 96, 0.1);
 }
 
-/* Etiquetas Flotantes (Label Animations) */
+/* Labels Flotantes */
 .input-group label {
-    position: absolute;
-    left: 45px; /* Alineado con el texto del input */
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--color-texto-secundario);
-    font-size: 16px;
-    pointer-events: none;
-    transition: all 0.2s ease-out;
-    background-color: transparent; 
-    padding: 0 4px;
+    position: absolute; left: 45px; top: 50%;
+    transform: translateY(-50%); color: var(--color-texto-secundario);
+    font-size: 16px; pointer-events: none; transition: all 0.2s ease-out;
+    background-color: transparent; padding: 0 4px; z-index: 1;
+}
+.input-group input:focus + label,
+.input-group input:not(:placeholder-shown) + label {
+    top: 0; left: 40px; font-size: 12px;
+    color: var(--color-primario-oscuro); background-color: var(--color-superficie);
+    height: auto;
 }
 
-/* Cuando el input tiene foco o valor */
-.input-group input:focus + label,
-.input-group input:not(:placeholder-shown) + label,
-.input-group select:focus + label,
-.input-group select:not([value=""]):valid + label {
-    top: 0;
-    left: 40px;
-    font-size: 12px;
-    color: var(--color-primario-oscuro);
-    background-color: var(--color-superficie); /* Tapa el borde superior */
-    height: auto;
+/* --- INPUTS OSCUROS (Para Modales/Cámara) --- */
+.styled-input-dark {
+    width: 100%; padding: 12px 15px;
+    background: #1f1f1f; border: 1px solid #333;
+    color: white; border-radius: 12px; font-size: 0.9rem;
+    font-family: var(--fuente-principal); transition: all 0.2s;
+}
+.styled-input-dark::placeholder { color: #888; }
+.styled-input-dark:focus {
+    outline: none; border-color: var(--color-acento);
+    background: #2a2a2a;
+}
+
+/* --- BARRA DE BÚSQUEDA FACTORIZADA --- */
+.search-wrapper { position: relative; width: 100%; }
+.search-wrapper i {
+    position: absolute; left: 15px; top: 50%;
+    transform: translateY(-50%); color: var(--color-texto-secundario);
+}
+.search-wrapper input {
+    width: 100%; padding: 12px 12px 12px 40px;
+    border: 1px solid var(--color-borde); border-radius: 25px;
+    font-family: var(--fuente-principal); font-size: 0.95rem;
+    transition: all 0.3s;
+}
+.search-wrapper input:focus {
+    outline: none; border-color: var(--color-primario-oscuro);
+    box-shadow: 0 2px 8px rgba(53, 36, 96, 0.1);
 }
 
 /* ============================================= */
 /* === 5. COMPONENTES COMUNES === */
 /* ============================================= */
 
-/* --- Card Base (Contenedor blanco con sombra) --- */
 .card-base {
-    background: var(--color-superficie);
-    border-radius: var(--radio-borde);
-    padding: 20px;
-    border: 1px solid var(--color-borde);
+    background: var(--color-superficie); border-radius: var(--radio-borde);
+    padding: 20px; border: 1px solid var(--color-borde);
     box-shadow: var(--sombra-suave);
 }
 
-/* --- Image Upload Container (Area de Carga) --- */
-.image-upload-container {
-    border: 2px dashed var(--color-borde);
-    border-radius: var(--radio-borde);
-    background-color: #fafafa;
-    position: relative;
-    cursor: pointer;
-    overflow: hidden;
-    transition: all 0.2s ease-out;
-    min-height: 180px;
+/* --- Chips & Badges (Factorizados) --- */
+.chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 0.85rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.chip-soft-purple { background: #f3e5f5; color: #8e24aa; }
+.chip-soft-green { background: #e8f5e9; color: #2e7d32; }
+.chip-soft-red { background: #ffebee; color: #c62828; }
+.chip-soft-blue { background: #e3f2fd; color: #1565c0; }
+
+/* --- FABs (Botones Flotantes Premium) --- */
+.fab-container-vertical {
+    position: fixed;
+    /* La posición bottom se define en el CSS específico de cada app 
+       (ej: actividades.css) para esquivar el footer */
+    right: 20px;
     display: flex;
-    align-items: center;
-    justify-content: center;
     flex-direction: column;
-    margin-bottom: 20px;
+    align-items: center;
+    gap: 15px; /* Espacio entre botones */
+    z-index: var(--z-fab);
+    pointer-events: none; /* Permite clicks a través del área vacía */
+}
+
+.fab-global {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    box-shadow: 0 10px 25px rgba(53, 36, 96, 0.4); /* Sombra elegante púrpura */
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    pointer-events: auto; /* Reactiva clicks en el botón */
+    position: relative;
+}
+
+/* Efecto al presionar/hover */
+.fab-global:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 30px rgba(53, 36, 96, 0.5); }
+.fab-global:active { transform: scale(0.95); box-shadow: 0 5px 15px rgba(53, 36, 96, 0.4); }
+
+/* Variantes */
+.fab-primary {
+    background: var(--color-primario-oscuro);
+    color: white;
+}
+
+.fab-mini {
+    width: 48px; height: 48px;
+    background: white;
+    color: var(--color-primario-oscuro);
+    font-size: 1.1rem;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Sombra más suave */
+}
+.fab-mini:hover { color: var(--color-acento); }
+
+/* --- Image Upload Container --- */
+.image-upload-container {
+    border: 2px dashed var(--color-borde); border-radius: var(--radio-borde);
+    background-color: #fafafa; position: relative; cursor: pointer;
+    overflow: hidden; transition: all 0.2s; min-height: 180px;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; margin-bottom: 20px;
 }
 .image-upload-container:hover {
-    border-color: var(--color-primario-oscuro);
-    background-color: #f4f6f9;
+    border-color: var(--color-primario-oscuro); background-color: #f4f6f9;
 }
 .image-upload-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    z-index: 5;
+    max-width: 100%; max-height: 100%; object-fit: contain; z-index: 5;
 }
 .image-upload-placeholder {
-    color: var(--color-texto-secundario);
-    font-weight: 500;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
+    color: var(--color-texto-secundario); font-weight: 500;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
 }
 .image-upload-placeholder i { font-size: 2rem; color: var(--color-primario-claro); }
 
-/* --- Switch de Estado (Toggle) --- */
-.status-switch {
-    position: relative;
-    display: inline-block;
-    width: 48px;
-    height: 26px;
-}
+/* --- Switch de Estado --- */
+.status-switch { position: relative; display: inline-block; width: 48px; height: 26px; }
 .status-switch input { opacity: 0; width: 0; height: 0; }
 .status-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; transition: .4s; border-radius: 34px;
 }
 .status-slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
+    position: absolute; content: ""; height: 20px; width: 20px;
+    left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
 }
 input:checked + .status-slider { background-color: var(--color-primario-oscuro); }
 input:checked + .status-slider:before { transform: translateX(22px); }
 
 /* ============================================= */
-/* === 6. INFRAESTRUCTURA DEL PANEL GLOBAL === */
+/* === 6. MODAL DE CÁMARA (NUEVO DISEÑO APP) === */
 /* ============================================= */
-/* (Mantenemos tu CSS de panel existente aquí abajo) */
+
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.85); /* Fondo muy oscuro para inmersión */
+    backdrop-filter: blur(8px);
+    z-index: var(--z-modal);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 1; transition: opacity 0.3s ease;
+}
+
+.modal-overlay.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
+
+/* Contenedor tipo Tarjeta Flotante */
+.modal-content.camera-content {
+    background-color: #000; /* Fondo negro */
+    width: 100%; max-width: 400px; /* Ancho de móvil */
+    border-radius: 24px; overflow: hidden;
+    position: relative; display: flex; flex-direction: column;
+    box-shadow: var(--sombra-modal);
+    animation: slideUpFade 0.3s ease-out;
+}
+
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Header Flotante (Sobre el video) */
+.camera-content h3 {
+    position: absolute; top: 0; left: 0; right: 0;
+    text-align: center; padding: 20px; margin: 0;
+    font-size: 1rem; color: white; font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 10; pointer-events: none;
+}
+
+/* Viewport Cuadrado (1:1) */
+.camera-viewport {
+    position: relative; width: 100%;
+    aspect-ratio: 1 / 1; /* Forzamos formato cuadrado */
+    background-color: #1a1a1a; overflow: hidden;
+    /* Borde redondeado inferior visual para separar de controles */
+    border-radius: 0 0 24px 24px; 
+}
+
+#camera-video, #camera-preview {
+    width: 100%; height: 100%; object-fit: cover;
+}
+
+/* Inputs de Observación (Integrados) */
+.camera-content .input-group {
+    margin: 15px 20px 5px 20px;
+    width: auto;
+}
+
+/* Controles (Dark UI) */
+.camera-controls {
+    padding: 20px 30px 30px;
+    background-color: #000;
+    display: flex; justify-content: space-between; align-items: center;
+    position: relative; z-index: 5;
+}
+
+/* Botón Galería */
+#btn-gallery {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    font-size: 1.1rem;
+}
+#btn-gallery:active { background: rgba(255,255,255,0.3); }
+
+/* Botón Obturador (Shutter) */
+#btn-capture.btn-camera-action {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: transparent; border: 4px solid white;
+    padding: 3px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s;
+}
+#btn-capture.btn-camera-action::after {
+    content: ''; width: 100%; height: 100%;
+    background-color: white; border-radius: 50%; transition: all 0.2s;
+}
+#btn-capture.btn-camera-action:active { transform: scale(0.95); }
+#btn-capture.btn-camera-action:active::after { transform: scale(0.85); opacity: 0.8; }
+
+/* Acciones Post-Captura */
+#post-capture-actions { width: 100%; justify-content: center; gap: 15px; }
+#btn-confirm-entry { 
+    background: white; color: black; font-weight: 700; border: none; 
+    padding: 12px 24px; border-radius: 30px;
+}
+#btn-retry {
+    background: #333; color: white; border: none; width: 44px; height: 44px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+
+/* Botón Cerrar (X) */
+.btn-close-top {
+    position: absolute; top: 15px; right: 15px;
+    background: rgba(0,0,0,0.4); color: white;
+    width: 32px; height: 32px; border-radius: 50%; border: none;
+    z-index: 20; backdrop-filter: blur(4px); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.btn-close-top:hover { background: rgba(0,0,0,0.6); }
+
+/* ============================================= */
+/* === 7. INFRAESTRUCTURA DEL PANEL LATERAL === */
+/* ============================================= */
 .global-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background-color: rgba(0, 0, 0, 0.5); z-index: var(--z-overlay-panel);
@@ -314,3 +458,212 @@ body.panel-is-open .global-panel { transform: translateX(0); }
 .global-panel-title { font-weight: 600; font-size: 1.1rem; margin-left: 10px; flex-grow: 1; }
 .global-panel-close-btn { background: none; border: none; color: white; cursor: pointer; }
 .global-panel-body { flex-grow: 1; overflow-y: auto; padding: 20px; }
+
+/* ============================================= */
+/* === 8. ESTILOS UNIFICADOS DEL PANEL DE INVENTARIO === */
+/* ============================================= */
+/* Estos estilos aplican al contenido inyectado por tools_ui.js */
+
+/* Header del Panel (Gris oscuro elegante) */
+.panel-header-unified {
+    background-color: var(--color-primario-oscuro);
+    color: white;
+    padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 12px 12px 0 0; /* Solo esquinas superiores si es modal, o planas si es panel */
+}
+
+/* Área de Carga de Foto (Unificada) */
+.image-upload-container {
+    border: 2px dashed #d1d5db; /* Gris neutro */
+    background-color: #f9fafb;
+    border-radius: 16px;
+    min-height: 200px;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    margin-bottom: 25px;
+}
+.image-upload-container:hover {
+    border-color: var(--color-primario-claro);
+    background-color: #f3f4f6;
+}
+.image-upload-container img#ref-preview {
+    width: 100%; height: 100%; object-fit: cover;
+    position: absolute; top: 0; left: 0;
+}
+.image-upload-placeholder {
+    color: #9ca3af;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.image-upload-placeholder i { font-size: 2.5rem; color: #000000; }
+
+/* Aqui añadimos el css del texto dentro de la imagen */
+.texto-imagen { color: #000000; }
+
+/* Botones de Categoría (Tabs internas del formulario) */
+.category-selector-group {
+    display: flex; gap: 10px; margin-bottom: 20px;
+}
+.cat-option-btn {
+    flex: 1; padding: 12px;
+    border: 1px solid var(--color-borde);
+    background: white; color: var(--color-texto-secundario);
+    border-radius: 12px;
+    font-weight: 600; cursor: pointer; transition: all 0.2s;
+    text-align: center;
+}
+.cat-option-btn.active {
+    background: var(--color-primario-oscuro);
+    color: white; border-color: var(--color-primario-oscuro);
+    box-shadow: 0 4px 10px rgba(53, 36, 96, 0.2);
+}
+
+/* Inputs del Formulario (Más limpios) */
+.panel-form-input {
+    width: 100%; padding: 14px 16px;
+    background: #f3f4f6; /* Gris muy suave */
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font-size: 1rem; color: #1f2937;
+    margin-bottom: 15px;
+    transition: all 0.2s;
+}
+.panel-form-input:focus {
+    background: white;
+    border-color: var(--color-primario-claro);
+    box-shadow: 0 0 0 3px rgba(99, 39, 120, 0.1);
+    outline: none;
+}
+
+/* Botón Guardar (Full Width) */
+.btn-save-full {
+    width: 100%; padding: 16px;
+    background: var(--color-primario-oscuro); color: white;
+    border: none; border-radius: 12px;
+    font-weight: 700; font-size: 1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 15px rgba(53, 36, 96, 0.3);
+    transition: transform 0.1s;
+}
+.btn-save-full:active { transform: scale(0.98); }
+
+/* Lista inferior (Inventario) */
+.panel-inventory-list-header {
+    margin-top: 30px; margin-bottom: 15px;
+    border-top: 1px solid #e5e7eb; padding-top: 20px;
+}
+.search-compact-wrapper {
+    position: relative; margin-bottom: 15px;
+}
+.search-compact-wrapper input {
+    width: 100%; padding: 10px 10px 10px 35px;
+    background: #f3f4f6; border-radius: 8px; border: none;
+}
+.search-compact-wrapper i {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+/* Chips Filtro Pequeños */
+.filter-chips-row { display: flex; gap: 8px; margin-bottom: 15px; }
+.filter-chip-sm {
+    padding: 6px 12px; border-radius: 20px;
+    background: #f3f4f6; color: #6b7280;
+    font-size: 0.8rem; font-weight: 600; cursor: pointer; border: none;
+}
+.filter-chip-sm.active {
+    background: var(--color-primario-oscuro); color: white;
+}
+/* ============================================= */
+/* === 9. ESTILOS DE TARJETAS DE INVENTARIO (GLOBALES) === */
+/* ============================================= */
+/* Estos estilos se movieron aquí para que el panel funcione en Actividades */
+
+/* Grid del Panel */
+.inventory-grid-compact {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px;
+    padding-bottom: 20px;
+}
+
+/* Tarjeta Compacta Base */
+.tool-card-compact {
+    background: white; border: 1px solid var(--color-borde);
+    border-radius: 12px; padding: 10px; cursor: pointer;
+    position: relative; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    display: flex; flex-direction: column;
+}
+.tool-card-compact:hover { 
+    border-color: var(--color-afirmativo-claro); 
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+}
+.tool-card-compact.selected { 
+    background: var(--color-afirmativo-claro); /* Lila muy suave */
+    border-color: var(--color-afirmativo); 
+    box-shadow: 0 0 0 2px var(--color-afirmativo) inset;
+}
+
+/* Badge de Selección (Check) */
+.check-badge {
+    position: absolute; top: -8px; right: -8px;
+    background: var(--color-afirmativo); color: white;
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; z-index: 10; 
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Botones de Acción (Editar/Borrar sobre la imagen) */
+.card-actions {
+    position: absolute; top: 8px; left: 8px; right: 8px;
+    display: flex; justify-content: space-between; pointer-events: none; z-index: 5;
+}
+.btn-action {
+    width: 28px; height: 28px; border-radius: 50%; 
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.9); color: #555;
+    font-size: 11px; cursor: pointer; pointer-events: auto;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.btn-action:hover { transform: scale(1.1); }
+.btn-edit-item:hover { color: var(--color-primario-oscuro); border-color: var(--color-primario-oscuro); }
+.btn-delete-item:hover { color: #dc3545; border-color: #dc3545; }
+
+/* Imagen / Media */
+.card-media {
+    height: 90px; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: #f8f9fa; border-radius: 8px; overflow: hidden;
+    position: relative;
+}
+.card-media img { width: 100%; height: 100%; object-fit: cover; }
+.icon-placeholder { font-size: 32px; color: #d1d5db; }
+
+/* Información del Ítem */
+.card-info { display: flex; flex-direction: column; gap: 2px; }
+.card-info .name { 
+    font-weight: 700; font-size: 0.9rem; color: var(--color-texto-principal);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+}
+.card-info .serial { font-size: 0.75rem; color: #6b7280; }
+
+/* Badges de Categoría */
+.category-badge {
+    font-size: 0.65rem; padding: 3px 8px; border-radius: 6px;
+    font-weight: 700; text-transform: uppercase; margin-bottom: 6px;
+    align-self: flex-start; letter-spacing: 0.5px;
+}
+.badge-computo { background-color: #e0f2fe; color: #0284c7; }
+.badge-tool { background-color: #f3f4f6; color: #4b5563; }
+
+/* Animación PopIn (Para selección) */
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}

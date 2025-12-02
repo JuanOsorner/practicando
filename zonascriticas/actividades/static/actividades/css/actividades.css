@@ -1,4 +1,5 @@
 /* zonascriticas/actividades/static/actividades/css/actividades.css */
+/* v2.0 - Refactorizado: FABs eliminados (usa global.css) */
 
 /* ====================================================== */
 /* === 1. LAYOUT PRINCIPAL === */
@@ -6,7 +7,7 @@
 
 .activities-container {
     padding: 20px;
-    padding-bottom: 120px; /* Espacio extra para footer y FABs */
+    padding-bottom: 160px; /* Espacio extra para footer y FABs */
     max-width: 800px;
     margin: 0 auto;
     font-family: var(--fuente-principal);
@@ -25,7 +26,7 @@
     margin-bottom: 25px;
     background: white;
     padding: 20px;
-    border-radius: 20px; /* Bordes más redondeados */
+    border-radius: 20px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     border: 1px solid rgba(0,0,0,0.03);
 }
@@ -38,11 +39,12 @@
 }
 
 /* Badge de Zona (Dinámico) */
+/* Nota: Podrías reemplazar esto en HTML con .chip .chip-soft-purple global */
 .zone-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #f3e5f5; /* Fondo lila muy suave */
+    background: #f3e5f5;
     color: var(--color-primario-medio);
     padding: 6px 12px;
     border-radius: 12px;
@@ -56,7 +58,7 @@
 /* RELOJ CIRCULAR SVG */
 .timer-wrapper {
     position: relative;
-    width: 70px; /* Un poco más grande */
+    width: 70px;
     height: 70px;
 }
 .timer-svg {
@@ -71,7 +73,7 @@
 }
 .timer-progress {
     fill: none;
-    stroke: var(--color-acento); /* Amarillo/Dorado */
+    stroke: var(--color-acento);
     stroke-width: 5;
     stroke-dasharray: 283; /* 2 * PI * 45 */
     stroke-dashoffset: 0;
@@ -164,7 +166,7 @@
     border-radius: 16px;
     padding: 16px;
     position: relative;
-    border-left: 6px solid #ccc; /* Color por defecto */
+    border-left: 6px solid #ccc;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
     cursor: pointer;
@@ -177,7 +179,7 @@
 
 /* 🔴 EN PROCESO (Pendiente) */
 .activity-card.status-EN_PROCESO {
-    border-left-color: #ff6b6b; /* Rojo suave */
+    border-left-color: #ff6b6b;
     background: linear-gradient(to right, #fff5f5 0%, #ffffff 100%);
 }
 .activity-card.status-EN_PROCESO .status-icon {
@@ -191,9 +193,9 @@
 
 /* 🟢 FINALIZADA (Completada) */
 .activity-card.status-FINALIZADA {
-    border-left-color: #2ecc71; /* Verde */
-    background: #f8fff9; /* Verde muy pálido */
-    opacity: 0.85; /* Visualmente menos relevante */
+    border-left-color: #2ecc71;
+    background: #f8fff9;
+    opacity: 0.85;
 }
 .activity-card.status-FINALIZADA .status-icon {
     background: #2ecc71;
@@ -202,7 +204,7 @@
 }
 .activity-card.status-FINALIZADA .card-title {
     color: #27ae60;
-    text-decoration: line-through; /* Opcional: tachar título */
+    text-decoration: line-through;
     text-decoration-color: rgba(39, 174, 96, 0.3);
 }
 
@@ -215,7 +217,6 @@
     margin-bottom: 12px;
 }
 
-/* Thumbnail Foto */
 .card-thumb {
     width: 40px;
     height: 40px;
@@ -273,58 +274,14 @@
 }
 
 /* ====================================================== */
-/* === 5. BOTONES FLOTANTES (FABs) === */
+/* === 5. BOTONES FLOTANTES (FABs) - ELIMINADO === */
+/* Usa .fab-global .fab-primary y .fab-mini de global.css */
 /* ====================================================== */
 
-.fab-container {
-    position: fixed;
-    bottom: 90px; /* Arriba del botón de finalizar */
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 15px;
-    z-index: 80;
-}
-
-/* Botón Principal: Nueva Actividad (MORADO) */
-.fab-main {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--color-primario-oscuro);
-    color: white;
-    border: none;
-    font-size: 1.8rem;
-    box-shadow: 0 6px 20px rgba(53, 36, 96, 0.4);
-    cursor: pointer;
-    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.fab-main:active { transform: scale(0.9); }
-.fab-main:hover { background: var(--color-primario-medio); }
-
-/* Botón Secundario: Herramientas (BLANCO) */
-.fab-mini {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: white;
-    color: var(--color-texto-secundario);
-    border: 1px solid var(--color-borde);
-    font-size: 1.2rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.fab-mini:hover {
-    color: var(--color-primario-oscuro);
-    transform: translateY(-2px);
+.fab-container-vertical {
+    /* Calculamos la altura para que floten encima del botón "Finalizar Jornada" */
+    /* 70px (Nav) + 60px (Btn Finalizar) + 40px (Espacio) = ~170px desde abajo */
+    bottom: calc(130px + var(--altura-footer-mobile, 70px));
 }
 
 /* ====================================================== */
@@ -333,18 +290,19 @@
 
 .floating-footer-zone {
     position: fixed;
-    bottom: 20px;
+    /* Calculamos: 20px de margen visual + la altura de tu barra de navegación */
+    bottom: calc(20px + var(--altura-footer-mobile, 70px)); 
     left: 20px;
     right: 20px;
-    z-index: 90;
+    z-index: 90; /* Aseguramos que esté por encima del contenido pero debajo de modales */
 }
 .btn-block {
     width: 100%;
     padding: 16px;
-    border-radius: 30px; /* Píldora */
+    border-radius: 30px;
     font-size: 1rem;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); /* Sombra roja sutil */
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -358,7 +316,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Pulso verde para cuando finalizas */
 @keyframes pulse-green {
     0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.6); }
     70% { box-shadow: 0 0 0 15px rgba(46, 204, 113, 0); }
@@ -376,16 +333,12 @@
 }
 
 /* ====================================================== */
-/* === 8. RESPONSIVE === */
+/* === 8. RESPONSIVE Y ESTILOS PANEL === */
 /* ====================================================== */
 
 @media (min-width: 768px) {
     .activities-grid {
         grid-template-columns: repeat(2, 1fr);
-    }
-    .fab-container {
-        right: 50%;
-        margin-right: -400px; /* Centrado relativo al contenedor max-width */
     }
 }
 
@@ -528,7 +481,7 @@
 }
 .img-preview-box:hover { transform: scale(1.02); }
 
-/* --- Ajustes Grid Card (Refinamiento) --- */
+/* --- Ajustes Grid Card --- */
 .card-main-info {
     display: flex;
     align-items: center;

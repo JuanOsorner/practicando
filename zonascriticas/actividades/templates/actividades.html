@@ -50,16 +50,18 @@
         <div class="loading-state">Cargando bitácora...</div>
     </div>
 
-    <div class="fab-container">
+    <div class="fab-container-vertical">
+        
         {% if modalidad == 'CON_EQUIPOS' %}
-        <button id="fab-tools" class="fab-mini" title="Ver mis herramientas">
+        <button id="fab-tools" class="fab-global fab-mini" title="Ver mis herramientas">
             <i class="fas fa-tools"></i>
         </button>
         {% endif %}
         
-        <button id="fab-add-activity" class="fab-main" title="Nueva Actividad">
+        <button id="fab-add-activity" class="fab-global fab-primary" title="Nueva Actividad">
             <i class="fas fa-plus"></i>
         </button>
+        
     </div>
 
     <div class="floating-footer-zone">
