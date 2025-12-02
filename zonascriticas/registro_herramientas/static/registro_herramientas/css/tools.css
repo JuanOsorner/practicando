@@ -72,7 +72,7 @@
     border: 2px solid transparent; position: relative;
     display: flex; flex-direction: column; align-items: center;
     transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
-    animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: popIn 0.01s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     overflow: hidden; cursor: pointer;
 }
 .tool-card:active { transform: scale(0.98); }

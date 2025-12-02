@@ -1,51 +1,39 @@
-import { api } from '/static/home/js/core/api.js';
 import { ui } from '/static/home/js/core/ui.js';
 import { CameraModalManager } from '/static/home/js/core/camera_ui.js';
 import { GlobalPanel } from '/static/home/js/core/panel.js';
-import { PanelBuilder } from './ui_panel.js';
-import { imageUtils } from '/static/home/js/core/image.js'; // Importamos utilidades de imagen
+import { imageUtils } from '/static/home/js/core/image.js';
+
+// IMPORTAMOS UI CENTRALIZADA
+import { ActivitiesUI } from './ui_activities.js'; // CAMBIO AQUÍ
+
+// IMPORTAMOS EL SERVICIO API
+import * as activitiesApi from './apiService.js';
 
 // Herramientas (Si aplica)
 import { InventoryPanel } from '/static/registro_herramientas/js/inventory_panel.js'; 
 import * as toolsApi from '/static/registro_herramientas/js/apiService.js';
 
 class ActivitiesController {
+    // ... (Constructor y init igual que antes) ...
     constructor() {
         this.container = document.getElementById('activities-app');
         if (!this.container) return;
 
-        // Configuración
-        this.urls = {
-            listar: this.container.dataset.urlListar,
-            iniciar: this.container.dataset.urlIniciar,
-            finalizarBase: this.container.dataset.urlFinalizarActividad, 
-            salirZona: this.container.dataset.urlSalirZona
-        };
         this.modalidad = this.container.dataset.modalidad;
         
-        // --- LÓGICA DE RELOJ SINCRONIZADO ---
-        // 1. Obtenemos los segundos restantes que nos dio el servidor (ej: 28000)
         const segundosIniciales = parseInt(this.container.dataset.segundosRestantes) || 0;
-        
-        // 2. Calculamos la FECHA EXACTA en el futuro donde termina el turno.
-        // Date.now() nos da milisegundos, así que multiplicamos segundos * 1000
         this.endTime = new Date().getTime() + (segundosIniciales * 1000);
-        
         this.timerInterval = null;
 
-        // Estado App
         this.actividades = [];
         this.filtro = 'all';
         this.busqueda = '';
         
-        // Estado Temporal para Formulario
         this.tempImageBlob = null; 
 
-        // Módulos
         this.cameraModal = new CameraModalManager('modal-camera');
         this.grid = document.getElementById('activities-grid');
         
-        // Panel Herramientas
         if (this.modalidad === 'CON_EQUIPOS') {
             this.inventoryPanel = new InventoryPanel(
                 () => ui.showNotification('Catálogo actualizado', 'success'),
@@ -63,49 +51,54 @@ class ActivitiesController {
     }
 
     // =========================================================
-    // === 1. GESTIÓN DEL PANEL DE CREACIÓN (MEDIA FIRST) ======
+    // === 1. GESTIÓN DEL PANEL DE CREACIÓN ====================
     // =========================================================
 
     openCreationPanel() {
-        // Limpiamos blob anterior
         this.tempImageBlob = null;
-
-        // 1. Renderizar HTML
-        const html = PanelBuilder.getCreateForm();
+        
+        // 1. Generamos HTML pasando la lista actual de actividades
+        const html = ActivitiesUI.getCreateForm(this.actividades);
+        
         GlobalPanel.open({
             title: 'Nueva Actividad',
             contentHTML: html
         });
 
-        // 2. Bindear eventos DENTRO del panel
         const panelBody = GlobalPanel.getBodyElement();
         
-        // A. Clic en el recuadro de foto -> Abrir Cámara
+        // 2. Eventos del Formulario (Igual que antes)
         const triggerCamera = panelBody.querySelector('#trigger-camera-panel');
         if (triggerCamera) {
             triggerCamera.addEventListener('click', () => this.abrirCamaraParaInicio());
         }
 
-        // B. Clic en Guardar -> Enviar al Server
         const btnSave = panelBody.querySelector('#btn-save-activity');
         if (btnSave) {
             btnSave.addEventListener('click', () => this.intentarGuardarActividad());
         }
+
+        // 3. NUEVO: Eventos para la lista de pendientes interna
+        // Permitimos que al dar click en una tarjeta pendiente, se abra su detalle
+        const pendingCards = panelBody.querySelectorAll('.activity-card');
+        pendingCards.forEach(card => {
+            card.addEventListener('click', () => {
+                const id = card.dataset.id;
+                // Buscamos el objeto actividad completo
+                const act = this.actividades.find(a => a.id == id);
+                if (act) {
+                    // Abrimos el detalle (reemplaza el panel actual)
+                    this.openDetailPanel(act);
+                }
+            });
+        });
     }
 
-    // Paso intermedio: Abre cámara, captura blob, y vuelve al panel
+    // ... (abrirCamaraParaInicio, actualizarPreviewEnPanel, intentarGuardarActividad IGUALES) ...
     abrirCamaraParaInicio() {
-        // Ocultamos panel temporalmente (o lo dejamos atrás si el modal tiene z-index mayor)
-        // Para UX limpia, cerramos el GlobalPanel visualmente un momento o superponemos el modal.
-        // Dado que GlobalPanel limpia el HTML al cerrar, MEJOR NO LO CERRAMOS.
-        // El Modal de cámara tiene z-index alto, se pondrá encima.
-        
         this.cameraModal.open({
             onConfirm: async (data) => {
-                // AQUÍ OCURRE LA MAGIA: No enviamos, solo guardamos en memoria
                 this.tempImageBlob = data.blob;
-                
-                // Actualizamos la vista del Panel con la foto
                 this.cameraModal.close();
                 this.actualizarPreviewEnPanel(data.blob);
             }
@@ -119,11 +112,9 @@ class ActivitiesController {
         const container = panelBody.querySelector('.image-upload-container');
 
         if (imgPreview && blob) {
-            // Convertimos Blob a URL para mostrarlo
-            const url = await imageUtils.toBase64(blob); // O URL.createObjectURL(blob)
+            const url = await imageUtils.toBase64(blob);
             imgPreview.src = url;
             
-            // Switch de visualización
             imgPreview.style.display = 'block';
             if (placeholder) placeholder.style.display = 'none';
             if (container) container.classList.add('has-image');
@@ -137,11 +128,9 @@ class ActivitiesController {
         const titulo = titleInput.value.trim();
         const obs = obsInput.value.trim();
 
-        // Validaciones
         if (!this.tempImageBlob) return ui.showNotification('La foto de evidencia es obligatoria', 'warning');
         if (!titulo) return ui.showNotification('El título es obligatorio', 'warning');
 
-        // Envío
         const formData = new FormData();
         formData.append('titulo', titulo);
         formData.append('observacion_inicial', obs);
@@ -149,13 +138,11 @@ class ActivitiesController {
 
         ui.showLoading('Guardando actividad...');
         try {
-            await api.post(this.urls.iniciar, formData);
-            
+            await activitiesApi.iniciarActividad(formData);
             ui.hideLoading();
-            GlobalPanel.close(); // Ahora sí cerramos todo
+            GlobalPanel.close();
             ui.showNotification('Actividad registrada', 'success');
-            
-            this.tempImageBlob = null; // Limpieza
+            this.tempImageBlob = null;
             await this.cargarActividades();
         } catch (e) {
             ui.hideLoading();
@@ -164,11 +151,12 @@ class ActivitiesController {
     }
 
     // =========================================================
-    // === 2. DETALLE Y FINALIZACIÓN (Sin cambios mayores) =====
+    // === 2. DETALLE Y FINALIZACIÓN ===========================
     // =========================================================
 
     openDetailPanel(actividad) {
-        const html = PanelBuilder.getDetailView(actividad);
+        // CAMBIO: Usamos ActivitiesUI
+        const html = ActivitiesUI.getDetailView(actividad);
         GlobalPanel.open({ title: actividad.titulo, contentHTML: html });
 
         if (actividad.estado === 'EN_PROCESO') {
@@ -180,10 +168,8 @@ class ActivitiesController {
         }
     }
 
+    // ... (iniciarCierre, enviarCierreReal IGUALES) ...
     iniciarCierre(id, obsPrevia) {
-        // Para el cierre sí vamos directo a cámara -> server (flujo rápido)
-        // Opcional: Podrías hacer lo mismo de previsualizar, pero usualmente finalizar es rápido.
-        // Mantendremos el flujo: Botón -> Cámara -> Enviar
         this.cameraModal.open({
             initialObservaciones: obsPrevia,
             onConfirm: (data) => this.enviarCierreReal(id, data)
@@ -191,14 +177,15 @@ class ActivitiesController {
     }
 
     async enviarCierreReal(id, { blob, observaciones }) {
-        const url = this.urls.finalizarBase.replace('0', id);
         const formData = new FormData();
         formData.append('observacion_final', observaciones);
-        formData.append('foto_final', blob, 'fin.jpg');
+        if (blob) {
+             formData.append('foto_final', blob, 'fin.jpg');
+        }
         
         ui.showLoading('Finalizando...');
         try {
-            await api.post(url, formData);
+            await activitiesApi.finalizarActividad(id, formData);
             ui.hideLoading(); 
             this.cameraModal.close();
             GlobalPanel.close();
@@ -210,34 +197,23 @@ class ActivitiesController {
         }
     }
 
-    // =========================================================
-    // === 3. TIMER REAL (Sincronizado) ========================
-    // =========================================================
-
+    // ... (Timer logic IGUAL) ...
     startTimer() {
-        this.updateTimerUI(); // Ejecución inmediata
-        
-        // Usamos setInterval para actualizar la UI cada segundo
+        this.updateTimerUI();
         this.timerInterval = setInterval(() => {
             this.updateTimerUI();
         }, 1000);
     }
 
     updateTimerUI() {
-        // 1. Obtener tiempo actual real
         const now = new Date().getTime();
-        
-        // 2. Calcular diferencia contra la hora final fija (this.endTime)
         const distance = this.endTime - now;
         
-        // Si el tiempo ya pasó, mostrar 0 y limpiar (o manejar tiempo negativo si prefieres)
         if (distance < 0) {
-            // Opcional: clearInterval(this.timerInterval);
             this.renderTime(0);
             return;
         }
 
-        // 3. Convertir milisegundos a segundos enteros
         const safeSeconds = Math.floor(distance / 1000);
         this.renderTime(safeSeconds);
     }
@@ -247,7 +223,6 @@ class ActivitiesController {
         const minutes = Math.floor((safeSeconds % 3600) / 60);
         const seconds = safeSeconds % 60;
 
-        // Formato HH:MM:SS
         const display = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
         
         const textEl = document.getElementById('timer-countdown');
@@ -256,7 +231,6 @@ class ActivitiesController {
         
         if(textEl) textEl.textContent = display;
 
-        // Animación SVG (8 horas base)
         const totalBase = 28800; 
         const maxOffset = 283; 
         const percentage = Math.min(safeSeconds / totalBase, 1);
@@ -276,16 +250,17 @@ class ActivitiesController {
     }
 
     // =========================================================
-    // === 4. RENDERIZADO GRID (Igual que antes) ===============
+    // === 4. RENDERIZADO GRID =================================
     // =========================================================
     
     async cargarActividades(isFirstLoad = false) {
         try {
-            const data = await api.get(this.urls.listar);
+            const data = await activitiesApi.fetchActividades();
             this.actividades = data.actividades || [];
             this.render(isFirstLoad);
         } catch (e) {
             console.error(e);
+            if (!isFirstLoad) ui.showError("Error al cargar actividades");
         }
     }
 
@@ -303,27 +278,20 @@ class ActivitiesController {
         }
 
         filtradas.forEach(act => {
-            const card = document.createElement('div');
-            card.className = `activity-card status-${act.estado}`;
-            const icon = act.estado === 'EN_PROCESO' ? '<i class="fas fa-clock"></i>' : '<i class="fas fa-check-circle"></i>';
+            // CAMBIO: Usamos ActivitiesUI para generar el string HTML
+            const cardHTML = ActivitiesUI.createActivityCard(act);
             
-            card.innerHTML = `
-                <div class="card-header">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <div class="card-thumb" style="background-image:url('${act.foto_inicial || ''}')"></div>
-                        <span class="card-title">${act.titulo}</span>
-                    </div>
-                    <div class="status-icon">${icon}</div>
-                </div>
-                <div class="card-body" style="padding-top:10px;">
-                    <small style="color:#888;"><i class="fas fa-play"></i> ${act.hora_inicio}</small>
-                </div>
-            `;
+            // Convertimos string a nodo DOM para poder añadir listeners
+            const template = document.createElement('template');
+            template.innerHTML = cardHTML.trim();
+            const card = template.content.firstChild;
+
             card.addEventListener('click', () => this.openDetailPanel(act));
             this.grid.appendChild(card);
         });
     }
 
+    // ... (bindEvents, intentarCerrarZona, abrirPanelHerramientas, procesarAgregadoMasivo IGUALES) ...
     bindEvents() {
         document.getElementById('search-activity').addEventListener('input', (e) => {
             this.busqueda = e.target.value.toLowerCase();
@@ -351,7 +319,7 @@ class ActivitiesController {
          
          ui.showLoading();
          try {
-            await api.post(this.urls.salirZona, {});
+            await activitiesApi.salirZona();
             window.location.href = '/dashboard/';
          } catch(e) { ui.showError(e.message); }
     }

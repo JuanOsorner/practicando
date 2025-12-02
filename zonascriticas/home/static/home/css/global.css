@@ -667,3 +667,124 @@ body.panel-is-open .global-panel { transform: translateX(0); }
     from { transform: scale(0); }
     to { transform: scale(1); }
 }
+
+/* ============================================= */
+/* === 10. MODAL DE CÁMARA APP-STYLE (NUEVO) === */
+/* ============================================= */
+
+/* 1. El contenedor tipo tarjeta */
+.modal-content.camera-content {
+    background-color: #121212; /* Fondo negro elegante */
+    width: 95%;
+    max-width: 420px; /* Ancho similar a un móvil */
+    border-radius: 24px; /* Bordes muy redondeados */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    animation: slideUpFade 0.3s ease-out;
+    position: relative;
+}
+
+/* Animación de entrada suave */
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* 2. Header Flotante sobre el video */
+.camera-header-floating {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    padding: 15px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+}
+
+/* 3. Botones de icono "de cristal" (Glassmorphism) */
+.btn-icon-glass {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.2); /* Translúcido */
+    color: white; font-size: 1.2rem;
+    backdrop-filter: blur(5px);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+}
+.btn-icon-glass:hover { background: rgba(255, 255, 255, 0.3); transform: scale(1.05); }
+.btn-icon-glass:active { transform: scale(0.95); }
+.btn-icon-glass.mini { width: 44px; height: 44px; font-size: 1rem; background: rgba(255,255,255,0.1); }
+
+
+/* 4. Visor Cuadrado (1:1 Aspect Ratio) */
+.camera-viewport {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* Truco CSS para hacer un cuadrado perfecto */
+    background: #000;
+    border-radius: 0 0 24px 24px; /* Redondeamos un poco abajo para separarlo */
+    overflow: hidden;
+}
+.camera-viewport video, 
+.camera-viewport img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover; /* Asegura que llene el cuadrado sin deformarse */
+}
+
+
+/* 5. Área de Controles Inferior */
+.camera-controls-area {
+    padding: 25px 20px 30px 20px;
+    background: #121212;
+}
+
+.controls-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0 10px;
+}
+
+/* Input oscuro para el modo nocturno de la cámara */
+.styled-input-dark {
+    width: 100%; padding: 14px 16px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 16px;
+    font-size: 1rem; color: white; font-family: var(--fuente-principal);
+}
+.styled-input-dark::placeholder { color: #888; }
+.styled-input-dark:focus { outline: none; border-color: var(--color-primario-claro); background: #333; }
+
+
+/* 6. EL BOTÓN OBTURADOR (Shutter Button) */
+.shutter-button {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: transparent;
+    /* Borde blanco grueso externo */
+    border: 4px solid rgba(255,255,255,0.8);
+    padding: 4px; /* Espacio entre el borde y el círculo interno */
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.1s ease;
+}
+
+/* Círculo interno (el que se presiona) */
+.shutter-inner {
+    width: 100%; height: 100%;
+    background-color: white; /* Blanco puro */
+    border-radius: 50%;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* Efecto al presionar */
+.shutter-button:active { transform: scale(0.98); }
+.shutter-button:active .shutter-inner {
+    transform: scale(0.85); /* Se encoge al pulsar */
+    background-color: var(--color-acento); /* Opcional: cambia a color acento (dorado) al pulsar */
+    opacity: 0.9;
+}

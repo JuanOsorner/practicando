@@ -1,28 +1,48 @@
 <div id="modal-camera" class="modal-overlay hidden">
     <div class="modal-content camera-content">
-        <h3>Evidencia de Ingreso</h3>
         
+        <div class="camera-header-floating">
+            <button id="btn-close-camera" class="btn-icon-glass" title="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+            <h4 style="color:white; margin:0; font-weight:600; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                Tomar Evidencia
+            </h4>
+            <div style="width: 40px;"></div>
+        </div>
+
         <div class="camera-viewport">
             <video id="camera-video" autoplay playsinline></video>
-            <img id="camera-preview" class="hidden">
+            <img id="camera-preview" style="display:none;">
+            <canvas id="camera-canvas" style="display:none;"></canvas>
         </div>
         
         <input type="file" id="evidence-file-input" accept="image/*" style="display:none;">
-        
-        <div class="input-group">
-            <input type="text" id="entry-observaciones" placeholder="Observaciones (opcional)" class="styled-input-dark">
-        </div>
-        
-        <div class="camera-controls">
-            <button id="btn-gallery" class="btn-secondary-icon"><i class="fas fa-image"></i></button>
-            <button id="btn-capture" class="btn-camera-action"><i class="fas fa-circle"></i></button>
+
+        <div class="camera-controls-area">
             
-            <div id="post-capture-actions" class="hidden" style="display: flex; gap: 15px;">
-                <button id="btn-retry" class="btn-secondary"><i class="fas fa-redo"></i></button>
-                <button id="btn-confirm-entry" class="btn-primary"><i class="fas fa-check"></i> Guardar</button>
+            <div id="pre-capture-controls" class="controls-row">
+                <button type="button" class="btn-icon-glass mini" id="btn-gallery-placeholder">
+                    <i class="fas fa-images"></i>
+                </button>
+
+                <button id="btn-capture" class="shutter-button">
+                    <span class="shutter-inner"></span>
+                </button>
+
+                 <button type="button" class="btn-icon-glass mini" id="btn-switch-camera">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+
+            <div id="post-capture-controls" class="controls-row hidden" style="gap: 15px;">
+                <button id="btn-retry" class="btn-secondary-icon" style="border:none; background: #333; color:white;">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button id="btn-confirm-photo" class="btn-primary" style="flex-grow: 1; justify-content: center; border-radius: 25px;">
+                    <i class="fas fa-check"></i> Usar Foto
+                </button>
             </div>
         </div>
-        
-        <button class="btn-close-top" data-close="modal-camera"><i class="fas fa-times"></i></button>
     </div>
 </div>
