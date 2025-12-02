@@ -292,7 +292,20 @@ class ToolsManager {
         document.getElementById('btn-confirm-delete').onclick = () => this.confirmBulkDelete();
         document.getElementById('btn-cancel-delete').onclick = () => this.toggleDeleteMode(false);
         document.getElementById('btn-open-new-modal').onclick = () => this.inventoryPanel.open(this.fullInventory, this.admittedItems.map(i => i.id));
-        document.getElementById('btn-finish').onclick = () => this.handleFinish();
+        document.getElementById('btn-finish').onclick = async () => {
+            try {
+                const confirmado = await ui.confirm(
+                    '¿Estas seguro que deseas finalizar el registro de herramientas?', 
+                    `Una vez finalizado el registro no podras sacar las herramientas de la zona`, 
+                    'Sí, continuar'
+                );
+                if (confirmado) {
+                    this.handleFinish();
+                }
+            } catch (error) {
+                console.error('Error en la confirmación:', error);
+            }
+        };
         
         // Tabs y Search... (copiar de la versión anterior)
         const searchInput = document.getElementById('main-search-input');
