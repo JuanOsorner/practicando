@@ -56,10 +56,10 @@ export const ActivitiesUI = {
                 
                 <div class="image-upload-container" id="trigger-camera-panel">
                     <img id="panel-img-preview" class="image-preview-full" style="display:none;">
-                    <div id="panel-img-placeholder" style="text-align:center;">
-                        <i class="fas fa-camera"></i>
-                        <span>Tocar para tomar foto</span>
-                    </div>
+                    <div class="image-upload-placeholder" id="ref-placeholder">
+                            <i class="fas fa-camera"></i>
+                            <span class = "texto-imagen">Toca para agregar foto</span>
+                        </div>
                 </div>
 
                 <div class="panel-section">
@@ -80,10 +80,10 @@ export const ActivitiesUI = {
                     </button>
                 </div>
                 
-                <div class="panel-section" style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
-                    <h4 class="pending-section-title" style="color: #c0392b; display:flex; justify-content:space-between;">
-                        <span><i class="fas fa-exclamation-circle"></i> Actividades pendientes </span>
-                        <span style="background:#ffebee; padding:2px 10px; border-radius:12px; font-size:0.8rem;">${count}</span>
+                <div class="panel-section" style="margin-top: 30px; padding-top: 20px;">
+                    <h4 class="pending-section-title">
+                        <i class="fas fa-exclamation-circle"></i> Actividades pendientes
+                        <span class="pending-count-badge">${count}</span>
                     </h4>
                     
                     <div class="pending-list-container" style="max-height: 300px; overflow-y: auto; padding: 2px;">
