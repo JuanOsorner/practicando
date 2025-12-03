@@ -84,27 +84,56 @@ class ActividadesService:
         return Actividad.objects.filter(registro_ingreso=ingreso).order_by('-hora_inicio')
 
     @staticmethod
-    def calcular_tiempo_restante(usuario, ingreso) -> int:
+    def forzar_salida_por_tiempo(usuario):
         """
-        Calcula los segundos restantes de la jornada del usuario basado en la HORA DE INGRESO.
-        Jornada estándar = 8 horas.
+        Cierra el ingreso, dejando las actividades en su estado actual (EN_PROCESO).
+        Esto sirve de evidencia de tareas inconclusas.
         """
-        DURACION_JORNADA_HORAS = 8
-        
-        if not ingreso:
-            return 0
+        ingreso = RegistroIngreso.objects.filter(
+            visitante=usuario,
+            estado=RegistroIngreso.EstadoOpciones.EN_ZONA
+        ).first()
 
-        # Usamos la hora actual con zona horaria
-        ahora = timezone.localtime(timezone.now())
-        
-        # La hora de entrada ya viene con zona horaria desde la BD si USE_TZ=True
-        hora_entrada = ingreso.fecha_hora_ingreso
-        
-        # Calcular Hora Límite
-        hora_limite = hora_entrada + timedelta(hours=DURACION_JORNADA_HORAS)
-        
-        # Calcular diferencia en segundos
-        diferencia = hora_limite - ahora
-        segundos = int(diferencia.total_seconds())
-        
-        return max(0, segundos)
+        if ingreso:
+            ingreso.fecha_hora_salida = timezone.now()
+            ingreso.estado = RegistroIngreso.EstadoOpciones.FINALIZADO 
+            ingreso.observaciones_salida = "Cierre automático del sistema: Tiempo de jornada agotado."
+            ingreso.save()
+            return True
+        return False
+    
+    @staticmethod
+    def cerrar_ingreso_zona(usuario):
+        """
+        Cierra el ingreso actual del usuario (Salida Voluntaria).
+        Cambia estado a FINALIZADO (o PENDIENTE_FIRMA según tu flujo).
+        """
+        ingreso = RegistroIngreso.objects.filter(
+            visitante=usuario,
+            estado=RegistroIngreso.EstadoOpciones.EN_ZONA
+        ).first()
+
+        if not ingreso:
+            raise ValidationError("No hay un ingreso activo para cerrar.")
+
+        # Validamos si hay actividades pendientes
+        actividades_pendientes = Actividad.objects.filter(
+            registro_ingreso=ingreso,
+            estado=Actividad.EstadoActividad.EN_PROCESO
+        ).exists()
+
+        if actividades_pendientes:
+            # Aquí decides tu regla de negocio:
+            # Opción A: No dejar salir (raise ValidationError)
+            # Opción B: Dejar salir pero advertir (retornar warning)
+            # Opción C (Elegida): Permitir salir, quedan como evidencia inconclusa.
+            pass 
+
+        # Actualizamos el ingreso
+        ingreso.fecha_hora_salida = timezone.now()
+        # IMPORTANTE: Si tu flujo requiere firmar PDF al salir, el estado debería ser
+        # algo como 'PENDIENTE_FIRMA'. Si es salida directa, usa 'FINALIZADO'.
+        ingreso.estado = RegistroIngreso.EstadoOpciones.FINALIZADO 
+        ingreso.save()
+
+        return ingreso

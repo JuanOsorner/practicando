@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'descargo_responsabilidad',
     'registro_herramientas',
     'actividades',
+    'registros',
 ]
 
 #➡️ Este es nuestro scanner de seguridad: este es el filtro que deben pasar las peticiones y las respuestas
@@ -130,12 +131,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+# AJUSTAMOS LAS FECHAS A COLOMBIA
 
-TIME_ZONE = 'UTC'
+LANGUAGE_CODE = 'es-co'
+
+TIME_ZONE = 'America/Bogota' 
 
 USE_I18N = True
-
 USE_TZ = True
 
 

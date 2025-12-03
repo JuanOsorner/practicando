@@ -1,6 +1,7 @@
 /**
- * core/api.js (Refactorizado v1.1)
+ * core/api.js (Versión 2.0 - Seguridad Integrada)
  * Cliente HTTP Global con soporte Híbrido (Legacy + Standard).
+ * Incluye interceptor de seguridad para expulsión automática por tiempo.
  */
 
 function getCookie(name) {
@@ -39,36 +40,69 @@ async function request(url, method, body = null) {
     try {
         const response = await fetch(url, config);
         
-        // 1. Verificación de Sesión / Errores de Servidor HTML
+        // 1. Verificación de Integridad de Respuesta
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             if(response.status === 403 || response.status === 401) {
-                 throw new Error("Sesión expirada o no autorizada. Recarga la página.");
+                 // Caso: Expiración de sesión de Django (Login required)
+                 window.location.reload(); 
+                 throw new Error("Sesión expirada. Recargando...");
             }
             if(response.status >= 500) {
                 throw new Error(`Error crítico del servidor (${response.status}). Contacta a soporte.`);
             }
-            // Si devuelve HTML inesperado (ej: debug page)
-            throw new Error(`Respuesta no válida del servidor (Formato no JSON).`);
+            throw new Error(`Respuesta no válida del servidor (Se esperaba JSON).`);
         }
 
         const data = await response.json();
 
-        // --- 2. ADAPTADOR DE RESPUESTAS (El Cerebro Nuevo) ---
+        // ==================================================================
+        // 🛡️ INTERCEPTOR DE SEGURIDAD: CONTROL DE TIEMPO / JORNADA 🛡️
+        // ==================================================================
+        // Verificamos si el Decorador @requiere_tiempo_activo nos bloqueó.
+        // El status suele ser 403 y el mensaje clave "TIEMPO_AGOTADO".
+        if (response.status === 403 && data.message === 'TIEMPO_AGOTADO') {
+            
+            const redirectUrl = (data.payload && data.payload.redirect_url) 
+                                ? data.payload.redirect_url 
+                                : '/'; // Fallback seguro
 
-        // CASO A: Respuesta Estandarizada (Nuevo Helper Python: api_response)
-        // Estructura: { success, message, payload, timestamp }
+            // Usamos SweetAlert2 para un bloqueo visual inmediato
+            await Swal.fire({
+                icon: 'warning',
+                title: '⏳ Tiempo Agotado',
+                text: 'El tiempo asignado para tu jornada ha finalizado. Serás redirigido para el cierre.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                confirmButtonColor: '#352460', // Tu color corporativo
+                confirmButtonText: 'Entendido',
+                timer: 4000,
+                timerProgressBar: true
+            });
+
+            // Redirección Forzosa (replace borra el historial para que no puedan volver atrás)
+            window.location.replace(redirectUrl);
+
+            // Lanzamos un error silencioso para detener cualquier ejecución posterior en el controlador
+            throw new Error("Jornada finalizada por el servidor.");
+        }
+        // ==================================================================
+
+
+        // --- 2. ADAPTADOR DE RESPUESTAS (Manejo de formatos) ---
+
+        // CASO A: Respuesta Estandarizada (api_response de Python)
+        // Estructura: { success: bool, message: str, payload: any }
         if ('success' in data && 'payload' in data) {
             if (!data.success) {
                 // Si success es false, lanzamos error con el mensaje del backend
                 throw new Error(data.message || 'Error en la operación');
             }
-            // ÉXITO: Retornamos SOLO el payload para que el controlador no note el cambio
+            // ÉXITO: Retornamos SOLO el payload para limpieza en controladores
             return data.payload;
         }
 
-        // CASO B: Respuesta Legacy "Status/Data" (Usado en Herramientas/Empresas antiguo)
-        // Estructura: { status: boolean, data: ... }
+        // CASO B: Respuesta Legacy "Status/Data"
         if ('status' in data && 'data' in data) {
              if (!data.status) {
                  throw new Error(data.mensaje || data.message || 'Error en la operación');
@@ -76,25 +110,30 @@ async function request(url, method, body = null) {
              return data.data;
         }
 
-        // CASO C: Respuesta Legacy "Success/Data" (Variante)
+        // CASO C: Respuesta Legacy "Success/Data"
         if ('success' in data && 'data' in data) {
-             // Algunas vistas devolvían esto manualmente
+             if (!data.success) {
+                throw new Error(data.message || 'Error desconocido');
+             }
              return data.data;
         }
 
-        // CASO D: Fallback Genérico (Django Error Dict o Raw Data)
-        // Si el status HTTP no es OK, asumimos que el JSON contiene detalles del error
+        // CASO D: Fallback Genérico (Errores de Django o DRF)
         if (!response.ok) {
-            // Buscamos claves comunes de error
+            // Buscamos claves comunes de error en objetos de error de Django
             throw new Error(data.error || data.message || data.detail || 'Error desconocido en la petición');
         }
 
-        // Si llegó aquí, es un JSON crudo exitoso (ej: { "empresas": [...] })
+        // Si llegó aquí, es un JSON crudo exitoso
         return data;
 
     } catch (error) {
-        console.error("API Error:", error);
-        throw error; // Re-lanzamos para que el controlador lo maneje (UI)
+        // Log para depuración, pero no mostramos alerta aquí (la UI se encarga)
+        // A menos que sea la redirección, que ya la manejamos arriba.
+        if (error.message !== "Jornada finalizada por el servidor.") {
+            console.error("API Error:", error);
+        }
+        throw error; // Re-lanzamos para que el controlador (UI) muestre el mensaje si es necesario
     }
 }
 

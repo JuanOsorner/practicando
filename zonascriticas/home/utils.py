@@ -2,12 +2,13 @@ import os
 import uuid
 import base64
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.http import JsonResponse
 from django.utils.deconstruct import deconstructible
 from typing import Any, Optional
 from django.core.files.base import ContentFile
 from fpdf import FPDF
+from django.utils import timezone
 
 # Configurar logger
 logger = logging.getLogger(__name__)
@@ -18,9 +19,12 @@ Incluye:
 1. Gestión de Archivos (Rutas)
 2. Respuestas API Estandarizadas
 3. Motor de Generación de PDF (PDFEngine)
+4. Lógica de Tiempo y Jornada (CronometroJornada)
 """
 
-# --- 1. GESTIÓN DE ARCHIVOS ---
+# ======================================================
+# === 1. GESTIÓN DE ARCHIVOS ===
+# ======================================================
 
 @deconstructible
 class GeneradorRutaArchivo:
@@ -38,7 +42,9 @@ class GeneradorRutaArchivo:
             nuevo_nombre
         )
 
-# --- 2. HELPERS API ---
+# ======================================================
+# === 2. HELPERS API ===
+# ======================================================
 
 def api_response(data: Any = None, success: bool = True, message: str = "Operación exitosa", status_code: int = 200) -> JsonResponse:
     response_data = {
@@ -69,7 +75,9 @@ def decodificar_imagen_base64(data_uri: str, nombre_archivo: str = "archivo.png"
     return ContentFile(decoded_file, name=nombre_archivo)
 
 
-# --- 3. MOTOR PDF (NUEVO) ---
+# ======================================================
+# === 3. MOTOR PDF ===
+# ======================================================
 
 class BrandPDF(FPDF):
     """
@@ -267,3 +275,80 @@ class PDFGenerator:
         pdf.set_xy(140, y_texto)
         pdf.multi_cell(50, 4, f"Firma del Autorizador\n{registro.responsable.first_name}\nCC: {registro.responsable.numero_documento}", align="C")
         pdf.line(140, y_texto, 190, y_texto)
+
+
+# ======================================================
+# === 4. LÓGICA DE TIEMPO (CRONÓMETRO) ===
+# ======================================================
+
+class CronometroJornada:
+    # Configuración por defecto (Solo se usa si el usuario NO tiene hora asignada)
+    DURACION_ESTANDAR_HORAS = 8 
+
+    @staticmethod
+    def get_ingreso_activo(user):
+        """Busca si el usuario tiene un ingreso activo en zona."""
+        from descargo_responsabilidad.models import RegistroIngreso
+        return RegistroIngreso.objects.filter(
+            visitante=user,
+            estado=RegistroIngreso.EstadoOpciones.EN_ZONA
+        ).first()
+
+    @staticmethod
+    def calcular_segundos_restantes(ingreso) -> int:
+        """
+        Calcula el tiempo basándose en la configuración del USUARIO.
+        Prioridad:
+        1. 'tiempo_limite_jornada' en la tabla Usuarios.
+        2. Si es nulo, usa 8 horas desde la entrada.
+        """
+        if not ingreso or not ingreso.fecha_hora_ingreso:
+            return 0
+            
+        usuario = ingreso.visitante
+        
+        # 1. Obtenemos hora actual con zona horaria (Colombia)
+        ahora = timezone.localtime(timezone.now())
+        
+        # 2. Obtenemos la fecha/hora de entrada en zona horaria local
+        entrada_local = timezone.localtime(ingreso.fecha_hora_ingreso)
+
+        # 3. LÓGICA DE DECISIÓN
+        if usuario.tiempo_limite_jornada:
+            # CASO A: El usuario tiene hora fija de salida (ej: 19:22:00)
+            hora_limite_usuario = usuario.tiempo_limite_jornada
+            
+            # Combinamos la FECHA de entrada con la HORA límite del usuario
+            # Ejemplo: Entró hoy a las 8:00 AM, su límite es hoy a las 19:22
+            limite = entrada_local.replace(
+                hour=hora_limite_usuario.hour,
+                minute=hora_limite_usuario.minute,
+                second=hora_limite_usuario.second,
+                microsecond=0
+            )
+            
+            # Ajuste para turnos nocturnos (Cruza la medianoche):
+            # Si entró a las 10 PM y su salida es a las 2 AM, 
+            # al combinar fecha de hoy + 2 AM, la fecha límite quedaría en el PASADO.
+            # Si límite es menor que entrada, significa que es el día siguiente.
+            if limite < entrada_local:
+                limite += timedelta(days=1)
+                
+        else:
+            # CASO B: No tiene hora asignada, usamos duración estándar (8 horas)
+            limite = entrada_local + timedelta(hours=CronometroJornada.DURACION_ESTANDAR_HORAS)
+        
+        # 4. Calcular diferencia
+        diferencia = limite - ahora
+        return int(diferencia.total_seconds())
+
+    @staticmethod
+    def esta_vencido(user) -> bool:
+        """
+        Retorna True si el tiempo se acabó.
+        """
+        ingreso = CronometroJornada.get_ingreso_activo(user)
+        if not ingreso:
+            return True 
+            
+        return CronometroJornada.calcular_segundos_restantes(ingreso) <= 0
