@@ -9,20 +9,22 @@ django.setup()
 from django.utils import timezone
 from login.models import Usuario
 from descargo_responsabilidad.models import RegistroIngreso
-from home.utils import CronometroJornada
 
 # --- CONFIGURACIÓN ---
-USERNAME_A_PROBAR = 'juan.osorno'  # <--- AJUSTA ESTO A TU USUARIO REAL
+# Pon aquí tu número de documento real
+DOCUMENTO_A_PROBAR = '1234567891' 
 # ---------------------
 
 def depurar_tiempo():
     print("🔬 --- INICIANDO DIAGNÓSTICO DE TIEMPO ---")
     
     try:
-        usuario = Usuario.objects.get(username=USERNAME_A_PROBAR)
+        # ✅ CORRECCIÓN: Buscamos por numero_documento dentro del try/except
+        usuario = Usuario.objects.get(numero_documento=DOCUMENTO_A_PROBAR)
         print(f"👤 Usuario encontrado: {usuario.get_full_name()} (ID: {usuario.id})")
+        print(f"   Hora límite configurada: {usuario.tiempo_limite_jornada}")
     except Usuario.DoesNotExist:
-        print("❌ Error: Usuario no encontrado.")
+        print(f"❌ Error: Usuario con documento {DOCUMENTO_A_PROBAR} no encontrado.")
         return
 
     # Buscar ingreso activo
@@ -57,20 +59,22 @@ def depurar_tiempo():
         hora_limite_usuario = usuario.tiempo_limite_jornada
         print(f"   • Configuración Usuario:  {hora_limite_usuario} (Hora fija)")
         
-        # EL PASO DONDE OCURRE EL ERROR COMÚN:
-        # Reemplazamos la hora de la fecha de entrada
+        # Combinamos fecha de entrada con hora límite
         limite = entrada_local.replace(
             hour=hora_limite_usuario.hour,
             minute=hora_limite_usuario.minute,
             second=hora_limite_usuario.second,
             microsecond=0
         )
-        print(f"   • Límite Calculado (A):   {limite}")
         
-        # Ajuste nocturno
+        # Ajuste nocturno (si la hora de salida es menor a la de entrada, es el día siguiente)
+        # Nota: Esto asume turnos < 24h. Si entra hoy a las 8am y sale hoy a las 7pm, esto no se ejecuta.
         if limite < entrada_local:
             limite += timedelta(days=1)
             print(f"   • Ajuste Nocturno (+1d):  {limite}")
+            
+        print(f"   • Límite Calculado (A):   {limite}")
+            
     else:
         print("   • Configuración:          8 Horas (Default)")
         limite = entrada_local + timedelta(hours=8)
@@ -91,20 +95,22 @@ def depurar_tiempo():
         print("\n✅ ESTADO: ACTIVO (Tienes tiempo)")
 
     # --- OPCIÓN DE AUTO-CORRECCIÓN ---
-    print("\n🛠️  ACCIONES:")
-    print("¿Quieres actualizar la fecha de entrada a HOY para arreglarlo?")
-    confirmacion = input("Escribe 'si' para arreglarlo: ")
-    
-    if confirmacion.lower() == 'si':
-        # Mantenemos la hora original, pero cambiamos año/mes/día a hoy
-        nueva_fecha = ahora.replace(
-            hour=entrada_local.hour, 
-            minute=entrada_local.minute, 
-            second=entrada_local.second
-        )
-        ingreso.fecha_hora_ingreso = nueva_fecha
-        ingreso.save()
-        print("✅ Fecha actualizada correctamente. Intenta entrar al sistema ahora.")
+    # Solo ofrecemos arreglarlo si la fecha está mal (es vieja)
+    if entrada_local.date() != ahora.date():
+        print("\n🛠️  ACCIONES:")
+        print("¿Quieres actualizar la fecha de entrada a HOY para arreglarlo?")
+        confirmacion = input("Escribe 'si' para arreglarlo: ")
+        
+        if confirmacion.lower() == 'si':
+            # Mantenemos la hora original, pero cambiamos año/mes/día a hoy
+            nueva_fecha = ahora.replace(
+                hour=entrada_local.hour, 
+                minute=entrada_local.minute, 
+                second=entrada_local.second
+            )
+            ingreso.fecha_hora_ingreso = nueva_fecha
+            ingreso.save()
+            print("✅ Fecha actualizada correctamente. Intenta entrar al sistema ahora.")
 
 if __name__ == '__main__':
     depurar_tiempo()
