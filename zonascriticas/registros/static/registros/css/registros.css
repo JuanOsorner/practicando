@@ -1,0 +1,379 @@
+/* =========================================
+   ESTILOS PRINCIPALES: REGISTROS
+   ========================================= */
+
+/* --- 1. Contenedor y Layout General --- */
+.registros-container {
+    padding: 1.5rem 2rem;
+    background-color: #f8f9fa; /* Fondo gris muy suave */
+    min-height: calc(100vh - 60px); /* Ajuste para navbar */
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+}
+
+.page-header h2 {
+    color: #352460; /* Tu color corporativo morado */
+    font-weight: 700;
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.subtitle {
+    color: #6c757d;
+    margin-top: 0.25rem;
+    font-size: 0.95rem;
+}
+
+/* --- 2. Estilos para el Grid de Syncfusion --- */
+
+/* Ajuste general de filas */
+.e-grid .e-rowcell {
+    font-size: 0.9rem !important;
+    vertical-align: middle !important; /* Centrado vertical */
+}
+
+.e-headertext {
+    font-weight: 700 !important;
+    color: #495057 !important;
+}
+
+/* --- 3. Columna: Visitante (Avatar y Texto) --- */
+.grid-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%; /* Hace la imagen circular */
+    object-fit: cover;  /* Evita que la foto se estire/aplaste */
+    border: 2px solid #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.avatar-wrapper {
+    flex-shrink: 0; /* Evita que el avatar se encoja */
+}
+
+.info-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    line-height: 1.3;
+}
+
+/* --- 4. Columna: Estado (Badges Soft) --- */
+.badge {
+    padding: 0.5em 0.85em;
+    border-radius: 50rem; /* Píldora perfecta */
+    font-weight: 600;
+    font-size: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+    border: 1px solid transparent;
+}
+
+/* Estado: En Zona (Verde) */
+.badge-soft-success {
+    background-color: #d1e7dd;
+    color: #0f5132;
+    border-color: #badbcc;
+}
+
+/* Estado: Finalizado (Rojo) */
+.badge-soft-danger {
+    background-color: #f8d7da;
+    color: #842029;
+    border-color: #f5c2c7;
+}
+
+/* Estado: Mantenimiento/Otro (Amarillo) */
+.badge-soft-warning {
+    background-color: #fff3cd;
+    color: #664d03;
+    border-color: #ffecb5;
+}
+
+/* Estado: Default (Gris) */
+.badge-soft-secondary {
+    background-color: #e2e3e5;
+    color: #41464b;
+    border-color: #d3d6d8;
+}
+
+/* --- 5. Columna: Cronología (Tiempos) --- */
+.time-wrapper {
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #555;
+    white-space: nowrap;
+}
+
+.time-row i {
+    width: 14px; /* Alineación fija de iconos */
+    text-align: center;
+}
+
+.duration-badge {
+    display: inline-block;
+    background: #e9ecef;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    color: #495057;
+    font-weight: 600;
+    width: fit-content;
+    margin-top: 2px;
+    border: 1px solid #dee2e6;
+}
+
+/* --- 6. Columna: Acciones (Botones) --- */
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.btn-icon i {
+    font-size: 1rem;
+}
+
+.btn-icon:hover {
+    background-color: #f8f9fa;
+    border-color: #cdd4da;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.btn-icon:active {
+    transform: translateY(0);
+}
+
+/* --- 7. Adaptabilidad Móvil (Responsive) --- */
+@media (max-width: 768px) {
+    .registros-container {
+        padding: 0.5rem;
+        height: auto;
+        min-height: 100vh; /* Asegurar fondo */
+    }
+
+    /* Forzar que el grid tenga presencia física */
+    #GridRegistros {
+        display: block !important;
+        min-height: 500px; /* Altura mínima para evitar colapso */
+    }
+
+    /* AJUSTE MODO VERTICAL (TARJETAS) */
+    .e-grid .e-content {
+        overflow-y: visible !important; /* Permitir scroll nativo */
+        height: auto !important;
+    }
+
+    /* Convertir la fila en una Tarjeta Visible */
+    .e-grid .e-row {
+        display: flex !important;
+        flex-direction: column;
+        background: white;
+        margin-bottom: 15px; /* Separación entre tarjetas */
+        padding: 15px;
+        border-radius: 16px; /* Bordes más redondeados */
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Sombra más fuerte para que destaque del fondo */
+        border: 1px solid #e9ecef;
+        height: auto !important;
+        position: relative; /* Para posicionamiento absoluto si hiciera falta */
+    }
+
+    /* Celdas internas */
+    .e-grid .e-rowcell {
+        display: flex !important;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0 !important;
+        border-bottom: 1px dashed #eee;
+        width: 100% !important;
+        text-align: right;
+        background: transparent !important; /* Evitar que tape cosas */
+    }
+
+    /* La última celda (Botones) sin borde */
+    .e-grid .e-rowcell:last-child {
+        border-bottom: none;
+        justify-content: center;
+        padding-top: 15px !important;
+    }
+
+    /* Labels (Etiquetas) */
+    .e-grid .e-rowcell::before {
+        content: attr(data-label);
+        font-weight: 800;
+        color: #352460;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        opacity: 0.8;
+    }
+    
+    /* Ocultar cabecera de la tabla */
+    .e-grid .e-headercontent {
+        display: none;
+    }
+
+    /* Ajuste de avatar en móvil */
+    .d-flex.align-items-center.gap-3 {
+        flex-direction: row-reverse; 
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* --- ESTILOS ESPECÍFICOS PARA MÓVIL Y BUSCADOR --- */
+
+/* Ajuste de la barra de búsqueda */
+.e-toolbar {
+    border-bottom: 1px solid #dee2e6 !important;
+    background: #fff !important;
+}
+
+.e-toolbar .e-toolbar-items {
+    background: transparent !important;
+}
+
+/* =========================================
+   ESTILOS DEL PANEL LATERAL (TIMELINE)
+   ========================================= */
+
+.timeline-container {
+    position: relative;
+    padding-left: 20px;
+    border-left: 2px solid #e9ecef;
+    margin-top: 10px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+    padding-left: 20px;
+}
+
+/* Bolita del Timeline */
+.timeline-marker {
+    position: absolute;
+    left: -27px; /* Ajustar según padding */
+    top: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #e9ecef;
+    background-color: #adb5bd;
+}
+.timeline-marker.success { background-color: #28a745; box-shadow: 0 0 0 2px #c3e6cb; }
+.timeline-marker.secondary { background-color: #6c757d; }
+
+/* Contenido de la Card */
+.timeline-content {
+    background: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    transition: transform 0.2s;
+}
+.timeline-item.highlight .timeline-content {
+    border-left: 4px solid #352460;
+    background: #fdfdff;
+}
+
+.timeline-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+.timeline-zone {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #352460;
+    margin: 8px 0;
+}
+
+.timeline-times {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    color: #495057;
+}
+.timeline-duration {
+    margin-left: auto;
+    font-weight: 600;
+    color: #352460;
+    background: #f3f0fa;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+/* Botones de Documentos (Pills) */
+.timeline-docs {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+.doc-pill {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+.doc-entry { background: #e3f2fd; color: #0d47a1; }
+.doc-entry:hover { background: #bbdefb; }
+.doc-exit { background: #ffebee; color: #b71c1c; }
+.doc-exit:hover { background: #ffcdd2; }
+
+/* Botón Reactivar */
+.btn-reactivar-timeline {
+    display: block;
+    width: 100%;
+    margin-top: 12px;
+    padding: 8px;
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-reactivar-timeline:hover {
+    background: #ffe8a1;
+}

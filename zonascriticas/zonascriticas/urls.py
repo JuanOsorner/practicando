@@ -26,6 +26,7 @@ urlpatterns = [
 
     path('actividades/', include('actividades.urls')),
 
+    path('registros/', include('registros.urls')),
 ]
 
 # Esto le dice a Django que sirva los archivos de MEDIA_ROOT en la URL MEDIA_URL

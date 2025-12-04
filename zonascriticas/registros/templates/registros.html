@@ -1,0 +1,27 @@
+{% extends 'home.html' %}
+{% load static %}
+
+{% block title %}Torre de Control - Registros{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'registros/css/registros.css' %}">
+    <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/tailwind.css" />
+{% endblock %}
+
+{% block content %}
+<div class="registros-container">
+    <div class="page-header">
+        <h2 class="d-none d-md-block"><i class="fas fa-tower-observation"></i> Torre de Control de Accesos</h2>
+        <h3 class="d-block d-md-none">Registros</h3> </div>
+
+    <div id="GridRegistros"></div>
+</div>
+{% endblock %}
+
+{% block content_mobile %}
+    {% endblock %}
+
+{% block scripts %}
+    <script src="https://cdn.syncfusion.com/ej2/dist/ej2.min.js"></script>
+    <script type="module" src="{% static 'registros/js/main.js' %}"></script>
+{% endblock %}
