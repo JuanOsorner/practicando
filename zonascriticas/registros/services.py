@@ -1,5 +1,3 @@
-# zonascriticas/registros/services.py
-
 from django.db.models import Max, Q, Exists, OuterRef, F
 from django.utils import timezone
 from django.db import transaction
@@ -54,28 +52,22 @@ class RegistrosService:
         with transaction.atomic():
             ingreso = RegistroIngreso.objects.select_for_update().get(pk=ingreso_id)
 
-            # 1. Actualizar Usuario (Tiempo Límite)
+            # 1. Actualizar Hora Límite en Usuario
             from datetime import datetime
             nueva_hora_time = datetime.strptime(nueva_hora_limite_str, '%H:%M').time()
             usuario = ingreso.visitante
             usuario.tiempo_limite_jornada = nueva_hora_time
             usuario.save()
 
-            # 2. Limpiar rastro de salida anterior (PDF y Fecha)
+            # 2. Borrar PDF de salida anterior (ya no es válido)
             if ingreso.pdf_reporte_salida:
                 ingreso.pdf_reporte_salida.delete()
                 ingreso.pdf_reporte_salida = None
             
-            # 3. "Rejuvenecer" el registro
-            ahora = timezone.now()
-            ingreso.fecha_hora_ingreso = ahora
+            # 3. Resetear Ingreso
+            ingreso.fecha_hora_ingreso = timezone.now() # Actualizamos fecha a HOY
             ingreso.fecha_hora_salida = None
             ingreso.estado = RegistroIngreso.EstadoOpciones.EN_ZONA
             
-            # --- CORRECCIÓN: Eliminamos la linea que causaba el crash ---
-            # Si tu modelo tiene un campo 'observaciones', úsalo. Si no, no guardamos log.
-            # ingreso.observaciones = (ingreso.observaciones or "") + f" [REACTIVADO]" 
-            
             ingreso.save()
-            
             return ingreso

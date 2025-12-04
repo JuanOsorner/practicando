@@ -82,17 +82,15 @@ export class RegistrosController {
             args.cell.setAttribute('data-label', args.column.headerText);
         }
 
+        // Lógica de Renderizado
         if (args.column.field === 'visitante_nombre') {
-            args.cell.innerHTML = GridConfig.columnaVisitante(args.data);
-        }
-        else if (args.column.field === 'empresa') {
-            args.cell.innerHTML = GridConfig.columnaEmpresa(args.data);
+            args.cell.innerHTML = GridConfig.columnaPerfil(args.data);
         }
         else if (args.column.field === 'estado_actual') {
-            args.cell.innerHTML = GridConfig.columnaEstadoActual(args.data);
+            args.cell.innerHTML = GridConfig.columnaEstado(args.data);
         }
-        else if (args.column.headerText === 'Detalle') {
-            args.cell.innerHTML = GridConfig.columnaAcciones(args.data);
+        else if (args.column.field === 'ultima_visita') {
+            args.cell.innerHTML = GridConfig.columnaUltimoIngreso(args.data);
         }
     }
 

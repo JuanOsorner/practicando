@@ -36,54 +36,106 @@ export class PanelRegistrosUI {
     }
 
     static renderTimeline(historial) {
+        // 1. Validar si está vacío
         if (!historial || historial.length === 0) {
-            return '<p class="text-center text-muted p-4">No hay registros históricos para este usuario.</p>';
+            return `
+                <div class="text-center p-5">
+                    <div class="mb-3">
+                        <i class="fas fa-folder-open fa-3x text-muted opacity-25"></i>
+                    </div>
+                    <h5 class="text-muted">Sin historial</h5>
+                    <p class="small text-muted">Este usuario no tiene registros previos.</p>
+                </div>
+            `;
         }
 
         let html = '<div class="timeline-container">';
 
         historial.forEach((item, index) => {
-            const isFirst = index === 0; // El más reciente
-            const colorEstado = item.estado === 'En Zona' ? 'success' : 'secondary';
+            const isFirst = index === 0; // El registro más reciente
+            const isFinalizado = item.estado === 'Finalizado';
+            const isEnZona = item.estado === 'En Zona';
             
-            // Botón Reactivar: Solo si está Finalizado (y quizás solo si es el último, opcional)
+            // Colores según estado
+            const colorEstado = isEnZona ? 'success' : 'secondary';
+            const textoEstado = isEnZona ? 'En Zona' : 'Finalizado';
+
+            // --- A. LÓGICA DE BOTONES PDF (Descargo y Salida) ---
+            let pdfButtons = '';
+            
+            // 1. Acta de Ingreso (Descargo)
+            if (item.url_descargo) {
+                pdfButtons += `
+                    <a href="${item.url_descargo}" target="_blank" class="btn btn-sm btn-light border" title="Ver Acta de Ingreso" style="text-decoration:none;">
+                        <i class="fas fa-file-contract text-primary"></i> Acta Ingreso
+                    </a>
+                `;
+            }
+
+            // 2. Reporte de Salida (Actividades)
+            if (item.url_salida) {
+                pdfButtons += `
+                    <a href="${item.url_salida}" target="_blank" class="btn btn-sm btn-light border" title="Ver Reporte de Salida" style="text-decoration:none;">
+                        <i class="fas fa-file-invoice-dollar text-success"></i> Reporte Salida
+                    </a>
+                `;
+            }
+
+            // Envolver botones si existen
+            let pdfSection = '';
+            if (pdfButtons) {
+                pdfSection = `<div class="timeline-docs mt-3 d-flex flex-wrap gap-2">${pdfButtons}</div>`;
+            }
+
+            // --- B. LÓGICA DE REACTIVACIÓN (Solo si finalizado) ---
             let btnReactivar = '';
-            if (item.estado === 'Finalizado') {
+            if (isFinalizado) {
                 btnReactivar = `
-                    <button class="btn-reactivar-timeline" data-id="${item.id}">
-                        <i class="fas fa-undo-alt"></i> Reactivar Jornada
+                    <button class="btn-reactivar-timeline mt-3" data-id="${item.id}">
+                        <i class="fas fa-history"></i> Reactivar Jornada
                     </button>
                 `;
             }
 
-            // Botones PDF
-            let pdfs = '<div class="timeline-docs">';
-            if (item.url_descargo) {
-                pdfs += `<a href="${item.url_descargo}" target="_blank" class="doc-pill doc-entry"><i class="fas fa-file-contract"></i> Descargo</a>`;
-            }
-            if (item.url_salida) {
-                pdfs += `<a href="${item.url_salida}" target="_blank" class="doc-pill doc-exit"><i class="fas fa-file-invoice"></i> Salida</a>`;
-            }
-            pdfs += '</div>';
-
+            // --- C. CONSTRUCCIÓN DEL HTML DE LA CARD ---
             html += `
                 <div class="timeline-item ${isFirst ? 'highlight' : ''}">
                     <div class="timeline-marker ${colorEstado}"></div>
+                    
                     <div class="timeline-content">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="timeline-date"><i class="far fa-calendar-alt"></i> ${item.fecha_ingreso}</span>
-                            <span class="badge badge-soft-${colorEstado}">${item.estado}</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="timeline-date">
+                                <i class="far fa-calendar-alt me-1"></i> ${item.fecha_ingreso}
+                            </span>
+                            <span class="badge badge-soft-${colorEstado}">
+                                ${textoEstado}
+                            </span>
                         </div>
                         
-                        <h4 class="timeline-zone">${item.ubicacion}</h4>
+                        <h4 class="timeline-zone mb-3">${item.ubicacion}</h4>
                         
-                        <div class="timeline-times">
-                            <div><i class="fas fa-sign-in-alt text-success"></i> ${item.hora_ingreso}</div>
-                            <div><i class="fas fa-sign-out-alt text-danger"></i> ${item.hora_salida || '--:--'}</div>
-                            <div class="timeline-duration"><i class="fas fa-hourglass-half"></i> ${item.duracion}</div>
+                        <div class="timeline-times p-2 rounded bg-light border">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Entrada:</span>
+                                <span class="fw-bold text-dark"><i class="fas fa-sign-in-alt text-success me-1"></i>${item.hora_ingreso}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Salida:</span>
+                                <span class="fw-bold text-dark">
+                                    ${item.hora_salida ? `<i class="fas fa-sign-out-alt text-danger me-1"></i>${item.hora_salida}` : '--:--'}
+                                </span>
+                            </div>
+                            <div class="border-top my-1"></div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Duración:</span>
+                                <span class="badge bg-white text-dark border shadow-sm">
+                                    <i class="fas fa-stopwatch me-1"></i> ${item.duracion}
+                                </span>
+                            </div>
                         </div>
 
-                        ${pdfs}
+                        ${pdfSection}
+
                         ${btnReactivar}
                     </div>
                 </div>

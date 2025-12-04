@@ -1,379 +1,312 @@
 /* =========================================
-   ESTILOS PRINCIPALES: REGISTROS
+   ESTILOS MODERNOS: TABLA DE REGISTROS
+   (Actualizado: Fix Texto Blanco & Móvil)
    ========================================= */
 
-/* --- 1. Contenedor y Layout General --- */
+/* --- 1. Contenedor Principal --- */
 .registros-container {
     padding: 1.5rem 2rem;
-    background-color: #f8f9fa; /* Fondo gris muy suave */
-    min-height: calc(100vh - 60px); /* Ajuste para navbar */
-}
-
-.page-header {
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #e9ecef;
-    padding-bottom: 1rem;
+    background-color: var(--color-fondo-app);
+    min-height: calc(100vh - 60px);
+    font-family: var(--fuente-principal);
 }
 
 .page-header h2 {
-    color: #352460; /* Tu color corporativo morado */
-    font-weight: 700;
-    margin: 0;
+    color: var(--color-primario-oscuro);
+    font-weight: 800;
     font-size: 1.75rem;
+    margin: 0;
 }
 
 .subtitle {
-    color: #6c757d;
-    margin-top: 0.25rem;
-    font-size: 0.95rem;
+    color: var(--color-texto-secundario);
+    margin-top: 5px;
 }
 
-/* --- 2. Estilos para el Grid de Syncfusion --- */
+/* --- 2. Grid Syncfusion (La Tabla) --- */
+.e-grid {
+    border-radius: var(--radio-borde);
+    box-shadow: var(--sombra-suave);
+    border: none !important;
+    background-color: white !important; /* Fondo blanco forzado */
+    font-family: var(--fuente-principal) !important;
+}
 
-/* Ajuste general de filas */
+/* Cabeceras */
+/* 1. La celda contenedora */
+.e-grid .e-headercell {
+    background-color: #f1f5f9 !important; /* Gris muy claro */
+    border-bottom: 2px solid #e2e8f0 !important;
+}
+
+/* 2. EL TEXTO INTERNO (Esto es lo que estaba blanco) */
+.e-grid .e-headertext {
+    color: #352460 !important; /* Morado Corporativo Oscuro */
+    font-weight: 800 !important;
+    font-size: 0.75rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    opacity: 1 !important; /* Asegurar que no tenga transparencia */
+}
+
+/* 3. Iconos de filtro/ordenamiento en el header */
+.e-grid .e-icon-filter, 
+.e-grid .e-headertext .e-sort-icon {
+    color: #64748b !important; /* Gris oscuro para iconos */
+}
+
+/* --- FIX CRÍTICO DE TEXTO BLANCO --- */
+/* Forzamos el color negro/gris en TODAS las celdas y sus hijos */
 .e-grid .e-rowcell {
+    background-color: white !important;
+    color: #334155 !important; /* Gris oscuro */
+    border-bottom: 1px solid #f1f5f9 !important;
     font-size: 0.9rem !important;
-    vertical-align: middle !important; /* Centrado vertical */
 }
 
-.e-headertext {
-    font-weight: 700 !important;
-    color: #495057 !important;
+/* Asegurar que spans y divs hereden el color oscuro */
+.e-grid .e-rowcell span, 
+.e-grid .e-rowcell div {
+    color: inherit; 
 }
 
-/* --- 3. Columna: Visitante (Avatar y Texto) --- */
+/* Hover */
+.e-grid .e-row:hover .e-rowcell {
+    background-color: #f1f5f9 !important; /* Gris muy claro al pasar mouse */
+}
+
+/* --- 3. Perfil del Visitante (Estilos Internos) --- */
 .grid-avatar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%; /* Hace la imagen circular */
-    object-fit: cover;  /* Evita que la foto se estire/aplaste */
-    border: 2px solid #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
 }
 
-.avatar-wrapper {
-    flex-shrink: 0; /* Evita que el avatar se encoja */
+.visitante-nombre {
+    color: #352460 !important; /* Morado Oscuro */
+    font-weight: 800;
+    font-size: 1rem;
+    display: block;
 }
 
-.info-wrapper {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: 1.3;
-}
-
-/* --- 4. Columna: Estado (Badges Soft) --- */
-.badge {
-    padding: 0.5em 0.85em;
-    border-radius: 50rem; /* Píldora perfecta */
-    font-weight: 600;
-    font-size: 0.75rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    letter-spacing: 0.3px;
-    border: 1px solid transparent;
-}
-
-/* Estado: En Zona (Verde) */
-.badge-soft-success {
-    background-color: #d1e7dd;
-    color: #0f5132;
-    border-color: #badbcc;
-}
-
-/* Estado: Finalizado (Rojo) */
-.badge-soft-danger {
-    background-color: #f8d7da;
-    color: #842029;
-    border-color: #f5c2c7;
-}
-
-/* Estado: Mantenimiento/Otro (Amarillo) */
-.badge-soft-warning {
-    background-color: #fff3cd;
-    color: #664d03;
-    border-color: #ffecb5;
-}
-
-/* Estado: Default (Gris) */
-.badge-soft-secondary {
-    background-color: #e2e3e5;
-    color: #41464b;
-    border-color: #d3d6d8;
-}
-
-/* --- 5. Columna: Cronología (Tiempos) --- */
-.time-wrapper {
+.visitante-meta {
+    color: #64748b !important; /* Gris */
     font-size: 0.85rem;
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.time-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #555;
-    white-space: nowrap;
-}
-
-.time-row i {
-    width: 14px; /* Alineación fija de iconos */
-    text-align: center;
-}
-
-.duration-badge {
-    display: inline-block;
-    background: #e9ecef;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    color: #495057;
-    font-weight: 600;
-    width: fit-content;
-    margin-top: 2px;
-    border: 1px solid #dee2e6;
-}
-
-/* --- 6. Columna: Acciones (Botones) --- */
-.action-buttons {
-    display: flex;
-    justify-content: center;
     align-items: center;
     gap: 5px;
 }
 
-.btn-icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
-    border: 1px solid #dee2e6;
-    background: white;
+.visitante-meta i {
+    color: #f59e0b !important; /* Icono Dorado */
+}
+
+/* Texto de Fechas */
+.fecha-texto {
+    font-weight: 600;
+    color: #475569 !important;
+}
+
+/* --- 4. Badges (Semáforo) --- */
+.badge-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    outline: none;
+    gap: 6px;
 }
 
-.btn-icon i {
-    font-size: 1rem;
+.badge-active {
+    background-color: #dcfce7 !important;
+    color: #166534 !important; /* Verde Oscuro */
+    border: 1px solid #bbf7d0;
 }
 
-.btn-icon:hover {
-    background-color: #f8f9fa;
-    border-color: #cdd4da;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+.badge-inactive {
+    background-color: #f1f5f9 !important;
+    color: #94a3b8 !important; /* Gris */
+    border: 1px solid #e2e8f0;
 }
 
-.btn-icon:active {
-    transform: translateY(0);
-}
-
-/* --- 7. Adaptabilidad Móvil (Responsive) --- */
-@media (max-width: 768px) {
-    .registros-container {
-        padding: 0.5rem;
-        height: auto;
-        min-height: 100vh; /* Asegurar fondo */
-    }
-
-    /* Forzar que el grid tenga presencia física */
-    #GridRegistros {
-        display: block !important;
-        min-height: 500px; /* Altura mínima para evitar colapso */
-    }
-
-    /* AJUSTE MODO VERTICAL (TARJETAS) */
-    .e-grid .e-content {
-        overflow-y: visible !important; /* Permitir scroll nativo */
-        height: auto !important;
-    }
-
-    /* Convertir la fila en una Tarjeta Visible */
-    .e-grid .e-row {
-        display: flex !important;
-        flex-direction: column;
-        background: white;
-        margin-bottom: 15px; /* Separación entre tarjetas */
-        padding: 15px;
-        border-radius: 16px; /* Bordes más redondeados */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08); /* Sombra más fuerte para que destaque del fondo */
-        border: 1px solid #e9ecef;
-        height: auto !important;
-        position: relative; /* Para posicionamiento absoluto si hiciera falta */
-    }
-
-    /* Celdas internas */
-    .e-grid .e-rowcell {
-        display: flex !important;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0 !important;
-        border-bottom: 1px dashed #eee;
-        width: 100% !important;
-        text-align: right;
-        background: transparent !important; /* Evitar que tape cosas */
-    }
-
-    /* La última celda (Botones) sin borde */
-    .e-grid .e-rowcell:last-child {
-        border-bottom: none;
-        justify-content: center;
-        padding-top: 15px !important;
-    }
-
-    /* Labels (Etiquetas) */
-    .e-grid .e-rowcell::before {
-        content: attr(data-label);
-        font-weight: 800;
-        color: #352460;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
-        opacity: 0.8;
-    }
-    
-    /* Ocultar cabecera de la tabla */
-    .e-grid .e-headercontent {
-        display: none;
-    }
-
-    /* Ajuste de avatar en móvil */
-    .d-flex.align-items-center.gap-3 {
-        flex-direction: row-reverse; 
-        width: 100%;
-        justify-content: flex-end;
-    }
-}
-
-/* --- ESTILOS ESPECÍFICOS PARA MÓVIL Y BUSCADOR --- */
-
-/* Ajuste de la barra de búsqueda */
-.e-toolbar {
-    border-bottom: 1px solid #dee2e6 !important;
-    background: #fff !important;
-}
-
-.e-toolbar .e-toolbar-items {
-    background: transparent !important;
-}
-
-/* =========================================
-   ESTILOS DEL PANEL LATERAL (TIMELINE)
-   ========================================= */
-
+/* --- 5. Panel Lateral (Timeline) --- */
 .timeline-container {
     position: relative;
     padding-left: 20px;
-    border-left: 2px solid #e9ecef;
-    margin-top: 10px;
+    border-left: 2px solid #e2e8f0;
+    margin-top: 20px;
 }
 
 .timeline-item {
     position: relative;
-    margin-bottom: 30px;
-    padding-left: 20px;
+    margin-bottom: 25px;
 }
 
 /* Bolita del Timeline */
 .timeline-marker {
     position: absolute;
-    left: -27px; /* Ajustar según padding */
+    left: -29px;
     top: 0;
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 2px #e9ecef;
-    background-color: #adb5bd;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px #e2e8f0;
+    background-color: #94a3b8; /* Gris por defecto */
+    z-index: 2;
 }
-.timeline-marker.success { background-color: #28a745; box-shadow: 0 0 0 2px #c3e6cb; }
-.timeline-marker.secondary { background-color: #6c757d; }
+.timeline-marker.success { 
+    background-color: #22c55e; /* Verde */
+    box-shadow: 0 0 0 2px #86efac;
+}
 
-/* Contenido de la Card */
+/* La Tarjeta Blanca */
 .timeline-content {
-    background: #fff;
-    border: 1px solid #e9ecef;
+    background: white;
+    border: 1px solid #e2e8f0;
     border-radius: 12px;
     padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
 }
-.timeline-item.highlight .timeline-content {
-    border-left: 4px solid #352460;
-    background: #fdfdff;
+
+.timeline-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
+.timeline-item.highlight .timeline-content {
+    border-left: 4px solid #352460;
+    background: #f8fafc;
+}
+
+/* Textos dentro de la Card */
 .timeline-date {
     font-size: 0.85rem;
-    font-weight: 600;
-    color: #6c757d;
+    font-weight: 700;
+    color: #64748b;
 }
 
 .timeline-zone {
     font-size: 1.1rem;
-    font-weight: 700;
-    color: #352460;
+    font-weight: 800;
+    color: #352460; /* Morado */
     margin: 8px 0;
 }
 
 .timeline-times {
-    display: flex;
-    gap: 15px;
+    background-color: #f1f5f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
     font-size: 0.9rem;
-    margin-bottom: 12px;
-    color: #495057;
-}
-.timeline-duration {
-    margin-left: auto;
-    font-weight: 600;
-    color: #352460;
-    background: #f3f0fa;
-    padding: 2px 8px;
-    border-radius: 4px;
+    color: #334155;
 }
 
-/* Botones de Documentos (Pills) */
+/* Botones de Documentos */
 .timeline-docs {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    margin-top: 10px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed #e2e8f0;
 }
-.doc-pill {
-    font-size: 0.8rem;
-    padding: 6px 12px;
-    border-radius: 20px;
-    text-decoration: none;
+
+.doc-btn {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none !important;
     transition: all 0.2s;
+    border: 1px solid transparent;
 }
-.doc-entry { background: #e3f2fd; color: #0d47a1; }
-.doc-entry:hover { background: #bbdefb; }
-.doc-exit { background: #ffebee; color: #b71c1c; }
-.doc-exit:hover { background: #ffcdd2; }
+
+/* Botón Entrada (Azul) */
+.doc-entry {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border-color: #dbeafe;
+}
+.doc-entry:hover { background-color: #dbeafe; }
+
+/* Botón Salida (Verde) */
+.doc-exit {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border-color: #dcfce7;
+}
+.doc-exit:hover { background-color: #dcfce7; }
 
 /* Botón Reactivar */
 .btn-reactivar-timeline {
-    display: block;
     width: 100%;
-    margin-top: 12px;
-    padding: 8px;
-    background: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fcd34d;
     border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
 }
-.btn-reactivar-timeline:hover {
-    background: #ffe8a1;
+
+/* Títulos dentro del timeline */
+.timeline-zone, .timeline-date, .fw-bold {
+    color: #1e293b !important; /* Forzar oscuro */
+}
+.text-muted { color: #64748b !important; }
+
+
+/* --- 6. MÓVIL (Fix Pantalla Blanca) --- */
+@media (max-width: 768px) {
+    .registros-container { padding: 10px; }
+
+    /* Forzar altura y bloque */
+    #GridRegistros {
+        display: block !important;
+        min-height: 500px;
+    }
+
+    /* Transformar filas en tarjetas */
+    .e-grid .e-row {
+        display: flex !important;
+        flex-direction: column;
+        background: white !important;
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        height: auto !important;
+    }
+
+    .e-grid .e-rowcell {
+        display: flex !important;
+        justify-content: space-between;
+        width: 100% !important;
+        border-bottom: 1px dashed #e2e8f0 !important;
+        text-align: right;
+        padding: 8px 0 !important;
+    }
+
+    .e-grid .e-rowcell:last-child { border-bottom: none !important; }
+
+    /* Etiquetas DATA-LABEL */
+    .e-grid .e-rowcell::before {
+        content: attr(data-label);
+        font-weight: 800;
+        font-size: 0.7rem;
+        color: #94a3b8; /* Gris claro para etiqueta */
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
 }
