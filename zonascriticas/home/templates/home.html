@@ -48,7 +48,7 @@
                         <div class="profile_name" id="admin-nombre">{{ user.first_name|default:user.username }}</div>
                         <div class="job" id="admin-cargo">{{ user.tipo }}</div>
                     </div>
-                    <i class='bx bx-log-out js-logout-button' style="cursor: pointer;"></i>
+                    <button class="logout-btn-admin js-logout-button"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </div>
 
@@ -68,7 +68,7 @@
                 <span class="header-title">JoliFoods</span>
                 <div class="profile-container">
                     <a href="{% url 'perfil' %}"><img src="{{ imagen_src }}" alt="Perfil" id="mobile-profile-img"></a>
-                    <i class='bx bx-log-out js-logout-button' style="cursor: pointer;"></i>
+                    <button class="logout-btn-admin js-logout-button"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
             </header>
             <div class="iframe-wrapper no-scrollbar">

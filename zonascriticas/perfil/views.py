@@ -14,7 +14,7 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
     """
     
     # 1. Define la ruta estática de tu imagen por defecto
-    imagen_url_por_defecto = static('zonascriticas/img/default.png')
+    imagen_url_por_defecto = static('zonascriticas\media\default.png')
 
     # 2. Comprueba si el usuario tiene una imagen en la BD
     if request.user.img:

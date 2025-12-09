@@ -187,9 +187,78 @@ body.panel-is-open {
     padding-top: 12px;
     border-top: 1px solid var(--color-borde);
 }
+
 .status-label {
     font-size: 14px; font-weight: 500;
     color: var(--color-texto-secundario);
+}
+
+/* Contenedor del switch */
+.status-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+}
+
+/* Ocultamos el checkbox nativo */
+.status-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+/* El slider (fondo del switch) */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+/* El círculo deslizante */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+/* Cuando el checkbox está activado */
+.status-switch input:checked + .slider {
+    background-color: var(--color-primario-oscuro);
+}
+
+/* Posición del círculo cuando está activado */
+.status-switch input:checked + .slider:before {
+    transform: translateX(30px);
+}
+
+/* Estado deshabilitado */
+.status-switch input:disabled + .slider {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+.status-switch input:disabled + .slider:before {
+    background-color: #f5f5f5;
+}
+
+/* Efecto de enfoque para accesibilidad */
+.status-switch input:focus + .slider {
+    box-shadow: 0 0 1px var(--color-primario-oscuro);
 }
 
 /* ============================================= */
