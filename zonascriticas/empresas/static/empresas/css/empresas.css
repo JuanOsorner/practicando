@@ -7,13 +7,16 @@
 /* Ajuste del contenedor principal para esta vista */
 .main-card {
     background: var(--color-superficie);
-    border-radius: 16px;
     padding: 24px;
     border: 1px solid var(--color-borde);
-    max-width: 1600px;
-    width: 95%;
-    margin: 0 auto;
-    transition: max-width 0.4s ease, width 0.4s ease;
+    /* Elimina max-width y width anteriores */
+    width: 100%;
+    margin: 0;
+    /* Asegura que ocupe toda la altura disponible */
+    min-height: 100vh;
+    /* Usa height: 100% en lugar de min-height si prefieres */
+    box-sizing: border-box;
+    transition: padding 0.4s ease;
 }
 
 body.panel-is-open {

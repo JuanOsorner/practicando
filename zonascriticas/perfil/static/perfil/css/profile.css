@@ -59,28 +59,38 @@
     align-items: center; 
     justify-content: center; 
 }
+
 .profile-pic-container { 
     position: relative; 
     width: 130px; 
     height: 130px; 
     border-radius: 50%; 
-    overflow: hidden; 
+    /* REMOVER: overflow: hidden; */ /* ¡QUITA ESTO! */
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    background-color: var(--color-borde); /* <-- VARIABLE GLOBAL */
-    border: 3px solid var(--color-superficie); /* <-- VARIABLE GLOBAL */
+    background-color: var(--color-borde);
+    border: 3px solid var(--color-superficie);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); 
     margin-bottom: 1rem; 
+    overflow: visible; /* <-- AGREGAR ESTO */
 }
-.profile-pic { width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+
+.profile-pic { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 50%; /* <-- AGREGAR ESTO para mantener la forma circular */
+    /* REMOVER: z-index: 1; */ /* ¡QUITA ESTO! */
+}
+
 .btn-change-photo {
     position: absolute;
     bottom: 5px;
     right: 5px;
-    background: var(--color-primario-medio); /* <-- VARIABLE GLOBAL */
-    color: var(--color-texto-sobre-primario); /* <-- VARIABLE GLOBAL */
-    border: 2px solid var(--color-superficie); /* <-- VARIABLE GLOBAL */
+    background: var(--color-primario-medio);
+    color: var(--color-texto-sobre-primario);
+    border: 2px solid var(--color-superficie);
     border-radius: 50%;
     width: 38px;
     height: 38px;
@@ -89,7 +99,18 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    z-index: 2; 
+    z-index: 9999;
+    
+    /* AGREGAR: Estilos para garantizar visibilidad */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transform: translateZ(0); /* Fuerza aceleración por hardware */
+    will-change: transform, opacity; /* Optimiza animaciones */
+}
+
+.btn-change-photo:hover {
+    transform: scale(1.1) translateZ(0);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 10000; /* Un z-index aún mayor al hacer hover */
 }
 
 /* SOLUCIÓN: Centrar textos de usuario */

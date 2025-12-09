@@ -14,7 +14,7 @@ def perfil_view(request: HttpRequest) -> HttpResponse:
     """
     
     # 1. Define la ruta estática de tu imagen por defecto
-    imagen_url_por_defecto = static('zonascriticas\media\default.png')
+    imagen_url_por_defecto = static('home\img\default.png')
 
     # 2. Comprueba si el usuario tiene una imagen en la BD
     if request.user.img:
@@ -56,7 +56,6 @@ def update_profile_api(request: HttpRequest) -> JsonResponse:
     except Exception as e:
         # 4. Maneja errores (ej. documento duplicado)
         return JsonResponse({'status': False, 'mensaje': str(e)}, status=400)
-
 
 @require_POST  # Solo permite peticiones POST
 @login_custom_required

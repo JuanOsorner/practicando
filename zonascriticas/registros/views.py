@@ -13,12 +13,17 @@ from home.utils import api_response
 from .services import RegistrosService
 from descargo_responsabilidad.models import RegistroIngreso
 
+# Importamo el static
+from django.templatetags.static import static
+
 @login_custom_required
 def registros_view(request: HttpRequest) -> HttpResponse:
     """Renderiza el contenedor HTML para el Grid."""
+    imagen_url_por_defecto = static('home\img\default.png') 
+    imagen_a_mostrar = request.user.img.url if request.user.img else imagen_url_por_defecto
     if request.user.tipo != 'Administrador':
         return render(request, 'home/403.html', status=403)
-    return render(request, 'registros.html')
+    return render(request, 'registros.html', {'imagen_src': imagen_a_mostrar})
 
 
 @login_custom_required

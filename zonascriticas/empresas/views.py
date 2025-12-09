@@ -18,7 +18,7 @@ from home.utils import api_response
 @login_custom_required
 def empresas_view(request):
     """Renderiza la plantilla principal (HTML)."""
-    imagen_url_por_defecto = static('home/img/logoJoli.png') 
+    imagen_url_por_defecto = static('home\img\default.png') 
     imagen_a_mostrar = request.user.img.url if request.user.img else imagen_url_por_defecto
         
     context = { 'imagen_src': imagen_a_mostrar }
