@@ -1,13 +1,13 @@
 export const GridConfig = {
     
-    // --- 1. GENERADORES DE HTML (Templates Visuales) ---
+    // --- TEMPLATES VISUALES ---
 
-    // FUSIONAMOS: Avatar + Nombre + Empresa en una sola celda rica
     columnaPerfil: (props) => {
         if (!props) return '';
         const imgUrl = props.visitante_img ? props.visitante_img : '/static/home/img/default_avatar.png';
         const empresa = props.empresa || 'Particular';
 
+        // Estructura coincidente con CSS registros.css sección 3
         return `
             <div class="d-flex align-items-center gap-3">
                 <div class="avatar-wrapper">
@@ -16,9 +16,9 @@ export const GridConfig = {
                 <div class="info-wrapper">
                     <span class="visitante-nombre">${props.visitante_nombre}</span>
                     <div class="visitante-meta">
-                        <span class="doc-text"><i class="far fa-id-card"></i> ${props.visitante_doc}</span>
+                        <span class="doc-text">${props.visitante_doc}</span>
                         <span class="separator">•</span>
-                        <span class="empresa-text"><i class="fas fa-building"></i> ${empresa}</span>
+                        <span class="empresa-text">${empresa}</span>
                     </div>
                 </div>
             </div>
@@ -29,39 +29,39 @@ export const GridConfig = {
         if (props.estado_actual === 'En Zona') {
             return `<span class="badge-status badge-active"><div class="dot-pulse"></div> En Zona</span>`;
         } else {
-            return `<span class="badge-status badge-inactive">Histórico</span>`;
+            return `<span class="badge-status badge-inactive">Finalizado</span>`;
         }
     },
 
     columnaUltimoIngreso: (props) => {
-        return `<span class="fecha-texto">${props.ultima_visita}</span>`;
+        // Simple, fuente monoespaciada para fechas suele verse bien, 
+        // pero aquí usamos la fuente principal para consistencia.
+        return `<span style="color: var(--color-texto-principal); font-weight: 500;">${props.ultima_visita}</span>`;
     },
 
-    // --- 2. DEFINICIÓN DE COLUMNAS ---
+    // --- CONFIGURACIÓN DE COLUMNAS ---
     getColumns: function() {
         return [
             { 
                 field: 'visitante_nombre', 
-                headerText: 'PERFIL DEL VISITANTE', 
-                width: 300, 
-                allowFiltering: true,
-                //template: true // Indicamos que usaremos template
+                headerText: 'VISITANTE', 
+                width: 280, 
+                allowFiltering: false // Aseguramos que no haya filtro individual
             },
             { 
                 field: 'estado_actual', 
                 headerText: 'ESTADO', 
-                width: 120, 
+                width: 130, 
                 textAlign: 'Center',
-                allowFiltering: true 
+                allowFiltering: false 
             },
             { 
                 field: 'ultima_visita', 
                 headerText: 'ÚLTIMO ACCESO', 
-                width: 150, 
+                width: 160, 
                 textAlign: 'Right',
                 allowFiltering: false 
             }
-            // ELIMINADA: Columna 'Detalle' (Redundante)
         ];
     }
 };

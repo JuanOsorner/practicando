@@ -1,312 +1,532 @@
-/* =========================================
-   ESTILOS MODERNOS: TABLA DE REGISTROS
-   (Actualizado: Fix Texto Blanco & Móvil)
-   ========================================= */
-
 /* --- 1. Contenedor Principal --- */
 .registros-container {
-    padding: 1.5rem 2rem;
+    padding: 2rem;
     background-color: var(--color-fondo-app);
-    min-height: calc(100vh - 60px);
+    min-height: 100vh;
     font-family: var(--fuente-principal);
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .page-header h2 {
     color: var(--color-primario-oscuro);
-    font-weight: 800;
-    font-size: 1.75rem;
+    font-weight: 600;
+    font-size: 1.5rem;
     margin: 0;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
-.subtitle {
-    color: var(--color-texto-secundario);
-    margin-top: 5px;
+.page-header h2 i {
+    color: var(--color-acento);
+    font-size: 1.25rem;
 }
 
-/* --- 2. Grid Syncfusion (La Tabla) --- */
+/* --- 2. Grid Syncfusion - Estilo Minimalista Puro --- */
 .e-grid {
-    border-radius: var(--radio-borde);
-    box-shadow: var(--sombra-suave);
-    border: none !important;
-    background-color: white !important; /* Fondo blanco forzado */
+    border-radius: var(--radio-borde) !important;
+    box-shadow: var(--sombra-sutil) !important;
+    border: 1px solid var(--color-borde) !important;
+    background: var(--color-superficie) !important;
     font-family: var(--fuente-principal) !important;
 }
 
-/* Cabeceras */
-/* 1. La celda contenedora */
+/* Cabeceras: Planas y limpias */
 .e-grid .e-headercell {
-    background-color: #f1f5f9 !important; /* Gris muy claro */
-    border-bottom: 2px solid #e2e8f0 !important;
+    background-color: #f8f9fa !important; /* Gris muy claro, no gradientes */
+    border-bottom: 1px solid var(--color-borde-fuerte) !important;
+    border-right: none !important;
+    padding: 1rem 1.25rem !important;
 }
 
-/* 2. EL TEXTO INTERNO (Esto es lo que estaba blanco) */
 .e-grid .e-headertext {
-    color: #352460 !important; /* Morado Corporativo Oscuro */
-    font-weight: 800 !important;
+    color: var(--color-texto-secundario) !important;
+    font-weight: 600 !important;
     font-size: 0.75rem !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.5px !important;
-    opacity: 1 !important; /* Asegurar que no tenga transparencia */
+    letter-spacing: 0.05em !important;
 }
 
-/* 3. Iconos de filtro/ordenamiento en el header */
-.e-grid .e-icon-filter, 
-.e-grid .e-headertext .e-sort-icon {
-    color: #64748b !important; /* Gris oscuro para iconos */
-}
-
-/* --- FIX CRÍTICO DE TEXTO BLANCO --- */
-/* Forzamos el color negro/gris en TODAS las celdas y sus hijos */
+/* Filas: Espaciadas y claras */
 .e-grid .e-rowcell {
-    background-color: white !important;
-    color: #334155 !important; /* Gris oscuro */
-    border-bottom: 1px solid #f1f5f9 !important;
+    border-bottom: 1px solid var(--color-borde) !important;
+    border-right: none !important;
+    padding: 1rem 1.25rem !important;
+    color: var(--color-texto-principal) !important;
     font-size: 0.9rem !important;
 }
 
-/* Asegurar que spans y divs hereden el color oscuro */
-.e-grid .e-rowcell span, 
-.e-grid .e-rowcell div {
-    color: inherit; 
-}
-
-/* Hover */
+/* Hover suave en filas */
 .e-grid .e-row:hover .e-rowcell {
-    background-color: #f1f5f9 !important; /* Gris muy claro al pasar mouse */
+    background-color: #f8f9fa !important;
 }
 
-/* --- 3. Perfil del Visitante (Estilos Internos) --- */
+/* Selección de fila */
+.e-grid .e-row.e-selection .e-rowcell {
+    background-color: #edf2f7 !important; /* Azul grisáceo muy pálido */
+}
+
+.e-grid .e-row.e-selection {
+    border-left: 3px solid var(--color-primario-oscuro);
+}
+
+/* --- 3. Perfil del Visitante (La "Elegancia" solicitada) --- */
+.avatar-wrapper {
+    position: relative;
+    flex-shrink: 0;
+}
+
 .grid-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%; /* Completamente redondo es más estándar y limpio */
     object-fit: cover;
-    border: 2px solid #e2e8f0;
+    border: 1px solid var(--color-borde);
+    background-color: #fff;
+}
+
+.info-wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .visitante-nombre {
-    color: #352460 !important; /* Morado Oscuro */
-    font-weight: 800;
-    font-size: 1rem;
-    display: block;
+    color: var(--color-texto-principal);
+    font-weight: 500;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    margin-bottom: 2px;
 }
 
 .visitante-meta {
-    color: #64748b !important; /* Gris */
-    font-size: 0.85rem;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--color-texto-secundario);
+}
+
+.doc-text, .empresa-text {
+    color: var(--color-texto-principal);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .visitante-meta i {
-    color: #f59e0b !important; /* Icono Dorado */
+    font-size: 0.7rem;
+    opacity: 0.7;
 }
 
-/* Texto de Fechas */
-.fecha-texto {
-    font-weight: 600;
-    color: #475569 !important;
+.separator {
+    color: var(--color-texto-terciario);
+    font-size: 0.6rem;
 }
 
-/* --- 4. Badges (Semáforo) --- */
+/* --- 4. Badges (Estados) --- */
 .badge-status {
-    padding: 5px 12px;
+    padding: 0.35rem 0.75rem;
     border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    letter-spacing: 0.3px;
 }
 
 .badge-active {
-    background-color: #dcfce7 !important;
-    color: #166534 !important; /* Verde Oscuro */
-    border: 1px solid #bbf7d0;
+    background-color: #ecfdf5; /* Verde menta muy suave */
+    color: #059669;
+    border: 1px solid #d1fae5;
+}
+
+/* Pequeño punto pulsante sutil */
+.dot-pulse {
+    width: 6px;
+    height: 6px;
+    background-color: #059669;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
+    70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(5, 150, 105, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(5, 150, 105, 0); }
 }
 
 .badge-inactive {
-    background-color: #f1f5f9 !important;
-    color: #94a3b8 !important; /* Gris */
-    border: 1px solid #e2e8f0;
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
 }
 
-/* --- 5. Panel Lateral (Timeline) --- */
+/* --- 5. Barra de Herramientas y Búsqueda (CORREGIDO) --- */
+.e-toolbar {
+    border-bottom: 1px solid var(--color-borde) !important;
+    padding: 0.75rem 1rem !important;
+    background: #fff !important;
+}
+
+/* Contenedor del item de búsqueda para forzar alineación a la derecha */
+.e-toolbar-item.e-search-wrapper {
+    margin-left: auto !important; /* Empuja la búsqueda a la derecha */
+}
+
+/* Input de búsqueda estilizado y fijo */
+.e-search .e-input-group {
+    width: 280px !important; /* Ancho fijo para estabilidad */
+    border: 1px solid var(--color-borde-fuerte) !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    padding: 4px 8px !important;
+    transition: all 0.2s ease;
+}
+
+.e-search .e-input-group:focus-within {
+    border-color: var(--color-primario-oscuro) !important;
+    box-shadow: 0 0 0 2px rgba(44, 62, 80, 0.1) !important;
+}
+
+.e-search .e-input-group .e-input {
+    font-size: 0.875rem !important;
+    color: var(--color-texto-principal) !important;
+}
+
+.e-search .e-search-icon {
+    color: var(--color-texto-secundario) !important;
+}
+
+/* Ocultar botón de limpiar para mas limpieza visual si se desea, o estilizarlo */
+.e-search .e-clear-icon {
+    color: var(--color-texto-terciario) !important;
+}
+
+/* --- 6. Paginación --- */
+.e-pager {
+    border-top: 1px solid var(--color-borde) !important;
+    padding: 0.75rem !important;
+    background: #fff !important;
+}
+
+.e-pager .e-numericitem {
+    border-radius: 4px !important;
+    background: transparent !important;
+}
+
+.e-pager .e-currentitem {
+    background: var(--color-primario-oscuro) !important;
+    color: #fff !important;
+    border-radius: 4px !important;
+}
+
+/* --- 7. TIMELINE & CARDS (Panel Lateral) --- */
+/* Diseño tipo "Timeline de Documentos" */
+
 .timeline-container {
-    position: relative;
-    padding-left: 20px;
-    border-left: 2px solid #e2e8f0;
-    margin-top: 20px;
+    padding: 1rem 0 1rem 1.5rem;
+    border-left: 2px solid #e5e7eb;
+    margin-left: 1rem;
 }
 
 .timeline-item {
     position: relative;
-    margin-bottom: 25px;
+    margin-bottom: 2rem;
 }
 
-/* Bolita del Timeline */
 .timeline-marker {
     position: absolute;
-    left: -29px;
-    top: 0;
-    width: 16px;
-    height: 16px;
+    left: -1.95rem; /* Ajustado al borde */
+    top: 0.25rem;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    border: 3px solid white;
-    box-shadow: 0 0 0 2px #e2e8f0;
-    background-color: #94a3b8; /* Gris por defecto */
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px #e5e7eb;
+    background-color: #9ca3af;
     z-index: 2;
 }
-.timeline-marker.success { 
-    background-color: #22c55e; /* Verde */
-    box-shadow: 0 0 0 2px #86efac;
+
+.timeline-marker.success {
+    background-color: #10b981;
+    box-shadow: 0 0 0 2px #d1fae5;
 }
 
-/* La Tarjeta Blanca */
 .timeline-content {
-    background: white;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 15px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s;
+    /* Sin tarjeta contenedora externa, diseño más abierto */
+    padding-bottom: 0.5rem;
 }
 
-.timeline-content:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-item.highlight .timeline-content {
-    border-left: 4px solid #352460;
-    background: #f8fafc;
-}
-
-/* Textos dentro de la Card */
 .timeline-date {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: #64748b;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-texto-terciario);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+    display: block;
 }
 
 .timeline-zone {
     font-size: 1.1rem;
-    font-weight: 800;
-    color: #352460; /* Morado */
-    margin: 8px 0;
+    font-weight: 700;
+    color: var(--color-primario-oscuro);
+    margin-bottom: 0.75rem;
 }
 
+/* La tarjeta interna de tiempos */
 .timeline-times {
-    background-color: #f1f5f9;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    font-size: 0.9rem;
-    color: #334155;
+    background: #fff;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-borde);
+    padding: 1rem;
+    box-shadow: var(--sombra-card);
+    position: relative;
+    overflow: hidden;
 }
 
-/* Botones de Documentos */
-.timeline-docs {
+/* Borde izquierdo de color para estado */
+.timeline-times.completo { border-left: 4px solid #10b981; }
+.timeline-times.incompleto { border-left: 4px solid var(--color-acento); }
+
+.timeline-times .row-time {
     display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px dashed #e2e8f0;
-}
-
-.doc-btn {
-    display: inline-flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.timeline-times .label {
+    color: var(--color-texto-secundario);
     font-size: 0.8rem;
+}
+
+.timeline-times .value {
     font-weight: 600;
-    text-decoration: none !important;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+    color: var(--color-texto-principal);
 }
 
-/* Botón Entrada (Azul) */
-.doc-entry {
-    background-color: #eff6ff;
-    color: #1d4ed8;
-    border-color: #dbeafe;
+.timeline-docs {
+    margin-top: 1rem;
 }
-.doc-entry:hover { background-color: #dbeafe; }
 
-/* Botón Salida (Verde) */
-.doc-exit {
-    background-color: #f0fdf4;
-    color: #15803d;
-    border-color: #dcfce7;
-}
-.doc-exit:hover { background-color: #dcfce7; }
-
-/* Botón Reactivar */
+/* Botones de acción minimalistas */
 .btn-reactivar-timeline {
     width: 100%;
-    margin-top: 10px;
-    padding: 10px;
+    margin-top: 1rem;
+    padding: 0.5rem;
     background-color: #fffbeb;
     color: #b45309;
     border: 1px solid #fcd34d;
-    border-radius: 8px;
-    font-weight: 700;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
-/* Títulos dentro del timeline */
-.timeline-zone, .timeline-date, .fw-bold {
-    color: #1e293b !important; /* Forzar oscuro */
+.btn-reactivar-timeline:hover {
+    background-color: #fef3c7;
 }
-.text-muted { color: #64748b !important; }
 
+/* --- 8. Animaciones (Simples y Profesionales) --- */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
 
-/* --- 6. MÓVIL (Fix Pantalla Blanca) --- */
+.e-grid, .timeline-item {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* --- 9. Responsive Móvil --- */
 @media (max-width: 768px) {
-    .registros-container { padding: 10px; }
-
-    /* Forzar altura y bloque */
-    #GridRegistros {
-        display: block !important;
-        min-height: 500px;
+    .registros-container {
+        padding: 1rem;
     }
 
-    /* Transformar filas en tarjetas */
+    .page-header h2 {
+        font-size: 1.25rem;
+    }
+
+    .e-grid .e-headercontent {
+        display: none; /* Ocultar cabeceras en móvil */
+    }
+
     .e-grid .e-row {
-        display: flex !important;
-        flex-direction: column;
-        background: white !important;
-        margin-bottom: 15px;
-        padding: 15px;
-        border-radius: 16px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        border: 1px solid #e2e8f0;
-        height: auto !important;
+        display: block !important;
+        margin-bottom: 1rem;
+        background: #fff !important;
+        border: 1px solid var(--color-borde) !important;
+        border-radius: 8px;
+        box-shadow: var(--sombra-card);
+        padding: 0.5rem;
     }
 
     .e-grid .e-rowcell {
         display: flex !important;
         justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f3f4f6 !important;
+        padding: 0.75rem !important;
         width: 100% !important;
-        border-bottom: 1px dashed #e2e8f0 !important;
-        text-align: right;
-        padding: 8px 0 !important;
+    }
+    
+    .e-grid .e-rowcell:last-child {
+        border-bottom: none !important;
     }
 
-    .e-grid .e-rowcell:last-child { border-bottom: none !important; }
-
-    /* Etiquetas DATA-LABEL */
+    /* Etiqueta para móvil */
     .e-grid .e-rowcell::before {
         content: attr(data-label);
-        font-weight: 800;
-        font-size: 0.7rem;
-        color: #94a3b8; /* Gris claro para etiqueta */
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: var(--color-texto-terciario);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
+
+    .e-search .e-input-group {
+        width: 100% !important; /* Full width en móvil */
+    }
+}
+
+/* =========================================
+   VISTA MÓVIL ESPECÍFICA (Native Card View)
+   ========================================= */
+
+.mobile-container {
+    background-color: var(--color-fondo-app);
+    min-height: 100vh;
+    padding-bottom: 80px; /* Espacio para el footer de la app */
+}
+
+/* --- Header Móvil Sticky --- */
+.mobile-header {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--color-borde);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    z-index: 100;
+}
+
+.mobile-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--color-primario-oscuro);
+    margin: 0 0 1rem 0;
+}
+
+/* Buscador Móvil Estilizado */
+.mobile-search-wrapper {
+    position: relative;
+}
+
+.mobile-search-wrapper .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-texto-terciario);
+    font-size: 0.9rem;
+}
+
+#MobileSearchInput {
+    width: 100%;
+    padding: 10px 10px 10px 38px;
+    border-radius: 8px;
+    border: 1px solid var(--color-borde-fuerte);
+    background-color: #f8f9fa;
+    font-size: 0.95rem;
+    color: var(--color-texto-principal);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+#MobileSearchInput:focus {
+    background-color: #fff;
+    border-color: var(--color-primario-oscuro);
+    box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
+}
+
+/* --- Lista de Tarjetas --- */
+.mobile-list-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.m-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--color-borde);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.1s;
+    cursor: pointer;
+}
+
+.m-card:active {
+    transform: scale(0.98);
+    background-color: #f8f9fa;
+}
+
+.m-avatar-img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--color-borde);
+}
+
+.m-info {
+    flex: 1;
+    min-width: 0; /* Permite truncar texto */
+}
+
+.m-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--color-texto-principal);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.m-details {
+    font-size: 0.8rem;
+    color: var(--color-texto-secundario);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.m-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.m-status-dot.active { background-color: #10b981; box-shadow: 0 0 0 2px #d1fae5; }
+.m-status-dot.inactive { background-color: #9ca3af; }
+
+.m-chevron {
+    color: var(--color-texto-terciario);
+    font-size: 0.8rem;
 }
