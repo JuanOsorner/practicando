@@ -101,6 +101,48 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# Esta es nuestra configuracion para realizar los debugs 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO', # En consola sale todo desde INFO para arriba
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'ERROR', # En archivo SOLO guardamos errores graves
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'errores_del_proyecto.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # Configuración para TUS aplicaciones (esto es clave)
+        'mis_apps': {  
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
