@@ -1,39 +1,68 @@
-# zonascriticas/login/models.py
+"""
+zonascriticas/login/models.py
+
+Este es nuestro modelo de usuario personalizado. 
+
+Descripción: Este modelo de usuario es personalizado: no usamos contraseña porque
+para ingresar unicamente pedimos la cedula del usuario
+
+Responsabilidades: Este modelo debe crear la tabla de usuario en la base de datos con
+los datos que se pueden ver a continuacion
+
+Escrito por: Juan Esteban Osorno Duque 😎
+"""
 from django.db import models
 from empresas.models import Empresa, Cargo 
 
 class Usuario(models.Model):
-    
-    # Django pondrá 'id' por defecto, pero lo mapeamos a 'int(11)'
+    """
+    Clase usuario personalizada para el contexto del proyecto
+    """
+
+    # 1. Creamos el ID que es la llave primaria
     id = models.AutoField(primary_key=True)
     
+    # 2. Email unico con el nombre de la columna correo
     email = models.EmailField(unique=True, db_column='correo', max_length=255) 
 
+    # 3. constante = tupla con los tipos: para nuestro contexto son 2
     TIPO = (
         ('Administrador', 'Administrador'),
         ('Usuario', 'Usuario'),
     )
+
+    # 4. Le decimos que puede elegir de la constante tipo esas opciones pero que por defecto es usuario
     tipo = models.CharField(max_length=250, choices=TIPO, default='Usuario', db_column='tipo')
 
-    # Mapeamos 'estado' (tinyint(1)) a 'is_active' (BooleanField)
+    # 5. Esta activo o inactivo (manejamos BooleanField porque su equivalente es la binaria)
     is_active = models.BooleanField(default=True, db_column='estado')
 
-    # Mapeamos 'nombre' a 'first_name'
+    # 6. El nomnre del usuario
     first_name = models.CharField(max_length=250, db_column='nombre')
 
+    # 7. Los tipos de documento nuevamente en una tupla
     TIPO_DOCUMENTO = (
         ('CC', 'Cédula de Ciudadanía'),
         ('CE', 'Cédula de Extranjería'),
         ('PA', 'Pasaporte'),
     )
+
+    # 8. Seleccionamos documentos
     tipo_documento = models.CharField(max_length=50, choices=TIPO_DOCUMENTO, db_column='tipo_documento', blank=True)
+
+    # 9. Numero de documento que en nuestro caso es claramente un CharField
     numero_documento = models.CharField(max_length=50, unique=True, db_column='numero_documento')
     
+    # 10. 🚨 Se deja el campo de token por el momento, por si la aplicacion lo necesita mas adelante
     token = models.CharField(max_length=255, blank=True, null=True, db_column='token')
     
+    # 11. Campo de la imagen que le vamos a decir, le decimos que vaya a la ubicacion usuarios/
     img = models.ImageField(upload_to='usuarios/', max_length=250, blank=True, null=True, db_column='img')
     
+    # 12. El tiempo limite que va a tener en la jornada
     tiempo_limite_jornada = models.TimeField(blank=True, null=True, db_column='tiempo_limite_jornada')
+
+    # LLAVES FORANEAS QUE USAMOS PARA EL FLUJO DE DATOS
 
     empresa = models.ForeignKey(
         'empresas.Empresa', 
@@ -80,7 +109,7 @@ class Usuario(models.Model):
         return self.email or f"Usuario {self.id}"
 
     class Meta:
-        # ¡CAMBIO! Le decimos a Django que cree esta tabla
+        # Le decimos a Django que cree esta tabla
         # localmente para nosotros.
         managed = True 
         db_table = 'usuarios' # El nombre de la BD real
