@@ -8,8 +8,6 @@ para ingresar unicamente pedimos la cedula del usuario
 
 Responsabilidades: Este modelo debe crear la tabla de usuario en la base de datos con
 los datos que se pueden ver a continuacion
-
-Escrito por: Juan Esteban Osorno Duque 😎
 """
 from django.db import models
 from empresas.models import Empresa, Cargo 

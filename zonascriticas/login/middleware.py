@@ -19,8 +19,6 @@ responsabilidades:
 
 -Este middleware inyecta request.user de forma perezosa, usando 
 la sesión como fuente de verdad, sin golpear la base de datos en cada request.
-
-Escrito por: Juan Esteban Osorno Duque 😎
 """
 from django.utils.functional import SimpleLazyObject
 from .models import Usuario
