@@ -13,24 +13,32 @@ import os # Importamos nuestro os para encapsular nuestras variables de entorno
 from pathlib import Path
 from dotenv import load_dotenv
 
+# COnfiguración del loggin para realizar pruebas
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Ubicación del .env
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
+# Ubicamos donde esta nuestro .env
+env_path = BASE_DIR.parent / '.env' # Esta un nivel por arriba
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-sxz-kc90!%6hna=3u)4_1=q4ke#)!(g0t4ptx9@%n=ak!*f*pa'
+# cargamos las variables de entorno
+load_dotenv(dotenv_path=env_path)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Nuestra llave de seguridad (DEBES MANTENERLA EN SECRETO)
+SECRET_KEY = os.getenv('SECRET_KEY_IMASD', 'Fallo') #Si no encuenta la llave retorna un error 
 
-ALLOWED_HOSTS = []
+# Nuestro DEBUGING esto es para facilitar el desarrollo (EN DESARROLLO DEBE ESTAR EN TRUE)
+DEBUG = os.getenv('DEBUG_IMASD', False)
+
+# Debemos colocar todos nuestros host en la variable de entorno por seguridad
+# Por defecto dejamos * para desarrollo
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS_IMASD', '*').split(',')
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,6 +49,7 @@ INSTALLED_APPS = [
     'login',
 ]
 
+# Aqui nuestros middlewares
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -71,20 +80,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ImasD.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
+# CONFIGURACION A LA BASE DE DATOS
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': os.getenv('ENGINE_IMASD', 'django.db.backends.sqlite3'),
+        'NAME': os.getenv('NAME_IMASD', 'imasd_db'),
+        'USER': os.getenv('USER_IMASD', 'roo'),
+        'PASSWORD': os.getenv('PASSWORD_IMASD', ''),
+        'HOST': os.getenv('HOST_IMASD', 'localhost'),
+        'PORT': os.getenv('PUERTO_IMASD', '3306'),
     }
 }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -101,72 +107,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# Esta es nuestra configuracion para realizar los debugs 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO', # En consola sale todo desde INFO para arriba
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
-        },
-        'file': {
-            'level': 'ERROR', # En archivo SOLO guardamos errores graves
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'errores_del_proyecto.log'),
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        # Configuración para TUS aplicaciones (esto es clave)
-        'mis_apps': {  
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 # AJUSTAMOS LAS FECHAS A COLOMBIA
 
+# Lenguaje
 LANGUAGE_CODE = 'es-co'
 
+# Zona Horaria
 TIME_ZONE = 'America/Bogota' 
 
 USE_I18N = True
+
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
 
-# Le decimos a Django donde encontrar la carpeta de media
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
