@@ -8,5 +8,6 @@ app_name = 'login' # Debe ser app_name para que Django sepa a que app pertenece
 # Incluimos todos los endpoints de la app Login
 urlpatterns = [
     path('', views.login_view, name='login'), # GET: Renderizar login
-    path('api/login/', views.procesar_login, name='login-api'), # POST: Procesar login
+    # El ENDPOINT al que apuntamos, la vista que mostramos y el nombre que usamos para el template
+    path('procesar/', views.procesar_formulario, name='login-imasd'), # POST: Procesar login
 ]

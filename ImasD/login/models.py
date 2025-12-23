@@ -7,6 +7,8 @@ ImasD\login\models.py
 
 Nota: Estamos Usando AbstractBaseUser para poder personalizar la tabla de usuarios de la base
 de datos, usar el sistema de autenticacion de Django para poder loguearse con el correo
+
+hemos creado un manager personalizado que nos ayuda a crear usuarios nuevos y superusuarios
 """
 
 # Para usar AbstractBaseUser debemos importar los siguiebtes paquetes para manejar el model del manager
@@ -44,7 +46,7 @@ class UsuarioManager(BaseUserManager): # Hacemos herencia de la clase BaseUserMa
         usuario = self.model(
             correo=correo_normalizado,
             nombre=nombre,
-            **extra_fields
+            **extra_fields # Por si agregamos mas campos
             )
         # Hasheamos la contraseña
         usuario.set_password(password)
@@ -54,6 +56,8 @@ class UsuarioManager(BaseUserManager): # Hacemos herencia de la clase BaseUserMa
 
     def create_superuser(self, correo, nombre, password=None, **extra_fields):
 
+        # Creamos los extra_field que faltan para el super usuario
+        # Por defecto se crean automatico estos campos  los añadimos a crear un usuario
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True) # Necesario por PermissionsMixin
         extra_fields.setdefault('tipo', 'sa')
