@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}JoliFoods{% endblock %}</title>
+
+    <link rel="icon" href="{% static 'img/logoJoli.png' %}" type="image/png">
+
+    <link rel="stylesheet" href="{% static 'home/css/global.css' %}">
+    <link rel="stylesheet" href="{% static 'home/css/home.css' %}">
+
+    {% block styles %}
+    {% endblock %}
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href='https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css' rel='stylesheet'>
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="{% if user.tipo == 'Administrador' or user.is_superuser %}role-admin{% else %}role-user{% endif %}"
+      data-logout-url="{% url 'logout' %}"
+      data-csrf-token="{{ csrf_token }}">
+    
+    <div class="sidebar">
+        <div class="logo-details">
+            <img src="{% static 'img/logoJoli.png' %}" class="img-logo" alt="Logo JoliFoods">
+            <span class="logo_name">JoliFoods</span>
+        </div>
+
+        <ul class="nav-links no-scrollbar">
+            
+            <li>
+                <a href="{% url 'perfil' %}">
+                    <span class="icon"><i class='bx bxs-user-detail'></i></span>
+                    <span class="link_name">Perfil</span>
+                </a>
+                <ul class="sub-menu blank">
+                    <li><a class="link_name" href="{% url 'perfil' %}">Perfil</a></li>
+                </ul>
+            </li>
+
+            {% if user.tipo == 'Administrador' or user.is_superuser %}
+                <li style="pointer-events: none; margin-top: 10px;">
+                    <span class="link_name" style="font-size: 10px; padding-left: 20px; color: var(--color-texto-inverso-secundario); opacity: 0.6; text-transform: uppercase;">Gestión</span>
+                </li>
+
+                <li>
+                    <a href="{% url 'empresas-list' %}">
+                        <span class="icon"><i class='bx bxs-business'></i></span>
+                        <span class="link_name">Empresas</span>
+                    </a>
+                    <ul class="sub-menu blank">
+                        <li><a class="link_name" href="{% url 'empresas-list' %}">Empresas</a></li>
+                    </ul>
+                </li>
+
+                <li>
+                    <a href="{% url 'registros_view' %}">
+                        <span class="icon"><i class='bx bx-history'></i></span>
+                        <span class="link_name">Registro Jornadas</span>
+                    </a>
+                    <ul class="sub-menu blank">
+                        <li><a class="link_name" href="{% url 'registros_view' %}">Historial</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+
+            {% if user.is_superuser %}
+                <li style="pointer-events: none; margin-top: 10px;">
+                    <span class="link_name" style="font-size: 10px; padding-left: 20px; color: #ff6b6b; opacity: 0.8; text-transform: uppercase;">Dev Zone</span>
+                </li>
+
+                <li>
+                    <a href="/admin/" target="_blank">
+                        <span class="icon"><i class='bx bxs-data' style="color: #ff6b6b;"></i></span>
+                        <span class="link_name">Django Admin</span>
+                    </a>
+                    <ul class="sub-menu blank">
+                        <li><a class="link_name" href="/admin/">Base de Datos</a></li>
+                    </ul>
+                </li>
+            {% endif %}
+        </ul>
+
+        <div class="profile-details">
+            <div class="profile-content">
+                <img src="{{ imagen_src|default:'https://via.placeholder.com/150' }}" alt="Foto de Perfil" id="sidebar-profile-img">
+            </div>
+            <div class="name-job">
+                <div class="profile_name" id="admin-nombre">{{ user.first_name|default:user.username }}</div>
+                <div class="job" id="admin-cargo">{{ user.tipo|default:"Usuario" }}</div>
+            </div>
+            <button class="logout-btn-admin js-logout-button">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </div>
+    </div>
+
+    <section class="home-section">
+        <header class="home-content">
+            <i class='bx bx-menu'></i> </header>
+        
+        <div class="iframe-wrapper no-scrollbar"> 
+            {% block content %}
+            {% endblock %}
+        </div>
+    </section>
+
+    <div id="global-panel-overlay" class="global-overlay"></div>
+
+    <aside id="global-side-panel" class="global-panel">
+        <div class="global-panel-header">
+            <button id="global-panel-close-btn" class="global-panel-close-btn" title="Cerrar">
+                <i class='bx bx-x' style="font-size: 24px;"></i>
+            </button>
+            <span id="global-panel-title" class="global-panel-title">Título del Panel</span>
+        </div>
+        
+        <div id="global-panel-content" class="global-panel-body"></div>
+    </aside>
+
+    {% block extras %}
+    {% endblock %}
+
+    <script src="{% static 'home/js/home.js' %}"></script>
+    
+    {% block scripts %}
+    {% endblock %}
+    
+</body>
+</html>

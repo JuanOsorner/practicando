@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* --- Paleta de Colores Corporativa --- */
+    --color-primario-oscuro: #352460;
+    --color-primario-medio: #632778;
+    --color-primario-medio-hover: #4a1d5c;
+    --color-primario-claro: #6a5e8a;
+    --color-primario-hover-fondo: #1d1b31;
+    
+    --color-acento: #ffbf00;
+
+    --color-afirmativo: #32aa32;
+    --color-afirmativo-claro: #91ff986c;
+    
+    --color-fondo-app: #f0f2f5;
+    --color-superficie: #ffffff;
+    --color-borde: #e0e0e0;
+
+    --color-texto-principal: #333333;
+    --color-texto-secundario: #6c757d;
+    --color-texto-sobre-primario: #ffffff;
+    --color-texto-inverso: #ffffff;
+
+    /* --- Sistema de Diseño --- */
+    --fuente-principal: 'Inter', sans-serif;
+    --radio-borde: 12px;
+    --radio-modal: 24px;
+    --sombra-suave: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --sombra-hover: 0 8px 20px rgba(53, 36, 96, 0.15);
+    --sombra-modal: 0 40px 80px rgba(0, 0, 0, 0.5); /* Sombra fuerte para el modal flotante */
+    
+    /* --- Layout --- */
+    --altura-header-mobile: 60px;
+    --altura-footer-mobile: 70px;
+    --ancho-sidebar: 280px;
+    --ancho-sidebar-cerrado: 58px;
+
+    /* --- Z-Index Layers --- */
+    --z-fondo: -1;
+    --z-contenido: 10;
+    --z-fab: 100;
+    --z-overlay-panel: 1040;  
+    --z-panel-lateral: 1050;  
+    --z-modal: 2000; 
+}
+
+/* ============================================= */
+/* === 2. RESET Y UTILIDADES === */
+/* ============================================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: var(--fuente-principal);
+    background-color: var(--color-fondo-app);
+    color: var(--color-texto-principal);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}

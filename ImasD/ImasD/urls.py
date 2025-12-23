@@ -24,6 +24,7 @@ from django.conf.urls.static import static   # Importamos la función para servi
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('login/', include('login.urls')), # Importamos las urls de Login
+    path('home/', include('home.urls')),
 ]
 
 # Lógica condicional: Solo servimos media si estamos en modo DEBUG (Desarrollo).

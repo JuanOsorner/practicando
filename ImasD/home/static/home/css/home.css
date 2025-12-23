@@ -1,0 +1,309 @@
+/* ======================================================= */
+/* ===         CSS PARA VISTAS DE ESCRITORIO           === */
+/* ======================================================= */
+
+/* Corrección de selectores globales peligrosos */
+.sidebar .nav-links span {
+    color: var(--color-texto-sobre-primario);
+}
+
+/* --- Estructura Principal del Sidebar --- */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: var(--ancho-sidebar);
+    /* Usamos el primario oscuro y una variante un poco más transparente para el gradiente */
+    background: linear-gradient(180deg, var(--color-primario-oscuro) 0%, var(--color-primario-medio-hover) 100%);
+    z-index: var(--z-panel-lateral, 1050); /* Usando variable de root o fallback */
+    transition: all 0.5s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Estado Cerrado */
+.sidebar.close {
+    width: var(--ancho-sidebar-cerrado);
+}
+
+/* --- Logo Header --- */
+.sidebar .logo-details {
+    height: var(--altura-header-mobile); /* Usando 60px del root */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden; /* Evita desbordes al cerrar */
+}
+
+.sidebar .logo-details .img-logo {
+    height: 30px;
+    min-width: var(--ancho-sidebar-cerrado); /* Centrado en estado cerrado */
+    text-align: center;
+    line-height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar .logo-details .logo_name {
+    font-size: 20px;
+    color: var(--color-texto-sobre-primario);
+    font-weight: 600;
+    transition: 0.3s ease;
+    transition-delay: 0.1s;
+    white-space: nowrap;
+}
+
+.sidebar.close .logo-details .logo_name {
+    transition-delay: 0s;
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- Navegación (Links) --- */
+.sidebar .nav-links {
+    height: 100%;
+    padding: 10px 0;
+    overflow-y: auto; /* Scroll vertical si es necesario */
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primario-claro) transparent;
+    flex: 1; /* Ocupa el espacio restante disponible */
+}
+
+.sidebar.close .nav-links {
+    overflow: visible; /* Necesario para que los sub-menús floten fuera */
+}
+
+/* Scrollbar personalizado Webkit */
+.sidebar .nav-links::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar .nav-links::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar .nav-links::-webkit-scrollbar-thumb {
+    background-color: var(--color-primario-claro);
+    border-radius: 10px;
+}
+.sidebar .nav-links::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-acento);
+}
+
+/* Items de Lista */
+.sidebar .nav-links li {
+    position: relative;
+    list-style: none;
+    transition: all 0.4s ease;
+    margin: 4px 8px; /* Un poco de margen a los lados */
+    border-radius: var(--radio-borde);
+}
+
+.sidebar .nav-links li:hover {
+    background: var(--color-primario-hover-fondo);
+}
+
+/* Enlaces e Iconos */
+.sidebar .nav-links li .icon-link,
+.sidebar .nav-links li a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    height: 50px; /* Altura consistente */
+}
+
+.sidebar .nav-links li .icon {
+    min-width: calc(var(--ancho-sidebar-cerrado) - 16px); /* Ajuste por el margen del li */
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--color-texto-sobre-primario);
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-links li a .link_name {
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--color-texto-sobre-primario);
+    transition: all 0.4s ease;
+    white-space: nowrap;
+}
+
+.sidebar.close .nav-links li a .link_name {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Efecto hover en texto */
+.sidebar .nav-links li a:hover .link_name {
+    color: var(--color-acento);
+}
+.sidebar .nav-links li a:hover .icon {
+    color: var(--color-acento);
+}
+
+/* --- Sub Menús (Tooltips en modo cerrado) --- */
+.sidebar .nav-links li .sub-menu {
+    padding: 6px 6px 14px 80px;
+    margin-top: -10px;
+    background: var(--color-primario-hover-fondo);
+    display: none;
+}
+
+.sidebar.close .nav-links li .sub-menu {
+    position: absolute;
+    left: 100%;
+    top: -10px;
+    margin-top: 0;
+    padding: 10px 20px;
+    border-radius: 0 6px 6px 0;
+    opacity: 0;
+    display: block;
+    pointer-events: none;
+    transition: 0s;
+    background: var(--color-primario-oscuro);
+    box-shadow: var(--sombra-hover);
+}
+
+.sidebar.close .nav-links li:hover .sub-menu {
+    top: 0;
+    opacity: 1;
+    pointer-events: auto;
+    transition: all 0.4s ease;
+}
+
+.sidebar.close .nav-links li .sub-menu .link_name {
+    font-size: 15px;
+    opacity: 1;
+    display: block;
+}
+
+/* --- Footer del Perfil --- */
+.sidebar .profile-details {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--color-primario-medio);
+    padding: 12px 14px;
+    transition: all 0.5s ease;
+    overflow: hidden;
+}
+
+.sidebar .profile-details img {
+    height: 40px;
+    width: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: var(--color-superficie);
+}
+
+.sidebar .profile-details .name-job {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    flex-grow: 1;
+}
+
+.sidebar .profile-details .profile_name {
+    color: var(--color-texto-sobre-primario);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.sidebar .profile-details .job {
+    color: var(--color-primario-claro);
+    font-size: 11px;
+    white-space: nowrap;
+}
+
+.logout-btn-admin {
+    background: none;
+    border: none;
+    color: var(--color-texto-sobre-primario);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.3s;
+    min-width: 30px;
+}
+.logout-btn-admin:hover {
+    color: var(--color-acento);
+}
+
+/* Ocultar detalles en modo cerrado */
+.sidebar.close .profile-details .name-job,
+.sidebar.close .profile-details .profile_name,
+.sidebar.close .profile-details .job {
+    display: none;
+}
+.sidebar.close .profile-details {
+    justify-content: center;
+    padding: 12px 0;
+}
+.sidebar.close .profile-details img {
+    margin: 0;
+}
+
+/* --- Sección Principal (Contenido) --- */
+.home-section {
+    position: relative;
+    background: var(--color-fondo-app);
+    min-height: 100vh;
+    left: var(--ancho-sidebar);
+    width: calc(100% - var(--ancho-sidebar));
+    transition: all 0.5s ease;
+}
+
+.sidebar.close ~ .home-section {
+    left: var(--ancho-sidebar-cerrado);
+    width: calc(100% - var(--ancho-sidebar-cerrado));
+}
+
+.home-section .home-content {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    background: var(--color-superficie);
+    padding: 0 20px;
+    box-shadow: var(--sombra-suave);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-contenido);
+}
+
+.home-section .home-content .bx-menu {
+    color: var(--color-texto-principal);
+    font-size: 28px;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.home-section .content-wrapper {
+    padding: 20px;
+    /* Aseguramos que el contenido no quede pegado al header */
+}
+
+/* --- Paneles Globales (Aside derecho) --- */
+.global-overlay {
+    /* Estilos del overlay si los necesitas, usualmente un fixed negro con opacidad */
+    display: none; 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: var(--z-overlay-panel);
+}
+
+.global-panel {
+    position: fixed;
+    top: 0;
+    right: -400px; /* Oculto por defecto */
+    width: 350px;
+    height: 100%;
+    background: var(--color-superficie);
+    z-index: var(--z-panel-lateral);
+    transition: right 0.3s ease;
+    box-shadow: var(--sombra-modal);
+}
