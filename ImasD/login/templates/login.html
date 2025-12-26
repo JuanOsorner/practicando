@@ -1,11 +1,54 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
+    <link rel="icon" href="{% static 'img/logoJoli.png' %}" type="image/png">
+    <link rel="stylesheet" href="{% static 'login/css/login.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
+    <div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+    </div>
+
+    <div class="container" id="container">
+        <div class="header-container">
+            <img src="{% static 'img/logoJoli.png' %}" alt="Jolifoods Logo">
+            <h1>Jolifoods</h1>
+        </div>
+        
+        <form class="forregistro" method="POST" action="{% url 'login:login-imasd' %}">
+            
+            {% csrf_token %} <br>
+            
+            <div class="inputGroup">
+                <input type="email" id="correo" name="correo" 
+                       style="text-align: left;"
+                       autofocus
+                       required> <label for="correo">Correo electrónico:</label>
+            </div>
+
+            <div class="inputGroup">
+                <input type="password" id="password" name="password" 
+                       style="text-align: left;"
+                       required> <label for="password">Contraseña:</label>
+            </div>
+
+            <button type="submit" class="ingresar">Ingresar</button>
+
+            <button type="button" id="microsoftLoginButton" class="Microsoft">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" 
+                     alt="Microsoft" style="height: 18px; margin-right: 10px;">
+                Ingresar Microsoft
+            </button>
+        </form>
+    </div>
     
+    <script src="{% static 'login/js/login.js' %}"></script>
 </body>
 </html>
